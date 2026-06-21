@@ -1,0 +1,1 @@
+../../../Classes/nitro_type_coverage.bridge.g.swift

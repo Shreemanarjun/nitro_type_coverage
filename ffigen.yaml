@@ -1,0 +1,15 @@
+# Run with `dart run ffigen --config ffigen.yaml`.
+name: NitroTypeCoverageBindings
+description: |
+  Bindings for `src/nitro_type_coverage.h`.
+
+  Regenerate bindings with `dart run ffigen --config ffigen.yaml`.
+output: 'lib/nitro_type_coverage_bindings_generated.dart'
+headers:
+  entry-points:
+    - 'src/nitro_type_coverage.h'
+  include-directives:
+    - 'src/nitro_type_coverage.h'
+comments:
+  style: any
+  length: full
