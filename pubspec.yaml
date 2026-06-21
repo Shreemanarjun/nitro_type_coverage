@@ -10,8 +10,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  nitro: ^0.4.4
+
   plugin_platform_interface: ^2.0.2
+  nitro: ^0.4.4
 
 dev_dependencies:
   flutter_test:

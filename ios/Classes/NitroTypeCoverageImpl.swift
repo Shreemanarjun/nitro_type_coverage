@@ -1,28 +1,37 @@
 import Foundation
 import Combine
 
-/// Echo implementation of HybridNitroTypeCoverageProtocol.
+/// Complete echo implementation of HybridNitroTypeCoverageProtocol.
 /// Every method returns exactly what it receives.
-/// Streams emit a configurable sequence of values.
+/// Used to verify the Nitro bridge correctly serialises/deserialises every type.
 public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
 
-    // ── Stream subjects ───────────────────────────────────────────────────────
-    private let _intStream = PassthroughSubject<Int64, Never>()
-    private let _pointStream = PassthroughSubject<TcPoint, Never>()
+    // ── Streams ───────────────────────────────────────────────────────────────
+    private let _intStreamSubject = PassthroughSubject<Int64, Never>()
+    private let _pointStreamSubject = PassthroughSubject<TcPoint, Never>()
+    private let _boolStreamSubject = PassthroughSubject<Bool, Never>()
 
-    public var intStream: AnyPublisher<Int64, Never> { _intStream.eraseToAnyPublisher() }
-    public var pointStream: AnyPublisher<TcPoint, Never> { _pointStream.eraseToAnyPublisher() }
+    public var intStream: AnyPublisher<Int64, Never> { _intStreamSubject.eraseToAnyPublisher() }
+    public var pointStream: AnyPublisher<TcPoint, Never> { _pointStreamSubject.eraseToAnyPublisher() }
+    public var boolStream: AnyPublisher<Bool, Never> { _boolStreamSubject.eraseToAnyPublisher() }
 
     // ── Properties ────────────────────────────────────────────────────────────
     public var precision: Int64 = 0
     public var tag: String = ""
     public var nullableRate: Double? = nil
+    public var enabled: Bool = false
+    public var currentStatus: TcStatus = .ok
 
     // ── Primitives ────────────────────────────────────────────────────────────
     public func echoInt(value: Int64) -> Int64 { value }
     public func echoDouble(value: Double) -> Double { value }
     public func echoBool(value: Bool) -> Bool { value }
     public func echoString(value: String) -> String { value }
+
+    // ── Multi-param ───────────────────────────────────────────────────────────
+    public func addInts(a: Int64, b: Int64, c: Int64) -> Int64 { a + b + c }
+    public func mulDoubles(a: Double, b: Double) -> Double { a * b }
+    public func joinStrings(a: String, b: String, separator: String) -> String { a + separator + b }
 
     // ── Nullable primitives ───────────────────────────────────────────────────
     public func echoNullableInt(value: Int64?) -> Int64? { value }
@@ -32,6 +41,7 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
 
     // ── Enum ──────────────────────────────────────────────────────────────────
     public func echoStatus(value: TcStatus) -> TcStatus { value }
+    public func echoNullableStatus(value: TcStatus?) -> TcStatus? { value }
 
     // ── Struct ────────────────────────────────────────────────────────────────
     public func echoPoint(value: TcPoint) -> TcPoint { value }
@@ -42,24 +52,52 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     // ── TypedData (zero-copy) ─────────────────────────────────────────────────
     public func echoBytes(value: Data) -> Data { value }
     public func echoFloats(value: [Float]) -> [Float] { value }
+    public func echoFloat64s(value: [Double]) -> [Double] { value }
+    public func echoInt32s(value: [Int32]) -> [Int32] { value }
 
     // ── Lists (async) ─────────────────────────────────────────────────────────
     public func echoIntList(value: [Int64]) async throws -> [Int64] { value }
     public func echoDoubleList(value: [Double]) async throws -> [Double] { value }
     public func echoStringList(value: [String]) async throws -> [String] { value }
+    public func echoConfigList(values: [TcConfig]) async throws -> [TcConfig] { values }
 
     // ── Async ─────────────────────────────────────────────────────────────────
-    public func asyncDouble(value: Double) async throws -> Double { value }
-    public func asyncString(value: String) async throws -> String { value }
     public func asyncInt(value: Int64) async throws -> Int64 { value }
+    public func asyncDouble(value: Double) async throws -> Double { value }
+    public func asyncBool(value: Bool) async throws -> Bool { value }
+    public func asyncString(value: String) async throws -> String { value }
+    public func asyncConfig(value: TcConfig) async throws -> TcConfig { value }
+
+    // ── Async nullable ────────────────────────────────────────────────────────
+    public func asyncNullableInt(value: Int64?) async throws -> Int64? { value }
+    public func asyncNullableDouble(value: Double?) async throws -> Double? { value }
+    public func asyncNullableBool(value: Bool?) async throws -> Bool? { value }
+    public func asyncNullableString(value: String?) async throws -> String? { value }
+
+    // ── Callback ──────────────────────────────────────────────────────────────
+    public func onIntEvent(callback: @escaping (Int64) -> Void) {
+        // Fire immediately with a test value so Dart can verify the callback fires
+        callback(42)
+    }
 
     // ── Stream control ────────────────────────────────────────────────────────
     public func configureStream(from: Int64, count: Int64) {
         Task {
             for i in 0..<count {
-                _intStream.send(from + i)
-                _pointStream.send(TcPoint(x: Double(from + i), y: Double(from + i) * 0.5, z: 0.0))
+                let v = from + i
+                _intStreamSubject.send(v)
+                _pointStreamSubject.send(TcPoint(x: Double(v), y: Double(v) * 0.5, z: 0.0))
+                _boolStreamSubject.send(v % 2 == 0)
             }
         }
+    }
+
+    // ── Error handling ────────────────────────────────────────────────────────
+    public func throwNative(message: String) {
+        NSException(name: NSExceptionName("NativeTestError"), reason: message, userInfo: nil).raise()
+    }
+
+    public func throwNativeAsync(message: String) async throws {
+        throw NSError(domain: "NativeTestError", code: 1, userInfo: [NSLocalizedDescriptionKey: message])
     }
 }
