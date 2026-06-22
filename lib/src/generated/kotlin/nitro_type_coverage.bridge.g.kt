@@ -176,7 +176,7 @@ interface HybridNitroTypeCoverageSpec {
     // source: nitro_type_coverage.native.dart:28
     fun echoNullableDouble(value: Double?): Double
     // source: nitro_type_coverage.native.dart:29
-    fun echoNullableBool(value: Boolean?): Boolean
+    fun echoNullableBool(value: Boolean?): Boolean?
     // source: nitro_type_coverage.native.dart:30
     fun echoNullableString(value: String?): String
     // source: nitro_type_coverage.native.dart:33
@@ -224,7 +224,7 @@ interface HybridNitroTypeCoverageSpec {
     // source: nitro_type_coverage.native.dart:99
     suspend fun asyncNullableDouble(value: Double?): Double
     // source: nitro_type_coverage.native.dart:102
-    suspend fun asyncNullableBool(value: Boolean?): Boolean
+    suspend fun asyncNullableBool(value: Boolean?): Boolean?
     // source: nitro_type_coverage.native.dart:105
     suspend fun asyncNullableString(value: String?): String
     // source: nitro_type_coverage.native.dart:109
@@ -351,11 +351,12 @@ object NitroTypeCoverageJniBridge {
         return impl.echoNullableDouble(valueArg)
     }
     // source: nitro_type_coverage.native.dart:29
-    @JvmStatic fun echoNullableBool_call(value: Int): Boolean {
+    @JvmStatic fun echoNullableBool_call(value: Int): Int {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         // Dart layer sends -1 as sentinel when caller passes null for value.
         val valueArg: Boolean? = if (value < 0) null else (value != 0)
-        return impl.echoNullableBool(valueArg)
+        val _boolResult = impl.echoNullableBool(valueArg)
+        return if (_boolResult == null) -1 else if (_boolResult) 1 else 0
     }
     // source: nitro_type_coverage.native.dart:30
     @JvmStatic fun echoNullableString_call(value: String?): String {
@@ -573,13 +574,14 @@ object NitroTypeCoverageJniBridge {
         }).get()
     }
     // source: nitro_type_coverage.native.dart:102
-    @JvmStatic fun asyncNullableBool_call(value: Int): Boolean {
+    @JvmStatic fun asyncNullableBool_call(value: Int): Int {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         // Dart layer sends -1 as sentinel when caller passes null for value.
         val valueArg: Boolean? = if (value < 0) null else (value != 0)
-        return _asyncExecutor.submit(java.util.concurrent.Callable {
+        val _boolResult = _asyncExecutor.submit(java.util.concurrent.Callable {
             runBlocking { impl.asyncNullableBool(valueArg) }
         }).get()
+        return if (_boolResult == null) -1 else if (_boolResult) 1 else 0
     }
     // source: nitro_type_coverage.native.dart:105
     @JvmStatic fun asyncNullableString_call(value: String?): String {
@@ -713,13 +715,14 @@ object NitroTypeCoverageJniBridge {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         impl.nullableCounter = if (value == -1L) null else value
     }
-    @JvmStatic fun nitro_type_coverage_get_optional_flag_call(): Boolean {
+    @JvmStatic fun nitro_type_coverage_get_optional_flag_call(): Int {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
-        return impl.optionalFlag ?: false
+        val _bv = impl.optionalFlag
+        return if (_bv == null) -1 else if (_bv) 1 else 0
     }
-    @JvmStatic fun nitro_type_coverage_set_optional_flag_call(value: Boolean) {
+    @JvmStatic fun nitro_type_coverage_set_optional_flag_call(value: Int) {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
-        impl.optionalFlag = value
+        impl.optionalFlag = if (value < 0) null else (value != 0)
     }
     private val _streamJobs = java.util.concurrent.ConcurrentHashMap<Pair<String, Long>, kotlinx.coroutines.Job>()
 

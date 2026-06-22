@@ -566,7 +566,7 @@ public func _nitro_type_coverage_call_echoConfig(_ value: UnsafeMutableRawPointe
 // source: nitro_type_coverage.native.dart:44
 @_cdecl("_nitro_type_coverage_call_echoBytes")
 public func _nitro_type_coverage_call_echoBytes(_ value: UnsafeMutablePointer<UInt8>?, _ value_length: Int64) -> UnsafeMutablePointer<UInt8>? {
-    let valueArr = value.map { Data(UnsafeBufferPointer(start: $0, count: Int(value_length))) } ?? Data()
+    let valueArr = value.map { Data(bytes: $0, count: Int(value_length)) } ?? Data()
     guard let r = NitroTypeCoverageRegistry.impl?.echoBytes(value: valueArr) else { return nil }
     return r.withUnsafeBytes { _nitroMakeZeroCopyTypedDataReturn($0) }
 }
@@ -598,7 +598,7 @@ public func _nitro_type_coverage_call_echoInt32s(_ value: UnsafeMutablePointer<I
 // source: nitro_type_coverage.native.dart:57
 @_cdecl("_nitro_type_coverage_call_echoInt8s")
 public func _nitro_type_coverage_call_echoInt8s(_ value: UnsafeMutablePointer<Int8>?, _ value_length: Int64) -> UnsafeMutablePointer<UInt8>? {
-    let valueArr = value.map { Data(UnsafeBufferPointer(start: $0, count: Int(value_length))) } ?? Data()
+    let valueArr = value.map { Data(bytes: $0, count: Int(value_length)) } ?? Data()
     guard let r = NitroTypeCoverageRegistry.impl?.echoInt8s(value: valueArr) else { return nil }
     return r.withUnsafeBytes { _nitroMakeZeroCopyTypedDataReturn($0) }
 }

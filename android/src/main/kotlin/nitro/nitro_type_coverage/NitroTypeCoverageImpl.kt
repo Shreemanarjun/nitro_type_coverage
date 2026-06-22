@@ -50,7 +50,7 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     // ── Nullable primitives ───────────────────────────────────────────────────
     override fun echoNullableInt(value: Long?): Long = value ?: -1L
     override fun echoNullableDouble(value: Double?): Double = value ?: Double.NaN
-    override fun echoNullableBool(value: Boolean?): Boolean = value ?: false
+    override fun echoNullableBool(value: Boolean?): Boolean? = value
     override fun echoNullableString(value: String?): String = value ?: ""
 
     // ── Enum ──────────────────────────────────────────────────────────────────
@@ -131,7 +131,7 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     // ── Async nullable ────────────────────────────────────────────────────────
     override suspend fun asyncNullableInt(value: Long?): Long = value ?: -1L
     override suspend fun asyncNullableDouble(value: Double?): Double = value ?: Double.NaN
-    override suspend fun asyncNullableBool(value: Boolean?): Boolean = value ?: false
+    override suspend fun asyncNullableBool(value: Boolean?): Boolean? = value
     override suspend fun asyncNullableString(value: String?): String = value ?: ""
 
     // ── Async additions ───────────────────────────────────────────────────────

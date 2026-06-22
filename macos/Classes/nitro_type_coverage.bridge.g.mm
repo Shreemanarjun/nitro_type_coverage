@@ -434,18 +434,18 @@ int8_t nitro_type_coverage_echo_nullable_bool(int32_t value, NitroError* _nitro_
     JNIEnv* env = GetEnv();
     if (env == nullptr) { return false; }
     jmethodID methodId = g_mid_echoNullableBool_call;
-    if (methodId == nullptr) { LOGE("Method not found: echoNullableBool_call sig=(I)Z"); return false; }
+    if (methodId == nullptr) { LOGE("Method not found: echoNullableBool_call sig=(I)I"); return false; }
 
     nitro_type_coverage_clear_error();
     if (env->PushLocalFrame(16) != 0) { return false; }
-    bool res = env->CallStaticBooleanMethod(g_bridgeClass, methodId, value);
+    int32_t res = (int32_t)env->CallStaticIntMethod(g_bridgeClass, methodId, value);
     if (env->ExceptionCheck()) {
         nitro_report_jni_exception(env, env->ExceptionOccurred(), _nitro_err);
         env->PopLocalFrame(nullptr);
         return false;
     }
     env->PopLocalFrame(nullptr);
-    return res;
+    return (int8_t)res;
 }
 
 const char* nitro_type_coverage_echo_nullable_string(const char* value, NitroError* _nitro_err) {
@@ -1182,18 +1182,18 @@ int8_t nitro_type_coverage_async_nullable_bool(int32_t value) {
     JNIEnv* env = GetEnv();
     if (env == nullptr) { return false; }
     jmethodID methodId = g_mid_asyncNullableBool_call;
-    if (methodId == nullptr) { LOGE("Method not found: asyncNullableBool_call sig=(I)Z"); return false; }
+    if (methodId == nullptr) { LOGE("Method not found: asyncNullableBool_call sig=(I)I"); return false; }
 
     nitro_type_coverage_clear_error();
     if (env->PushLocalFrame(16) != 0) { return false; }
-    bool res = env->CallStaticBooleanMethod(g_bridgeClass, methodId, value);
+    int32_t res = (int32_t)env->CallStaticIntMethod(g_bridgeClass, methodId, value);
     if (env->ExceptionCheck()) {
         nitro_report_jni_exception(env, env->ExceptionOccurred(), _nitro_err);
         env->PopLocalFrame(nullptr);
         return false;
     }
     env->PopLocalFrame(nullptr);
-    return res;
+    return (int8_t)res;
 }
 
 const char* nitro_type_coverage_async_nullable_string(const char* value) {
@@ -1590,11 +1590,11 @@ int8_t nitro_type_coverage_get_optional_flag(NitroError* _nitro_err) {
     JNIEnv* env = GetEnv();
     if (env == nullptr) { return false; }
     jmethodID methodId = g_mid_nitro_type_coverage_get_optional_flag_call;
-    if (methodId == nullptr) { LOGE("Method not found: nitro_type_coverage_get_optional_flag_call sig=()Z"); return false; }
+    if (methodId == nullptr) { LOGE("Method not found: nitro_type_coverage_get_optional_flag_call sig=()I"); return false; }
     if (env->PushLocalFrame(8) != 0) { return false; }
-    bool res = env->CallStaticBooleanMethod(g_bridgeClass, methodId);
+    int32_t res = (int32_t)env->CallStaticIntMethod(g_bridgeClass, methodId);
     env->PopLocalFrame(nullptr);
-    return res;
+    return (int8_t)res;
 }
 
 void nitro_type_coverage_set_optional_flag(int8_t value, NitroError* _nitro_err) {
@@ -1602,9 +1602,9 @@ void nitro_type_coverage_set_optional_flag(int8_t value, NitroError* _nitro_err)
     JNIEnv* env = GetEnv();
     if (env == nullptr) { return; }
     jmethodID methodId = g_mid_nitro_type_coverage_set_optional_flag_call;
-    if (methodId == nullptr) { LOGE("Method not found: nitro_type_coverage_set_optional_flag_call sig=(Z)V"); return; }
+    if (methodId == nullptr) { LOGE("Method not found: nitro_type_coverage_set_optional_flag_call sig=(I)V"); return; }
     if (env->PushLocalFrame(8) != 0) { return; }
-    env->CallStaticVoidMethod(g_bridgeClass, methodId, (jboolean)(value != 0));
+    env->CallStaticVoidMethod(g_bridgeClass, methodId, (int32_t)value);
     env->PopLocalFrame(nullptr);
 }
 
@@ -1801,8 +1801,8 @@ JNIEXPORT void JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverag
         if (!g_mid_echoNullableInt_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: echoNullableInt_call sig=(J)J"); }
         g_mid_echoNullableDouble_call = env->GetStaticMethodID(g_bridgeClass, "echoNullableDouble_call", "(D)D");
         if (!g_mid_echoNullableDouble_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: echoNullableDouble_call sig=(D)D"); }
-        g_mid_echoNullableBool_call = env->GetStaticMethodID(g_bridgeClass, "echoNullableBool_call", "(I)Z");
-        if (!g_mid_echoNullableBool_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: echoNullableBool_call sig=(I)Z"); }
+        g_mid_echoNullableBool_call = env->GetStaticMethodID(g_bridgeClass, "echoNullableBool_call", "(I)I");
+        if (!g_mid_echoNullableBool_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: echoNullableBool_call sig=(I)I"); }
         g_mid_echoNullableString_call = env->GetStaticMethodID(g_bridgeClass, "echoNullableString_call", "(Ljava/lang/String;)Ljava/lang/String;");
         if (!g_mid_echoNullableString_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: echoNullableString_call sig=(Ljava/lang/String;)Ljava/lang/String;"); }
         g_mid_echoStatus_call = env->GetStaticMethodID(g_bridgeClass, "echoStatus_call", "(J)J");
@@ -1849,8 +1849,8 @@ JNIEXPORT void JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverag
         if (!g_mid_asyncNullableInt_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: asyncNullableInt_call sig=(J)J"); }
         g_mid_asyncNullableDouble_call = env->GetStaticMethodID(g_bridgeClass, "asyncNullableDouble_call", "(D)D");
         if (!g_mid_asyncNullableDouble_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: asyncNullableDouble_call sig=(D)D"); }
-        g_mid_asyncNullableBool_call = env->GetStaticMethodID(g_bridgeClass, "asyncNullableBool_call", "(I)Z");
-        if (!g_mid_asyncNullableBool_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: asyncNullableBool_call sig=(I)Z"); }
+        g_mid_asyncNullableBool_call = env->GetStaticMethodID(g_bridgeClass, "asyncNullableBool_call", "(I)I");
+        if (!g_mid_asyncNullableBool_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: asyncNullableBool_call sig=(I)I"); }
         g_mid_asyncNullableString_call = env->GetStaticMethodID(g_bridgeClass, "asyncNullableString_call", "(Ljava/lang/String;)Ljava/lang/String;");
         if (!g_mid_asyncNullableString_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: asyncNullableString_call sig=(Ljava/lang/String;)Ljava/lang/String;"); }
         g_mid_asyncPoint_call = env->GetStaticMethodID(g_bridgeClass, "asyncPoint_call", "(Lnitro/nitro_type_coverage_module/TcPoint;)Lnitro/nitro_type_coverage_module/TcPoint;");
@@ -1901,10 +1901,10 @@ JNIEXPORT void JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverag
         if (!g_mid_nitro_type_coverage_get_nullable_counter_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nitro_type_coverage_get_nullable_counter_call sig=()J"); }
         g_mid_nitro_type_coverage_set_nullable_counter_call = env->GetStaticMethodID(g_bridgeClass, "nitro_type_coverage_set_nullable_counter_call", "(J)V");
         if (!g_mid_nitro_type_coverage_set_nullable_counter_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nitro_type_coverage_set_nullable_counter_call sig=(J)V"); }
-        g_mid_nitro_type_coverage_get_optional_flag_call = env->GetStaticMethodID(g_bridgeClass, "nitro_type_coverage_get_optional_flag_call", "()Z");
-        if (!g_mid_nitro_type_coverage_get_optional_flag_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nitro_type_coverage_get_optional_flag_call sig=()Z"); }
-        g_mid_nitro_type_coverage_set_optional_flag_call = env->GetStaticMethodID(g_bridgeClass, "nitro_type_coverage_set_optional_flag_call", "(Z)V");
-        if (!g_mid_nitro_type_coverage_set_optional_flag_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nitro_type_coverage_set_optional_flag_call sig=(Z)V"); }
+        g_mid_nitro_type_coverage_get_optional_flag_call = env->GetStaticMethodID(g_bridgeClass, "nitro_type_coverage_get_optional_flag_call", "()I");
+        if (!g_mid_nitro_type_coverage_get_optional_flag_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nitro_type_coverage_get_optional_flag_call sig=()I"); }
+        g_mid_nitro_type_coverage_set_optional_flag_call = env->GetStaticMethodID(g_bridgeClass, "nitro_type_coverage_set_optional_flag_call", "(I)V");
+        if (!g_mid_nitro_type_coverage_set_optional_flag_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nitro_type_coverage_set_optional_flag_call sig=(I)V"); }
         g_mid_nitro_type_coverage_register_int_stream_stream_call = env->GetStaticMethodID(g_bridgeClass, "nitro_type_coverage_register_int_stream_stream_call", "(J)V");
         if (!g_mid_nitro_type_coverage_register_int_stream_stream_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nitro_type_coverage_register_int_stream_stream_call sig=(J)V"); }
         g_mid_nitro_type_coverage_release_int_stream_stream_call = env->GetStaticMethodID(g_bridgeClass, "nitro_type_coverage_release_int_stream_stream_call", "(J)V");

@@ -137,9 +137,8 @@ void main() {
         expect(tc.echoNullableInt(null), isNull));
     test('double?: null → null', () =>
         expect(tc.echoNullableDouble(null), isNull));
-    test('bool?: null → null or false (platform encodes null as false)', () {
-      final v = tc.echoNullableBool(null);
-      expect(v, anyOf(isNull, isFalse));
+    test('bool?: null → null (fixed: Int3-state encoding carries null on all platforms)', () {
+      expect(tc.echoNullableBool(null), isNull);
     });
     test('String?: null → null or empty', () {
       final v = tc.echoNullableString(null);
@@ -369,9 +368,8 @@ void main() {
         expect(await tc.asyncNullableDouble(null), isNull));
     testWidgets('asyncNullableBool: true → true', (t) async =>
         expect(await tc.asyncNullableBool(true), isTrue));
-    testWidgets('asyncNullableBool: null → null or false', (t) async {
-      final r = await tc.asyncNullableBool(null);
-      expect(r, anyOf(isNull, isFalse));
+    testWidgets('asyncNullableBool: null → null (fixed on all platforms)', (t) async {
+      expect(await tc.asyncNullableBool(null), isNull);
     });
     testWidgets('asyncNullableString: "hi" → "hi"', (t) async =>
         expect(await tc.asyncNullableString('hi'), 'hi'));
@@ -476,6 +474,7 @@ void main() {
     testWidgets('pointStream: x matches from', (t) async {
       final points = <TcPoint>[];
       final sub = tc.pointStream().listen(points.add);
+      await Future.delayed(const Duration(milliseconds: 50)); // collector startup
       tc.configureStream(5, 3);
       await Future.delayed(const Duration(milliseconds: 200));
       await sub.cancel();
@@ -583,19 +582,15 @@ void main() {
       expect(result[0], isNot(closeTo(highPrecision, 1e-12)));
     });
 
-    // Nullable bool? null cannot be transmitted on Android via jboolean (0/1 only).
-    // The Dart side sends -1 as an Int8 sentinel to C, but CallStaticBooleanMethod
-    // converts jboolean values — -1 (0xFF) becomes 'true' in Kotlin (non-zero).
-    // Result: null bool? ALWAYS arrives as false on Android. On iOS/Swift, the
-    // Swift @_cdecl function receives Int8 (-1) and correctly detects null.
-    test('LIMITATION (Android): bool? null arrives as false (jboolean cannot carry -1)', () {
-      final result = tc.echoNullableBool(null);
-      // On iOS/macOS: correctly returns null.
-      // On Android: jboolean truncates -1 → non-zero → true on C side →
-      //             Swift/Kotlin impl receives true and returns true, Dart decodes as true/non-null.
-      // Accept any of: null, false, true (platform-dependent).
-      expect(result, anyOf(isNull, isFalse, isTrue),
-          reason: 'Android: jboolean cannot carry -1 null sentinel; null bool? ≡ false or true');
+    // bool? null is now fixed on ALL platforms via 3-state Int encoding:
+    //   Dart sends -1 (null sentinel) → C passes Int32(-1) to Kotlin _call(Int) →
+    //   Kotlin decodes -1 → null → impl receives null → returns null →
+    //   Kotlin encodes null → -1 → C reads Int32(-1) → int8_t(-1) → Dart null. ✓
+    // The old jboolean approach (0/1 only) is completely replaced by Int (I) JNI descriptor.
+    test('FIXED (was Android limitation): bool? null correctly round-trips on all platforms', () {
+      // Now passes on Android, iOS, and macOS.
+      expect(tc.echoNullableBool(null), isNull,
+          reason: 'bool? uses Int3-state encoding (-1=null/0=false/1=true) — null round-trips correctly');
     });
 
     // String fields in @HybridStruct are heap-copied on every call.
@@ -632,6 +627,39 @@ void main() {
         expect(results[i], i,
             reason: 'Each asyncInt echoes its input regardless of call order');
       }
+    });
+
+    // NativeCallable.listener (used by Nitro callback bridges) fires via the
+    // Dart event queue.  On iOS the implementation delivers the event
+    // synchronously when invoked from the Dart thread; on Android it may be
+    // deferred to the next event-loop turn for callbacks added after the
+    // initial plugin build.
+    //
+    // Recommended testing pattern — use ONE of the two strategies below:
+    //
+    //   Strategy A (Completer — deterministic, no fixed sleep):
+    //     testWidgets('my cb test', (t) async {
+    //       final c = Completer<T>();
+    //       plugin.onMyEvent(c.complete);
+    //       await expectLater(c.future, completion(myMatcher));
+    //     });
+    //
+    //   Strategy B (yield — good for side-effect tests):
+    //     testWidgets('my cb test', (t) async {
+    //       final log = <T>[];
+    //       plugin.onMyEvent(log.add);
+    //       await Future.delayed(Duration.zero); // one event-loop turn
+    //       expect(log, isNotEmpty);
+    //     });
+    //
+    // Both strategies work on iOS and Android.  Avoid using plain test()
+    // without an await for callback assertions — it is unreliable on Android.
+    testWidgets('LIMITATION: Nitro callbacks may fire asynchronously on Android', (t) async {
+      // This test documents the pattern, not a bug.
+      // Strategy A — expectLater() + Completer:
+      final completer = Completer<int>();
+      tc.onIntEvent(completer.complete);
+      await expectLater(completer.future, completion(equals(42)));
     });
   });
 
@@ -789,11 +817,11 @@ void main() {
         tc.optionalFlag = false;
         expect(tc.optionalFlag, isFalse);
       });
-      testWidgets('set null → returns null or false (Android: null encodes as true)', (t) async {
+      testWidgets('set null → returns null (fixed: Int3-state encoding on all platforms)', (t) async {
         tc.optionalFlag = false;
         tc.optionalFlag = null;
-        // iOS: null → returns null. Android: -1 sent as jboolean becomes true.
-        expect(tc.optionalFlag, anyOf(isNull, isFalse, isTrue));
+        // Fixed: setter sends Int32(-1) to Kotlin (I param), getter returns Int(-1)=null.
+        expect(tc.optionalFlag, isNull);
       });
     });
   });
@@ -801,32 +829,49 @@ void main() {
   // ══════════════════════════════════════════════════════════════════════════
   // §19 ADDITIONAL CALLBACKS
   // bool and double callback parameter types
+  //
+  // PATTERN: Nitro callbacks backed by NativeCallable.listener may fire
+  // asynchronously on Android (the event is posted to the isolate queue and
+  // processed on the next turn).  Two equivalent testing strategies exist:
+  //
+  //   Option A — expectLater() + Completer (preferred)
+  //     Use a Completer<T> to convert the callback into a Future, then:
+  //       await expectLater(completer.future, completion(matcher));
+  //     This is deterministic: the assertion waits for the callback to
+  //     actually fire rather than sleeping for a fixed duration.  A timeout
+  //     is built in by Flutter's test framework (default 10 s).
+  //
+  //   Option B — testWidgets + Future.delayed(Duration.zero)
+  //     One await yields control back to the event loop, processing any
+  //     queued callbacks before the assertion runs.  Use this when you
+  //     cannot restructure to a Completer (e.g. when testing side-effects
+  //     like list appends rather than return values).
+  //
+  // Note: on iOS the callbacks fire synchronously (Swift calls into Dart on
+  // the same thread), so plain test() works.  Use testWidgets to stay
+  // cross-platform.
   // ══════════════════════════════════════════════════════════════════════════
 
   group('§19 Additional callbacks', () {
-    // NativeCallable.listener may fire asynchronously on Android for new callback
-    // methods; testWidgets + Future.delayed(zero) pumps the event queue.
+    // Option A — expectLater() + Completer: deterministic, no arbitrary sleep.
     testWidgets('onBoolEvent: fires with bool value', (t) async {
-      bool? received;
-      tc.onBoolEvent((v) => received = v);
-      await Future.delayed(Duration.zero);
-      expect(received, isNotNull);
-      expect(received, isA<bool>());
+      final completer = Completer<bool>();
+      tc.onBoolEvent(completer.complete);
+      await expectLater(completer.future, completion(isA<bool>()));
     });
 
     testWidgets('onDoubleEvent: fires with double value', (t) async {
-      double? received;
-      tc.onDoubleEvent((v) => received = v);
-      await Future.delayed(Duration.zero);
-      expect(received, isNotNull);
-      expect(received, isA<double>());
-      expect(received!.isFinite, isTrue);
+      final completer = Completer<double>();
+      tc.onDoubleEvent(completer.complete);
+      final value = await completer.future;
+      expect(value.isFinite, isTrue);
     });
 
+    // Option B — testWidgets + Future.delayed(zero): tests side-effects.
     testWidgets('onBoolEvent: closure captures outer state', (t) async {
       final log = <bool>[];
       tc.onBoolEvent(log.add);
-      await Future.delayed(Duration.zero);
+      await Future.delayed(Duration.zero); // yield → event queue processes callback
       expect(log, isNotEmpty);
     });
 

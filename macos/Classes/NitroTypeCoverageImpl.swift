@@ -10,10 +10,14 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     private let _intStreamSubject = PassthroughSubject<Int64, Never>()
     private let _pointStreamSubject = PassthroughSubject<TcPoint, Never>()
     private let _boolStreamSubject = PassthroughSubject<Bool, Never>()
+    private let _doubleStreamSubject = PassthroughSubject<Double, Never>()
+    private let _statusStreamSubject = PassthroughSubject<TcStatus, Never>()
 
     public var intStream: AnyPublisher<Int64, Never> { _intStreamSubject.eraseToAnyPublisher() }
     public var pointStream: AnyPublisher<TcPoint, Never> { _pointStreamSubject.eraseToAnyPublisher() }
     public var boolStream: AnyPublisher<Bool, Never> { _boolStreamSubject.eraseToAnyPublisher() }
+    public var doubleStream: AnyPublisher<Double, Never> { _doubleStreamSubject.eraseToAnyPublisher() }
+    public var statusStream: AnyPublisher<TcStatus, Never> { _statusStreamSubject.eraseToAnyPublisher() }
 
     // ── Properties ────────────────────────────────────────────────────────────
     public var precision: Int64 = 0
@@ -21,6 +25,8 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     public var nullableRate: Double? = nil
     public var enabled: Bool = false
     public var currentStatus: TcStatus = .ok
+    public var nullableCounter: Int64? = nil
+    public var optionalFlag: Bool? = nil
 
     // ── Primitives ────────────────────────────────────────────────────────────
     public func echoInt(value: Int64) -> Int64 { value }
@@ -48,12 +54,16 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
 
     // ── @HybridRecord ─────────────────────────────────────────────────────────
     public func echoConfig(value: TcConfig) -> TcConfig { value }
+    public func echoMeta(value: TcMeta) -> TcMeta { value }
 
     // ── TypedData (zero-copy) ─────────────────────────────────────────────────
     public func echoBytes(value: Data) -> Data { value }
     public func echoFloats(value: [Float]) -> [Float] { value }
     public func echoFloat64s(value: [Double]) -> [Double] { value }
     public func echoInt32s(value: [Int32]) -> [Int32] { value }
+    public func echoInt8s(value: Data) -> Data { value }
+    public func echoInt16s(value: [Int16]) -> [Int16] { value }
+    public func echoInt64s(value: [Int64]) -> [Int64] { value }
 
     // ── Lists (async) ─────────────────────────────────────────────────────────
     public func echoIntList(value: [Int64]) async throws -> [Int64] { value }
@@ -67,6 +77,9 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     public func asyncBool(value: Bool) async throws -> Bool { value }
     public func asyncString(value: String) async throws -> String { value }
     public func asyncConfig(value: TcConfig) async throws -> TcConfig { value }
+    public func asyncPoint(value: TcPoint) async throws -> TcPoint { value }
+    public func asyncNullableStatus(value: TcStatus?) async throws -> TcStatus? { value }
+    public func asyncMeta(value: TcMeta) async throws -> TcMeta { value }
 
     // ── Async nullable ────────────────────────────────────────────────────────
     public func asyncNullableInt(value: Int64?) async throws -> Int64? { value }
@@ -74,11 +87,10 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     public func asyncNullableBool(value: Bool?) async throws -> Bool? { value }
     public func asyncNullableString(value: String?) async throws -> String? { value }
 
-    // ── Callback ──────────────────────────────────────────────────────────────
-    public func onIntEvent(callback: @escaping (Int64) -> Void) {
-        // Fire immediately with a test value so Dart can verify the callback fires
-        callback(42)
-    }
+    // ── Callbacks ─────────────────────────────────────────────────────────────
+    public func onIntEvent(callback: @escaping (Int64) -> Void) { callback(42) }
+    public func onBoolEvent(boolCb: @escaping (Bool) -> Void) { boolCb(true) }
+    public func onDoubleEvent(doubleCb: @escaping (Double) -> Void) { doubleCb(2.71828) }
 
     // ── Stream control ────────────────────────────────────────────────────────
     public func configureStream(from: Int64, count: Int64) {
@@ -91,12 +103,22 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
             }
         }
     }
+    public func configureDoubleStream(start: Double, count: Int64) {
+        Task {
+            for i in 0..<count { _doubleStreamSubject.send(start + Double(i)) }
+        }
+    }
+    public func configureStatusStream(count: Int64) {
+        let statuses: [TcStatus] = [.ok, .error, .pending]
+        Task {
+            for i in 0..<count { _statusStreamSubject.send(statuses[Int(i) % statuses.count]) }
+        }
+    }
 
     // ── Error handling ────────────────────────────────────────────────────────
     public func throwNative(message: String) {
         NSException(name: NSExceptionName("NativeTestError"), reason: message, userInfo: nil).raise()
     }
-
     public func throwNativeAsync(message: String) async throws {
         throw NSError(domain: "NativeTestError", code: 1, userInfo: [NSLocalizedDescriptionKey: message])
     }
