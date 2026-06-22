@@ -117,6 +117,11 @@ abstract class NitroTypeCoverage extends HybridObject {
   // ── @HybridRecord with more field types (§22 coverage) ───────────────────
   TcMeta echoMeta(TcMeta value);
 
+  // ── Nitro nullable types — collision-free via binary flag (§23 coverage) ──
+  NitroNullableInt echoNullableIntSafe(NitroNullableInt value);
+  NitroNullableDouble echoNullableDoubleSafe(NitroNullableDouble value);
+  NitroNullableBool echoNullableBoolSafe(NitroNullableBool value);
+
   // ── Callback parameter ────────────────────────────────────────────────────
   void onIntEvent(void Function(int value) callback);
 
@@ -210,3 +215,6 @@ class TcMeta {
   final String label;
   TcMeta({required this.version, required this.weight, required this.active, required this.label});
 }
+
+// NitroNullableInt, NitroNullableDouble, NitroNullableBool are part of
+// package:nitro — no declaration needed here. Just use them directly.

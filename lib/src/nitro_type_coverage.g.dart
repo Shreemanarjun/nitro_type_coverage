@@ -201,7 +201,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     );
     NitroRuntime.checkLinkChecksum(
       'nitro_type_coverage',
-      '70aa11b14070a472',
+      '6fc987bf6fe97992',
       () => _dylib
           .lookupFunction<Pointer<Utf8> Function(), Pointer<Utf8> Function()>(
             'nitro_type_coverage_nitro_bridge_checksum',
@@ -473,6 +473,24 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
         Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>),
         Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>)
       >('nitro_type_coverage_echo_meta');
+  late final Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>)
+  _echoNullableIntSafePtr = _dylib
+      .lookupFunction<
+        Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>),
+        Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>)
+      >('nitro_type_coverage_echo_nullable_int_safe');
+  late final Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>)
+  _echoNullableDoubleSafePtr = _dylib
+      .lookupFunction<
+        Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>),
+        Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>)
+      >('nitro_type_coverage_echo_nullable_double_safe');
+  late final Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>)
+  _echoNullableBoolSafePtr = _dylib
+      .lookupFunction<
+        Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>),
+        Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>)
+      >('nitro_type_coverage_echo_nullable_bool_safe');
   late final void Function(
     Pointer<NativeFunction<Void Function(Int64)>>,
     Pointer<NitroErrorFfi>,
@@ -824,9 +842,9 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
   int? echoNullableInt(int? value) {
     checkDisposed();
     return NitroRuntime.callSync(() {
-      final res = _echoNullableIntPtr(value ?? -1, _nitroErr);
+      final res = _echoNullableIntPtr(value ?? -9223372036854775808, _nitroErr);
       NitroRuntime.throwIfOutParamError(_nitroErr);
-      return res == -1 ? null : res;
+      return res == -9223372036854775808 ? null : res;
     }, methodName: 'echoNullableInt');
   }
 
@@ -1336,12 +1354,12 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     checkDisposed();
     final res = await NitroRuntime.callAsync<int>(
       _asyncNullableIntPtr,
-      [value ?? -1],
+      [value ?? -9223372036854775808],
       getError: _getErrorNativePtr,
       clearError: _clearErrorNativePtr,
       methodName: 'asyncNullableInt',
     );
-    return res == -1 ? null : res;
+    return res == -9223372036854775808 ? null : res;
   }
 
   @override
@@ -1470,6 +1488,66 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
         return decoded;
       }),
       methodName: 'echoMeta',
+    );
+  }
+
+  @override
+  NitroNullableInt echoNullableIntSafe(NitroNullableInt value) {
+    checkDisposed();
+    return NitroRuntime.callSync(
+      () => withArena((arena) {
+        final res = _echoNullableIntSafePtr(value.toNative(arena), _nitroErr);
+        NitroRuntime.throwIfOutParamError(_nitroErr);
+        final NitroNullableInt decoded;
+        try {
+          decoded = NitroNullableInt.fromNative(res);
+        } finally {
+          malloc.free(res);
+        }
+        return decoded;
+      }),
+      methodName: 'echoNullableIntSafe',
+    );
+  }
+
+  @override
+  NitroNullableDouble echoNullableDoubleSafe(NitroNullableDouble value) {
+    checkDisposed();
+    return NitroRuntime.callSync(
+      () => withArena((arena) {
+        final res = _echoNullableDoubleSafePtr(
+          value.toNative(arena),
+          _nitroErr,
+        );
+        NitroRuntime.throwIfOutParamError(_nitroErr);
+        final NitroNullableDouble decoded;
+        try {
+          decoded = NitroNullableDouble.fromNative(res);
+        } finally {
+          malloc.free(res);
+        }
+        return decoded;
+      }),
+      methodName: 'echoNullableDoubleSafe',
+    );
+  }
+
+  @override
+  NitroNullableBool echoNullableBoolSafe(NitroNullableBool value) {
+    checkDisposed();
+    return NitroRuntime.callSync(
+      () => withArena((arena) {
+        final res = _echoNullableBoolSafePtr(value.toNative(arena), _nitroErr);
+        NitroRuntime.throwIfOutParamError(_nitroErr);
+        final NitroNullableBool decoded;
+        try {
+          decoded = NitroNullableBool.fromNative(res);
+        } finally {
+          malloc.free(res);
+        }
+        return decoded;
+      }),
+      methodName: 'echoNullableBoolSafe',
     );
   }
 
@@ -1670,7 +1748,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     return NitroRuntime.callSync(() {
       final res = _getNullableCounterPtr(_nitroErr);
       NitroRuntime.throwIfOutParamError(_nitroErr);
-      return res == -1 ? null : res;
+      return res == -9223372036854775808 ? null : res;
     }, methodName: 'get nullableCounter');
   }
 
@@ -1678,7 +1756,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
   set nullableCounter(int? value) {
     checkDisposed();
     NitroRuntime.callSync<void>(() {
-      _setNullableCounterPtr(value ?? -1, _nitroErr);
+      _setNullableCounterPtr(value ?? -9223372036854775808, _nitroErr);
       NitroRuntime.throwIfOutParamError(_nitroErr);
     }, methodName: 'set nullableCounter');
   }

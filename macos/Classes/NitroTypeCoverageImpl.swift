@@ -80,6 +80,9 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     public func asyncPoint(value: TcPoint) async throws -> TcPoint { value }
     public func asyncNullableStatus(value: TcStatus?) async throws -> TcStatus? { value }
     public func asyncMeta(value: TcMeta) async throws -> TcMeta { value }
+    public func echoNullableIntSafe(value: NitroNullableInt) -> NitroNullableInt { value }
+    public func echoNullableDoubleSafe(value: NitroNullableDouble) -> NitroNullableDouble { value }
+    public func echoNullableBoolSafe(value: NitroNullableBool) -> NitroNullableBool { value }
 
     // ── Async nullable ────────────────────────────────────────────────────────
     public func asyncNullableInt(value: Int64?) async throws -> Int64? { value }

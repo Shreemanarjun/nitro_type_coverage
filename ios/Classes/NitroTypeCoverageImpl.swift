@@ -87,6 +87,13 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     public func echoMeta(value: TcMeta) -> TcMeta { value }
     public func asyncMeta(value: TcMeta) async throws -> TcMeta { value }
 
+    // ── NitroNullable built-in types (from package:nitro) ────────────────────
+    // These types have no sentinel collision — all values including Int64.min,
+    // NaN, and every bool state round-trip correctly on all platforms.
+    public func echoNullableIntSafe(value: NitroNullableInt) -> NitroNullableInt { value }
+    public func echoNullableDoubleSafe(value: NitroNullableDouble) -> NitroNullableDouble { value }
+    public func echoNullableBoolSafe(value: NitroNullableBool) -> NitroNullableBool { value }
+
     // ── Async additions ───────────────────────────────────────────────────────
     public func asyncPoint(value: TcPoint) async throws -> TcPoint { value }
     public func asyncNullableStatus(value: TcStatus?) async throws -> TcStatus? { value }

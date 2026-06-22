@@ -6,6 +6,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import nitro.nitro_type_coverage_module.HybridNitroTypeCoverageSpec
+import nitro.nitro_type_coverage_module.NitroNullableBool
+import nitro.nitro_type_coverage_module.NitroNullableDouble
+import nitro.nitro_type_coverage_module.NitroNullableInt
 import nitro.nitro_type_coverage_module.TcConfig
 import nitro.nitro_type_coverage_module.TcMeta
 import nitro.nitro_type_coverage_module.TcPoint
@@ -48,7 +51,7 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     override fun joinStrings(a: String, b: String, separator: String): String = a + separator + b
 
     // ── Nullable primitives ───────────────────────────────────────────────────
-    override fun echoNullableInt(value: Long?): Long = value ?: -1L
+    override fun echoNullableInt(value: Long?): Long = value ?: Long.MIN_VALUE
     override fun echoNullableDouble(value: Double?): Double = value ?: Double.NaN
     override fun echoNullableBool(value: Boolean?): Boolean? = value
     override fun echoNullableString(value: String?): String = value ?: ""
@@ -129,7 +132,7 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     override suspend fun asyncConfig(value: TcConfig): TcConfig = value
 
     // ── Async nullable ────────────────────────────────────────────────────────
-    override suspend fun asyncNullableInt(value: Long?): Long = value ?: -1L
+    override suspend fun asyncNullableInt(value: Long?): Long = value ?: Long.MIN_VALUE
     override suspend fun asyncNullableDouble(value: Double?): Double = value ?: Double.NaN
     override suspend fun asyncNullableBool(value: Boolean?): Boolean? = value
     override suspend fun asyncNullableString(value: String?): String = value ?: ""
@@ -141,6 +144,11 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
 
     // ── @HybridRecord (TcMeta) ────────────────────────────────────────────────
     override fun echoMeta(value: TcMeta): TcMeta = value
+
+    // ── NitroNullable built-in types (from package:nitro) ────────────────────
+    override fun echoNullableIntSafe(value: NitroNullableInt): NitroNullableInt = value
+    override fun echoNullableDoubleSafe(value: NitroNullableDouble): NitroNullableDouble = value
+    override fun echoNullableBoolSafe(value: NitroNullableBool): NitroNullableBool = value
 
     // ── Callback ──────────────────────────────────────────────────────────────
     override fun onIntEvent(callback: (p0: Long) -> Unit) {

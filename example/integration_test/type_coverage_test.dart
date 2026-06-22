@@ -107,6 +107,11 @@ void main() {
     test('int?: 0 → 0', () => expect(tc.echoNullableInt(0), 0));
     test('int?: large positive', () =>
         expect(tc.echoNullableInt(1000000), 1000000));
+    // Negative values now work! Sentinel changed from -1 to Int64.min.
+    test('int?: -1 → -1 (no collision with new sentinel)', () =>
+        expect(tc.echoNullableInt(-1), -1));
+    test('int?: -9999 → -9999 (all negatives work)', () =>
+        expect(tc.echoNullableInt(-9999), -9999));
 
     test('double?: 1.5 → 1.5', () =>
         expect(tc.echoNullableDouble(1.5), closeTo(1.5, 1e-12)));
@@ -572,16 +577,23 @@ void main() {
   // ══════════════════════════════════════════════════════════════════════════
 
   group('§15 KNOWN LIMITATIONS', () {
-    // int? uses -1 as the null sentinel. Passing the integer -1 through a
-    // nullable int channel will be decoded as null by the Dart decode step.
-    test('LIMITATION: int? sentinel collision — value -1 decoded as null', () {
-      // This is expected behaviour, not a bug.
-      // echoNullableInt(-1) sends -1 to C → C returns -1 → Dart decodes as null.
-      final result = tc.echoNullableInt(-1);
-      // The result is null because -1 IS the null sentinel for nullable int.
-      // To echo the value -1 without collision, use a non-nullable int channel.
+    // IMPROVED: int? sentinel changed from -1 to Int64.min (-9223372036854775808).
+    // Negative values (including -1, -5, etc.) now round-trip correctly.
+    // Only Int64.min itself collides with null (essentially impossible in practice).
+    test('FIXED: int? can now carry -1 and all negatives (sentinel is Int64.min)', () {
+      expect(tc.echoNullableInt(-1), equals(-1),
+          reason: 'int? now carries -1 correctly — sentinel changed to Int64.min');
+      expect(tc.echoNullableInt(-9999), equals(-9999));
+      expect(tc.echoNullableInt(null), isNull);
+    });
+
+    test('LIMITATION: int? sentinel collision — only Int64.min decoded as null', () {
+      // Int64.min = -9223372036854775808 is the null sentinel.
+      // This value is practically never used as a real integer.
+      const int64Min = -9223372036854775808;
+      final result = tc.echoNullableInt(int64Min);
       expect(result, isNull,
-          reason: 'int? uses -1 as null sentinel — actual -1 is indistinguishable from null');
+          reason: 'Int64.min is the null sentinel for int? — only this value collides');
     });
 
     // double? uses NaN as the null sentinel. Passing double.nan as a non-null
@@ -1042,6 +1054,121 @@ void main() {
         expect(results[i].label, 'meta-$i');
         expect(results[i].active, i.isEven);
       }
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // §23 NITRO NULLABLE TYPES (from package:nitro — zero sentinel collision)
+  //
+  // NitroNullableInt / NitroNullableDouble / NitroNullableBool are part of
+  // the Nitro library. No spec declaration needed — just import package:nitro.
+  //
+  // Wire format: [1B hasValue][nB value]
+  //   NitroNullableInt:    9 bytes — ALL int64 values safe, including -1, Int64.min
+  //   NitroNullableDouble: 9 bytes — ALL doubles safe, including NaN and ±Infinity
+  //   NitroNullableBool:   2 bytes — null/false/true, identical on all platforms
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('§23 NitroNullable — collision-free library types', () {
+    group('NitroNullableInt (no sentinel collision for any int64)', () {
+      test('round-trips non-null positive', () {
+        final r = tc.echoNullableIntSafe(NitroNullableInt(hasValue: true, value: 42));
+        expect(r.nullable, 42);
+        expect(r.hasValue, isTrue);
+      });
+
+      test('round-trips null (hasValue=false)', () {
+        final r = tc.echoNullableIntSafe(NitroNullableInt(hasValue: false, value: 0));
+        expect(r.nullable, isNull);
+        expect(r.hasValue, isFalse);
+      });
+
+      // These WOULD collide with old int? sentinel (-1 / Int64.min):
+      test('round-trips -1 safely (was sentinel — now safe)', () {
+        final r = tc.echoNullableIntSafe(NitroNullableInt(hasValue: true, value: -1));
+        expect(r.nullable, -1); // -1 is a real value, not null
+      });
+
+      test('round-trips Int64.min safely (was last sentinel — now safe)', () {
+        const int64Min = -9223372036854775808;
+        final r = tc.echoNullableIntSafe(NitroNullableInt(hasValue: true, value: int64Min));
+        expect(r.nullable, int64Min);
+      });
+
+      test('Dart extension: fromNullable helper', () {
+        final wrapped = NitroNullableInt.fromNullable(-5);
+        expect(wrapped.hasValue, isTrue);
+        expect(wrapped.nullable, -5);
+
+        final nullWrapped = NitroNullableInt.fromNullable(null);
+        expect(nullWrapped.hasValue, isFalse);
+        expect(nullWrapped.nullable, isNull);
+      });
+    });
+
+    group('NitroNullableDouble (no sentinel collision for any double)', () {
+      test('round-trips non-null value', () {
+        final r = tc.echoNullableDoubleSafe(NitroNullableDouble(hasValue: true, value: 3.14));
+        expect(r.nullable, closeTo(3.14, 1e-12));
+      });
+
+      test('round-trips null', () {
+        final r = tc.echoNullableDoubleSafe(NitroNullableDouble(hasValue: false, value: 0));
+        expect(r.nullable, isNull);
+      });
+
+      // These WOULD collide with old double? NaN sentinel:
+      test('round-trips NaN safely (was sentinel — now safe)', () {
+        final r = tc.echoNullableDoubleSafe(
+            NitroNullableDouble(hasValue: true, value: double.nan));
+        expect(r.nullable!.isNaN, isTrue); // NaN is a real value, not null
+      });
+
+      test('round-trips infinity safely', () {
+        final r = tc.echoNullableDoubleSafe(
+            NitroNullableDouble(hasValue: true, value: double.infinity));
+        expect(r.nullable, double.infinity);
+      });
+
+      test('Dart extension: fromNullable', () {
+        expect(NitroNullableDouble.fromNullable(2.71).nullable, closeTo(2.71, 1e-12));
+        expect(NitroNullableDouble.fromNullable(null).nullable, isNull);
+      });
+    });
+
+    group('NitroNullableBool (identical behavior on all platforms)', () {
+      test('round-trips true', () {
+        final r = tc.echoNullableBoolSafe(NitroNullableBool(hasValue: true, value: true));
+        expect(r.nullable, isTrue);
+      });
+
+      test('round-trips false', () {
+        final r = tc.echoNullableBoolSafe(NitroNullableBool(hasValue: true, value: false));
+        expect(r.nullable, isFalse);
+      });
+
+      test('round-trips null — works on ALL platforms without jboolean workaround', () {
+        final r = tc.echoNullableBoolSafe(NitroNullableBool(hasValue: false, value: false));
+        expect(r.nullable, isNull); // null is always null, iOS + Android + macOS
+      });
+
+      test('Dart extension: fromNullable', () {
+        expect(NitroNullableBool.fromNullable(true).nullable, isTrue);
+        expect(NitroNullableBool.fromNullable(false).nullable, isFalse);
+        expect(NitroNullableBool.fromNullable(null).nullable, isNull);
+      });
+    });
+
+    test('toNitroNullable() extension on Dart nullable types', () {
+      // Ergonomic conversion using typed extensions.
+      int? negOne = -1;
+      expect(negOne.toNitroNullable().nullable, -1);
+
+      int? nullInt;
+      expect(nullInt.toNitroNullable().nullable, isNull);
+
+      double? nanDouble = double.nan;
+      expect(nanDouble.toNitroNullable().nullable!.isNaN, isTrue);
     });
   });
 }
