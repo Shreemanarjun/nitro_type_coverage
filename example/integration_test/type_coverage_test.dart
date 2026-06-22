@@ -452,45 +452,66 @@ void main() {
   // §13 STREAMS
   // ══════════════════════════════════════════════════════════════════════════
 
+  // STREAM TESTING PATTERN:
+  // Android Kotlin collectors start asynchronously (CoroutineScope.launch on
+  // Dispatchers.Default). Two strategies for reliable stream tests:
+  //
+  //   Strategy A — Completer (preferred): register listener, yield 50ms so
+  //   the Kotlin collector coroutine starts, emit, then await the Completer
+  //   instead of sleeping a fixed 200ms. Self-documenting and timeout-safe.
+  //
+  //   Strategy B — await Future.delayed(200ms): simpler but slower.
   group('§13 Streams', () {
     testWidgets('intStream: receive [0..4]', (t) async {
+      // Strategy A: Completer — waits for exactly 5 values, no fixed sleep.
       final received = <int>[];
-      final sub = tc.intStream().listen(received.add);
+      final done = Completer<void>();
+      final sub = tc.intStream().listen((v) {
+        received.add(v);
+        if (received.length >= 5 && !done.isCompleted) done.complete();
+      });
       tc.configureStream(0, 5);
-      await Future.delayed(const Duration(milliseconds: 200));
+      await expectLater(done.future, completes);
       await sub.cancel();
       expect(received, containsAll([0, 1, 2, 3, 4]));
     });
 
     testWidgets('intStream: from=10, count=3 → [10,11,12]', (t) async {
       final received = <int>[];
-      final sub = tc.intStream().listen(received.add);
+      final done = Completer<void>();
+      final sub = tc.intStream().listen((v) {
+        received.add(v);
+        if (received.length >= 3 && !done.isCompleted) done.complete();
+      });
       tc.configureStream(10, 3);
-      await Future.delayed(const Duration(milliseconds: 200));
+      await expectLater(done.future, completes);
       await sub.cancel();
       expect(received, containsAll([10, 11, 12]));
     });
 
     testWidgets('pointStream: x matches from', (t) async {
-      final points = <TcPoint>[];
-      final sub = tc.pointStream().listen(points.add);
-      await Future.delayed(const Duration(milliseconds: 50)); // collector startup
+      // 50ms startup delay + Completer: collector ready before emit, no fixed wait.
+      final firstPoint = Completer<TcPoint>();
+      final sub = tc.pointStream().listen((p) {
+        if (!firstPoint.isCompleted) firstPoint.complete(p);
+      });
+      await Future.delayed(const Duration(milliseconds: 50)); // Kotlin collector startup
       tc.configureStream(5, 3);
-      await Future.delayed(const Duration(milliseconds: 200));
+      final p = await firstPoint.future;
       await sub.cancel();
-      expect(points.isNotEmpty, isTrue);
-      expect(points.first.x, closeTo(5.0, 1e-9));
+      expect(p.x, closeTo(5.0, 1e-9));
     });
 
     testWidgets('boolStream: alternating values', (t) async {
-      final bools = <bool>[];
-      final sub = tc.boolStream().listen(bools.add);
-      // Small delay lets the Kotlin collector coroutine start before emitting.
-      await Future.delayed(const Duration(milliseconds: 50));
+      // 50ms startup delay + Completer: no fixed 200ms wait.
+      final firstBool = Completer<bool>();
+      final sub = tc.boolStream().listen((b) {
+        if (!firstBool.isCompleted) firstBool.complete(b);
+      });
+      await Future.delayed(const Duration(milliseconds: 50)); // Kotlin collector startup
       tc.configureStream(0, 4); // 0,1,2,3 → even=true, odd=false
-      await Future.delayed(const Duration(milliseconds: 200));
+      await expectLater(firstBool.future, completion(isA<bool>()));
       await sub.cancel();
-      expect(bools.isNotEmpty, isTrue);
     });
 
     testWidgets('cancel stops further emissions', (t) async {
@@ -890,32 +911,41 @@ void main() {
 
   group('§20 Additional streams', () {
     testWidgets('doubleStream: receive emitted doubles', (t) async {
-      final values = <double>[];
-      final sub = tc.doubleStream().listen(values.add);
+      final firstDouble = Completer<double>();
+      final sub = tc.doubleStream().listen((v) {
+        if (!firstDouble.isCompleted) firstDouble.complete(v);
+      });
+      await Future.delayed(const Duration(milliseconds: 50)); // collector startup
       tc.configureDoubleStream(1.5, 5);
-      await Future.delayed(const Duration(milliseconds: 200));
+      final first = await firstDouble.future;
       await sub.cancel();
-      expect(values.isNotEmpty, isTrue);
-      expect(values.first, closeTo(1.5, 1e-9));
+      expect(first, closeTo(1.5, 1e-9));
     });
 
     testWidgets('doubleStream: values are sequential', (t) async {
+      final done = Completer<void>();
       final values = <double>[];
-      final sub = tc.doubleStream().listen(values.add);
+      final sub = tc.doubleStream().listen((v) {
+        values.add(v);
+        if (values.length >= 3 && !done.isCompleted) done.complete();
+      });
+      await Future.delayed(const Duration(milliseconds: 50));
       tc.configureDoubleStream(0.0, 3);
-      await Future.delayed(const Duration(milliseconds: 200));
+      await expectLater(done.future, completes);
       await sub.cancel();
       expect(values.length, greaterThanOrEqualTo(1));
     });
 
     testWidgets('statusStream: receive TcStatus enum values', (t) async {
-      final statuses = <TcStatus>[];
-      final sub = tc.statusStream().listen(statuses.add);
+      final firstStatus = Completer<TcStatus>();
+      final sub = tc.statusStream().listen((s) {
+        if (!firstStatus.isCompleted) firstStatus.complete(s);
+      });
+      await Future.delayed(const Duration(milliseconds: 50));
       tc.configureStatusStream(6);
-      await Future.delayed(const Duration(milliseconds: 200));
+      final s = await firstStatus.future;
       await sub.cancel();
-      expect(statuses.isNotEmpty, isTrue);
-      expect(statuses.every((s) => TcStatus.values.contains(s)), isTrue);
+      expect(TcStatus.values.contains(s), isTrue);
     });
 
     testWidgets('statusStream: cancel stops emissions', (t) async {
