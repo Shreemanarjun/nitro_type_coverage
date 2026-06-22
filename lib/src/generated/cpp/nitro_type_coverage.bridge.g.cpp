@@ -1176,8 +1176,9 @@ double nitro_type_coverage_get_nullable_rate(NitroError* _nitro_err) {
     jmethodID methodId = g_mid_nitro_type_coverage_get_nullable_rate_call;
     if (methodId == nullptr) { LOGE("Method not found: nitro_type_coverage_get_nullable_rate_call sig=()D"); return 0.0; }
     if (env->PushLocalFrame(8) != 0) { return 0.0; }
+    double res = env->CallStaticDoubleMethod(g_bridgeClass, methodId);
     env->PopLocalFrame(nullptr);
-    return 0.0;
+    return res;
 }
 
 void nitro_type_coverage_set_nullable_rate(double value, NitroError* _nitro_err) {
