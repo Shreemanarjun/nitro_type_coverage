@@ -143,13 +143,16 @@ static void nitro_report_jni_exception(JNIEnv* env, jthrowable ex, NitroError* _
     jstring j_msg = (jstring)env->CallObjectMethod(ex, g_exc_getMessage);
     const char* msg = (j_msg != nullptr) ? env->GetStringUTFChars(j_msg, 0) : "No message provided";
 
-    // S8: write to out-param slot instead of the TLS error slot.
+    // S8: write to out-param slot (sync) or TLS slot (async, _nitro_err == nullptr).
     if (_nitro_err) {
         _nitro_err->hasError = 1;
         _nitro_err->name       = strdup(name);
         _nitro_err->message    = strdup(msg);
         _nitro_err->code       = nullptr;
         _nitro_err->stackTrace = nullptr;
+    } else {
+        // Async functions use TLS slot (read by callAsync via get_error/clear_error).
+        nitro_report_error(name, msg, nullptr, nullptr);
     }
 
     if (j_name) {
@@ -407,12 +410,12 @@ double nitro_type_coverage_echo_nullable_double(double value, NitroError* _nitro
     return res;
 }
 
-int8_t nitro_type_coverage_echo_nullable_bool(int8_t value, NitroError* _nitro_err) {
+int8_t nitro_type_coverage_echo_nullable_bool(int32_t value, NitroError* _nitro_err) {
     if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
     JNIEnv* env = GetEnv();
     if (env == nullptr) { return false; }
     jmethodID methodId = g_mid_echoNullableBool_call;
-    if (methodId == nullptr) { LOGE("Method not found: echoNullableBool_call sig=(Z)Z"); return false; }
+    if (methodId == nullptr) { LOGE("Method not found: echoNullableBool_call sig=(I)Z"); return false; }
 
     nitro_type_coverage_clear_error();
     if (env->PushLocalFrame(16) != 0) { return false; }
@@ -453,7 +456,7 @@ const char* nitro_type_coverage_echo_nullable_string(const char* value, NitroErr
     return result;
 }
 
-int64_t nitro_type_coverage_echo_status(void* value, NitroError* _nitro_err) {
+int64_t nitro_type_coverage_echo_status(int64_t value, NitroError* _nitro_err) {
     if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
     JNIEnv* env = GetEnv();
     if (env == nullptr) { return 0; }
@@ -472,7 +475,7 @@ int64_t nitro_type_coverage_echo_status(void* value, NitroError* _nitro_err) {
     return res;
 }
 
-int64_t nitro_type_coverage_echo_nullable_status(void* value, NitroError* _nitro_err) {
+int64_t nitro_type_coverage_echo_nullable_status(int64_t value, NitroError* _nitro_err) {
     if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
     JNIEnv* env = GetEnv();
     if (env == nullptr) { return 0; }
@@ -526,7 +529,11 @@ void* nitro_type_coverage_echo_config(void* value, NitroError* _nitro_err) {
 
     nitro_type_coverage_clear_error();
     if (env->PushLocalFrame(16) != 0) { return nullptr; }
-    jbyteArray jarr = (jbyteArray)env->CallStaticObjectMethod(g_bridgeClass, methodId, value);
+    int32_t value_payload_len = *((const int32_t*)value);
+    int32_t value_total = value_payload_len + 4;
+    jbyteArray j_value = env->NewByteArray((jsize)value_total);
+    env->SetByteArrayRegion(j_value, 0, (jsize)value_total, (const jbyte*)value);
+    jbyteArray jarr = (jbyteArray)env->CallStaticObjectMethod(g_bridgeClass, methodId, j_value);
     if (env->ExceptionCheck()) {
         nitro_report_jni_exception(env, env->ExceptionOccurred(), _nitro_err);
         env->PopLocalFrame(nullptr);
@@ -735,8 +742,8 @@ uint8_t* nitro_type_coverage_echo_int32s(int32_t* value, int64_t value_length, N
     return (uint8_t*)result;
 }
 
-void* nitro_type_coverage_echo_int_list(void* value, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
+void* nitro_type_coverage_echo_int_list(void* value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
     JNIEnv* env = GetEnv();
     if (env == nullptr) { return nullptr; }
     jmethodID methodId = g_mid_echoIntList_call;
@@ -744,7 +751,11 @@ void* nitro_type_coverage_echo_int_list(void* value, NitroError* _nitro_err) {
 
     nitro_type_coverage_clear_error();
     if (env->PushLocalFrame(16) != 0) { return nullptr; }
-    jbyteArray jarr = (jbyteArray)env->CallStaticObjectMethod(g_bridgeClass, methodId, value);
+    int32_t value_payload_len = *((const int32_t*)value);
+    int32_t value_total = value_payload_len + 4;
+    jbyteArray j_value = env->NewByteArray((jsize)value_total);
+    env->SetByteArrayRegion(j_value, 0, (jsize)value_total, (const jbyte*)value);
+    jbyteArray jarr = (jbyteArray)env->CallStaticObjectMethod(g_bridgeClass, methodId, j_value);
     if (env->ExceptionCheck()) {
         nitro_report_jni_exception(env, env->ExceptionOccurred(), _nitro_err);
         env->PopLocalFrame(nullptr);
@@ -761,8 +772,8 @@ void* nitro_type_coverage_echo_int_list(void* value, NitroError* _nitro_err) {
     return result;
 }
 
-void* nitro_type_coverage_echo_double_list(void* value, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
+void* nitro_type_coverage_echo_double_list(void* value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
     JNIEnv* env = GetEnv();
     if (env == nullptr) { return nullptr; }
     jmethodID methodId = g_mid_echoDoubleList_call;
@@ -770,7 +781,11 @@ void* nitro_type_coverage_echo_double_list(void* value, NitroError* _nitro_err) 
 
     nitro_type_coverage_clear_error();
     if (env->PushLocalFrame(16) != 0) { return nullptr; }
-    jbyteArray jarr = (jbyteArray)env->CallStaticObjectMethod(g_bridgeClass, methodId, value);
+    int32_t value_payload_len = *((const int32_t*)value);
+    int32_t value_total = value_payload_len + 4;
+    jbyteArray j_value = env->NewByteArray((jsize)value_total);
+    env->SetByteArrayRegion(j_value, 0, (jsize)value_total, (const jbyte*)value);
+    jbyteArray jarr = (jbyteArray)env->CallStaticObjectMethod(g_bridgeClass, methodId, j_value);
     if (env->ExceptionCheck()) {
         nitro_report_jni_exception(env, env->ExceptionOccurred(), _nitro_err);
         env->PopLocalFrame(nullptr);
@@ -787,8 +802,8 @@ void* nitro_type_coverage_echo_double_list(void* value, NitroError* _nitro_err) 
     return result;
 }
 
-void* nitro_type_coverage_echo_string_list(void* value, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
+void* nitro_type_coverage_echo_string_list(void* value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
     JNIEnv* env = GetEnv();
     if (env == nullptr) { return nullptr; }
     jmethodID methodId = g_mid_echoStringList_call;
@@ -796,7 +811,11 @@ void* nitro_type_coverage_echo_string_list(void* value, NitroError* _nitro_err) 
 
     nitro_type_coverage_clear_error();
     if (env->PushLocalFrame(16) != 0) { return nullptr; }
-    jbyteArray jarr = (jbyteArray)env->CallStaticObjectMethod(g_bridgeClass, methodId, value);
+    int32_t value_payload_len = *((const int32_t*)value);
+    int32_t value_total = value_payload_len + 4;
+    jbyteArray j_value = env->NewByteArray((jsize)value_total);
+    env->SetByteArrayRegion(j_value, 0, (jsize)value_total, (const jbyte*)value);
+    jbyteArray jarr = (jbyteArray)env->CallStaticObjectMethod(g_bridgeClass, methodId, j_value);
     if (env->ExceptionCheck()) {
         nitro_report_jni_exception(env, env->ExceptionOccurred(), _nitro_err);
         env->PopLocalFrame(nullptr);
@@ -813,8 +832,8 @@ void* nitro_type_coverage_echo_string_list(void* value, NitroError* _nitro_err) 
     return result;
 }
 
-void* nitro_type_coverage_echo_config_list(void* values, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
+void* nitro_type_coverage_echo_config_list(void* values) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
     JNIEnv* env = GetEnv();
     if (env == nullptr) { return nullptr; }
     jmethodID methodId = g_mid_echoConfigList_call;
@@ -822,7 +841,11 @@ void* nitro_type_coverage_echo_config_list(void* values, NitroError* _nitro_err)
 
     nitro_type_coverage_clear_error();
     if (env->PushLocalFrame(16) != 0) { return nullptr; }
-    jbyteArray jarr = (jbyteArray)env->CallStaticObjectMethod(g_bridgeClass, methodId, values);
+    int32_t values_payload_len = *((const int32_t*)values);
+    int32_t values_total = values_payload_len + 4;
+    jbyteArray j_values = env->NewByteArray((jsize)values_total);
+    env->SetByteArrayRegion(j_values, 0, (jsize)values_total, (const jbyte*)values);
+    jbyteArray jarr = (jbyteArray)env->CallStaticObjectMethod(g_bridgeClass, methodId, j_values);
     if (env->ExceptionCheck()) {
         nitro_report_jni_exception(env, env->ExceptionOccurred(), _nitro_err);
         env->PopLocalFrame(nullptr);
@@ -839,8 +862,8 @@ void* nitro_type_coverage_echo_config_list(void* values, NitroError* _nitro_err)
     return result;
 }
 
-int64_t nitro_type_coverage_async_int(int64_t value, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
+int64_t nitro_type_coverage_async_int(int64_t value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
     JNIEnv* env = GetEnv();
     if (env == nullptr) { return 0; }
     jmethodID methodId = g_mid_asyncInt_call;
@@ -858,8 +881,8 @@ int64_t nitro_type_coverage_async_int(int64_t value, NitroError* _nitro_err) {
     return res;
 }
 
-double nitro_type_coverage_async_double(double value, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
+double nitro_type_coverage_async_double(double value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
     JNIEnv* env = GetEnv();
     if (env == nullptr) { return 0.0; }
     jmethodID methodId = g_mid_asyncDouble_call;
@@ -877,8 +900,8 @@ double nitro_type_coverage_async_double(double value, NitroError* _nitro_err) {
     return res;
 }
 
-int8_t nitro_type_coverage_async_bool(int8_t value, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
+int8_t nitro_type_coverage_async_bool(int8_t value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
     JNIEnv* env = GetEnv();
     if (env == nullptr) { return false; }
     jmethodID methodId = g_mid_asyncBool_call;
@@ -896,8 +919,8 @@ int8_t nitro_type_coverage_async_bool(int8_t value, NitroError* _nitro_err) {
     return res;
 }
 
-const char* nitro_type_coverage_async_string(const char* value, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
+const char* nitro_type_coverage_async_string(const char* value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
     JNIEnv* env = GetEnv();
     if (env == nullptr) { return nullptr; }
     jmethodID methodId = g_mid_asyncString_call;
@@ -923,8 +946,8 @@ const char* nitro_type_coverage_async_string(const char* value, NitroError* _nit
     return result;
 }
 
-void* nitro_type_coverage_async_config(void* value, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
+void* nitro_type_coverage_async_config(void* value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
     JNIEnv* env = GetEnv();
     if (env == nullptr) { return nullptr; }
     jmethodID methodId = g_mid_asyncConfig_call;
@@ -932,7 +955,11 @@ void* nitro_type_coverage_async_config(void* value, NitroError* _nitro_err) {
 
     nitro_type_coverage_clear_error();
     if (env->PushLocalFrame(16) != 0) { return nullptr; }
-    jbyteArray jarr = (jbyteArray)env->CallStaticObjectMethod(g_bridgeClass, methodId, value);
+    int32_t value_payload_len = *((const int32_t*)value);
+    int32_t value_total = value_payload_len + 4;
+    jbyteArray j_value = env->NewByteArray((jsize)value_total);
+    env->SetByteArrayRegion(j_value, 0, (jsize)value_total, (const jbyte*)value);
+    jbyteArray jarr = (jbyteArray)env->CallStaticObjectMethod(g_bridgeClass, methodId, j_value);
     if (env->ExceptionCheck()) {
         nitro_report_jni_exception(env, env->ExceptionOccurred(), _nitro_err);
         env->PopLocalFrame(nullptr);
@@ -949,8 +976,8 @@ void* nitro_type_coverage_async_config(void* value, NitroError* _nitro_err) {
     return result;
 }
 
-int64_t nitro_type_coverage_async_nullable_int(int64_t value, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
+int64_t nitro_type_coverage_async_nullable_int(int64_t value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
     JNIEnv* env = GetEnv();
     if (env == nullptr) { return 0; }
     jmethodID methodId = g_mid_asyncNullableInt_call;
@@ -968,8 +995,8 @@ int64_t nitro_type_coverage_async_nullable_int(int64_t value, NitroError* _nitro
     return res;
 }
 
-double nitro_type_coverage_async_nullable_double(double value, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
+double nitro_type_coverage_async_nullable_double(double value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
     JNIEnv* env = GetEnv();
     if (env == nullptr) { return 0.0; }
     jmethodID methodId = g_mid_asyncNullableDouble_call;
@@ -987,12 +1014,12 @@ double nitro_type_coverage_async_nullable_double(double value, NitroError* _nitr
     return res;
 }
 
-int8_t nitro_type_coverage_async_nullable_bool(int8_t value, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
+int8_t nitro_type_coverage_async_nullable_bool(int32_t value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
     JNIEnv* env = GetEnv();
     if (env == nullptr) { return false; }
     jmethodID methodId = g_mid_asyncNullableBool_call;
-    if (methodId == nullptr) { LOGE("Method not found: asyncNullableBool_call sig=(Z)Z"); return false; }
+    if (methodId == nullptr) { LOGE("Method not found: asyncNullableBool_call sig=(I)Z"); return false; }
 
     nitro_type_coverage_clear_error();
     if (env->PushLocalFrame(16) != 0) { return false; }
@@ -1006,8 +1033,8 @@ int8_t nitro_type_coverage_async_nullable_bool(int8_t value, NitroError* _nitro_
     return res;
 }
 
-const char* nitro_type_coverage_async_nullable_string(const char* value, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
+const char* nitro_type_coverage_async_nullable_string(const char* value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
     JNIEnv* env = GetEnv();
     if (env == nullptr) { return nullptr; }
     jmethodID methodId = g_mid_asyncNullableString_call;
@@ -1076,8 +1103,8 @@ void nitro_type_coverage_throw_native(const char* message, NitroError* _nitro_er
     if (env->ExceptionCheck()) { nitro_report_jni_exception(env, env->ExceptionOccurred(), _nitro_err); }
 }
 
-void nitro_type_coverage_throw_native_async(const char* message, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
+void nitro_type_coverage_throw_native_async(const char* message) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
     JNIEnv* env = GetEnv();
     if (env == nullptr) { return; }
     jmethodID methodId = g_mid_throwNativeAsync_call;
@@ -1336,8 +1363,8 @@ JNIEXPORT void JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverag
         if (!g_mid_echoNullableInt_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: echoNullableInt_call sig=(J)J"); }
         g_mid_echoNullableDouble_call = env->GetStaticMethodID(g_bridgeClass, "echoNullableDouble_call", "(D)D");
         if (!g_mid_echoNullableDouble_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: echoNullableDouble_call sig=(D)D"); }
-        g_mid_echoNullableBool_call = env->GetStaticMethodID(g_bridgeClass, "echoNullableBool_call", "(Z)Z");
-        if (!g_mid_echoNullableBool_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: echoNullableBool_call sig=(Z)Z"); }
+        g_mid_echoNullableBool_call = env->GetStaticMethodID(g_bridgeClass, "echoNullableBool_call", "(I)Z");
+        if (!g_mid_echoNullableBool_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: echoNullableBool_call sig=(I)Z"); }
         g_mid_echoNullableString_call = env->GetStaticMethodID(g_bridgeClass, "echoNullableString_call", "(Ljava/lang/String;)Ljava/lang/String;");
         if (!g_mid_echoNullableString_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: echoNullableString_call sig=(Ljava/lang/String;)Ljava/lang/String;"); }
         g_mid_echoStatus_call = env->GetStaticMethodID(g_bridgeClass, "echoStatus_call", "(J)J");
@@ -1378,8 +1405,8 @@ JNIEXPORT void JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverag
         if (!g_mid_asyncNullableInt_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: asyncNullableInt_call sig=(J)J"); }
         g_mid_asyncNullableDouble_call = env->GetStaticMethodID(g_bridgeClass, "asyncNullableDouble_call", "(D)D");
         if (!g_mid_asyncNullableDouble_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: asyncNullableDouble_call sig=(D)D"); }
-        g_mid_asyncNullableBool_call = env->GetStaticMethodID(g_bridgeClass, "asyncNullableBool_call", "(Z)Z");
-        if (!g_mid_asyncNullableBool_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: asyncNullableBool_call sig=(Z)Z"); }
+        g_mid_asyncNullableBool_call = env->GetStaticMethodID(g_bridgeClass, "asyncNullableBool_call", "(I)Z");
+        if (!g_mid_asyncNullableBool_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: asyncNullableBool_call sig=(I)Z"); }
         g_mid_asyncNullableString_call = env->GetStaticMethodID(g_bridgeClass, "asyncNullableString_call", "(Ljava/lang/String;)Ljava/lang/String;");
         if (!g_mid_asyncNullableString_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: asyncNullableString_call sig=(Ljava/lang/String;)Ljava/lang/String;"); }
         g_mid_onIntEvent_call = env->GetStaticMethodID(g_bridgeClass, "onIntEvent_call", "(J)V");
@@ -1454,11 +1481,15 @@ int64_t nitro_type_coverage_echo_int(int64_t value, NitroError* _nitro_err) {
         return _nitro_type_coverage_call_echoInt(value);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return 0;
     }
@@ -1475,11 +1506,15 @@ double nitro_type_coverage_echo_double(double value, NitroError* _nitro_err) {
         return _nitro_type_coverage_call_echoDouble(value);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return 0.0;
     }
@@ -1496,11 +1531,15 @@ int8_t nitro_type_coverage_echo_bool(int8_t value, NitroError* _nitro_err) {
         return _nitro_type_coverage_call_echoBool(value);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return false;
     }
@@ -1517,11 +1556,15 @@ const char* nitro_type_coverage_echo_string(const char* value, NitroError* _nitr
         return _nitro_type_coverage_call_echoString(value);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return nullptr;
     }
@@ -1538,11 +1581,15 @@ int64_t nitro_type_coverage_add_ints(int64_t a, int64_t b, int64_t c, NitroError
         return _nitro_type_coverage_call_addInts(a, b, c);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return 0;
     }
@@ -1559,11 +1606,15 @@ double nitro_type_coverage_mul_doubles(double a, double b, NitroError* _nitro_er
         return _nitro_type_coverage_call_mulDoubles(a, b);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return 0.0;
     }
@@ -1580,11 +1631,15 @@ const char* nitro_type_coverage_join_strings(const char* a, const char* b, const
         return _nitro_type_coverage_call_joinStrings(a, b, separator);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return nullptr;
     }
@@ -1601,11 +1656,15 @@ int64_t nitro_type_coverage_echo_nullable_int(int64_t value, NitroError* _nitro_
         return _nitro_type_coverage_call_echoNullableInt(value);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return 0;
     }
@@ -1622,11 +1681,15 @@ double nitro_type_coverage_echo_nullable_double(double value, NitroError* _nitro
         return _nitro_type_coverage_call_echoNullableDouble(value);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return 0.0;
     }
@@ -1635,19 +1698,23 @@ double nitro_type_coverage_echo_nullable_double(double value, NitroError* _nitro
 #endif
 }
 
-extern int8_t _nitro_type_coverage_call_echoNullableBool(int8_t value);
-int8_t nitro_type_coverage_echo_nullable_bool(int8_t value, NitroError* _nitro_err) {
+extern int8_t _nitro_type_coverage_call_echoNullableBool(int32_t value);
+int8_t nitro_type_coverage_echo_nullable_bool(int32_t value, NitroError* _nitro_err) {
     if (_nitro_err) { _nitro_err->hasError = 0; }
 #ifdef __OBJC__
     @try {
         return _nitro_type_coverage_call_echoNullableBool(value);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return false;
     }
@@ -1664,11 +1731,15 @@ const char* nitro_type_coverage_echo_nullable_string(const char* value, NitroErr
         return _nitro_type_coverage_call_echoNullableString(value);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return nullptr;
     }
@@ -1677,19 +1748,23 @@ const char* nitro_type_coverage_echo_nullable_string(const char* value, NitroErr
 #endif
 }
 
-extern int64_t _nitro_type_coverage_call_echoStatus(void* value);
-int64_t nitro_type_coverage_echo_status(void* value, NitroError* _nitro_err) {
+extern int64_t _nitro_type_coverage_call_echoStatus(int64_t value);
+int64_t nitro_type_coverage_echo_status(int64_t value, NitroError* _nitro_err) {
     if (_nitro_err) { _nitro_err->hasError = 0; }
 #ifdef __OBJC__
     @try {
         return _nitro_type_coverage_call_echoStatus(value);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return 0;
     }
@@ -1698,19 +1773,23 @@ int64_t nitro_type_coverage_echo_status(void* value, NitroError* _nitro_err) {
 #endif
 }
 
-extern int64_t _nitro_type_coverage_call_echoNullableStatus(void* value);
-int64_t nitro_type_coverage_echo_nullable_status(void* value, NitroError* _nitro_err) {
+extern int64_t _nitro_type_coverage_call_echoNullableStatus(int64_t value);
+int64_t nitro_type_coverage_echo_nullable_status(int64_t value, NitroError* _nitro_err) {
     if (_nitro_err) { _nitro_err->hasError = 0; }
 #ifdef __OBJC__
     @try {
         return _nitro_type_coverage_call_echoNullableStatus(value);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return 0;
     }
@@ -1727,11 +1806,15 @@ void* nitro_type_coverage_echo_point(void* value, NitroError* _nitro_err) {
         return _nitro_type_coverage_call_echoPoint(value);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return nullptr;
     }
@@ -1748,11 +1831,15 @@ void* nitro_type_coverage_echo_config(void* value, NitroError* _nitro_err) {
         return _nitro_type_coverage_call_echoConfig(value);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return nullptr;
     }
@@ -1769,11 +1856,15 @@ uint8_t* nitro_type_coverage_echo_bytes(uint8_t* value, int64_t value_length, Ni
         return _nitro_type_coverage_call_echoBytes(value, value_length);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return nullptr;
     }
@@ -1790,11 +1881,15 @@ uint8_t* nitro_type_coverage_echo_floats(float* value, int64_t value_length, Nit
         return _nitro_type_coverage_call_echoFloats(value, value_length);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return nullptr;
     }
@@ -1811,11 +1906,15 @@ uint8_t* nitro_type_coverage_echo_float64s(double* value, int64_t value_length, 
         return _nitro_type_coverage_call_echoFloat64s(value, value_length);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return nullptr;
     }
@@ -1832,11 +1931,15 @@ uint8_t* nitro_type_coverage_echo_int32s(int32_t* value, int64_t value_length, N
         return _nitro_type_coverage_call_echoInt32s(value, value_length);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return nullptr;
     }
@@ -1846,18 +1949,22 @@ uint8_t* nitro_type_coverage_echo_int32s(int32_t* value, int64_t value_length, N
 }
 
 extern void* _nitro_type_coverage_call_echoIntList(void* value);
-void* nitro_type_coverage_echo_int_list(void* value, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
+void* nitro_type_coverage_echo_int_list(void* value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
 #ifdef __OBJC__
     @try {
         return _nitro_type_coverage_call_echoIntList(value);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return nullptr;
     }
@@ -1867,18 +1974,22 @@ void* nitro_type_coverage_echo_int_list(void* value, NitroError* _nitro_err) {
 }
 
 extern void* _nitro_type_coverage_call_echoDoubleList(void* value);
-void* nitro_type_coverage_echo_double_list(void* value, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
+void* nitro_type_coverage_echo_double_list(void* value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
 #ifdef __OBJC__
     @try {
         return _nitro_type_coverage_call_echoDoubleList(value);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return nullptr;
     }
@@ -1888,18 +1999,22 @@ void* nitro_type_coverage_echo_double_list(void* value, NitroError* _nitro_err) 
 }
 
 extern void* _nitro_type_coverage_call_echoStringList(void* value);
-void* nitro_type_coverage_echo_string_list(void* value, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
+void* nitro_type_coverage_echo_string_list(void* value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
 #ifdef __OBJC__
     @try {
         return _nitro_type_coverage_call_echoStringList(value);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return nullptr;
     }
@@ -1909,18 +2024,22 @@ void* nitro_type_coverage_echo_string_list(void* value, NitroError* _nitro_err) 
 }
 
 extern void* _nitro_type_coverage_call_echoConfigList(void* values);
-void* nitro_type_coverage_echo_config_list(void* values, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
+void* nitro_type_coverage_echo_config_list(void* values) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
 #ifdef __OBJC__
     @try {
         return _nitro_type_coverage_call_echoConfigList(values);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return nullptr;
     }
@@ -1930,18 +2049,22 @@ void* nitro_type_coverage_echo_config_list(void* values, NitroError* _nitro_err)
 }
 
 extern int64_t _nitro_type_coverage_call_asyncInt(int64_t value);
-int64_t nitro_type_coverage_async_int(int64_t value, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
+int64_t nitro_type_coverage_async_int(int64_t value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
 #ifdef __OBJC__
     @try {
         return _nitro_type_coverage_call_asyncInt(value);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return 0;
     }
@@ -1951,18 +2074,22 @@ int64_t nitro_type_coverage_async_int(int64_t value, NitroError* _nitro_err) {
 }
 
 extern double _nitro_type_coverage_call_asyncDouble(double value);
-double nitro_type_coverage_async_double(double value, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
+double nitro_type_coverage_async_double(double value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
 #ifdef __OBJC__
     @try {
         return _nitro_type_coverage_call_asyncDouble(value);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return 0.0;
     }
@@ -1972,18 +2099,22 @@ double nitro_type_coverage_async_double(double value, NitroError* _nitro_err) {
 }
 
 extern int8_t _nitro_type_coverage_call_asyncBool(int8_t value);
-int8_t nitro_type_coverage_async_bool(int8_t value, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
+int8_t nitro_type_coverage_async_bool(int8_t value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
 #ifdef __OBJC__
     @try {
         return _nitro_type_coverage_call_asyncBool(value);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return false;
     }
@@ -1993,18 +2124,22 @@ int8_t nitro_type_coverage_async_bool(int8_t value, NitroError* _nitro_err) {
 }
 
 extern const char* _nitro_type_coverage_call_asyncString(const char* value);
-const char* nitro_type_coverage_async_string(const char* value, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
+const char* nitro_type_coverage_async_string(const char* value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
 #ifdef __OBJC__
     @try {
         return _nitro_type_coverage_call_asyncString(value);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return nullptr;
     }
@@ -2014,18 +2149,22 @@ const char* nitro_type_coverage_async_string(const char* value, NitroError* _nit
 }
 
 extern void* _nitro_type_coverage_call_asyncConfig(void* value);
-void* nitro_type_coverage_async_config(void* value, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
+void* nitro_type_coverage_async_config(void* value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
 #ifdef __OBJC__
     @try {
         return _nitro_type_coverage_call_asyncConfig(value);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return nullptr;
     }
@@ -2035,18 +2174,22 @@ void* nitro_type_coverage_async_config(void* value, NitroError* _nitro_err) {
 }
 
 extern int64_t _nitro_type_coverage_call_asyncNullableInt(int64_t value);
-int64_t nitro_type_coverage_async_nullable_int(int64_t value, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
+int64_t nitro_type_coverage_async_nullable_int(int64_t value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
 #ifdef __OBJC__
     @try {
         return _nitro_type_coverage_call_asyncNullableInt(value);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return 0;
     }
@@ -2056,18 +2199,22 @@ int64_t nitro_type_coverage_async_nullable_int(int64_t value, NitroError* _nitro
 }
 
 extern double _nitro_type_coverage_call_asyncNullableDouble(double value);
-double nitro_type_coverage_async_nullable_double(double value, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
+double nitro_type_coverage_async_nullable_double(double value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
 #ifdef __OBJC__
     @try {
         return _nitro_type_coverage_call_asyncNullableDouble(value);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return 0.0;
     }
@@ -2076,19 +2223,23 @@ double nitro_type_coverage_async_nullable_double(double value, NitroError* _nitr
 #endif
 }
 
-extern int8_t _nitro_type_coverage_call_asyncNullableBool(int8_t value);
-int8_t nitro_type_coverage_async_nullable_bool(int8_t value, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
+extern int8_t _nitro_type_coverage_call_asyncNullableBool(int32_t value);
+int8_t nitro_type_coverage_async_nullable_bool(int32_t value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
 #ifdef __OBJC__
     @try {
         return _nitro_type_coverage_call_asyncNullableBool(value);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return false;
     }
@@ -2098,18 +2249,22 @@ int8_t nitro_type_coverage_async_nullable_bool(int8_t value, NitroError* _nitro_
 }
 
 extern const char* _nitro_type_coverage_call_asyncNullableString(const char* value);
-const char* nitro_type_coverage_async_nullable_string(const char* value, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
+const char* nitro_type_coverage_async_nullable_string(const char* value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
 #ifdef __OBJC__
     @try {
         return _nitro_type_coverage_call_asyncNullableString(value);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
         return nullptr;
     }
@@ -2126,11 +2281,15 @@ void nitro_type_coverage_on_int_event(void (*callback)(int64_t), NitroError* _ni
         _nitro_type_coverage_call_onIntEvent(callback);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
     }
 #else
@@ -2146,11 +2305,15 @@ void nitro_type_coverage_configure_stream(int64_t from, int64_t count, NitroErro
         _nitro_type_coverage_call_configureStream(from, count);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
     }
 #else
@@ -2166,11 +2329,15 @@ void nitro_type_coverage_throw_native(const char* message, NitroError* _nitro_er
         _nitro_type_coverage_call_throwNative(message);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
     }
 #else
@@ -2179,18 +2346,22 @@ void nitro_type_coverage_throw_native(const char* message, NitroError* _nitro_er
 }
 
 extern void _nitro_type_coverage_call_throwNativeAsync(const char* message);
-void nitro_type_coverage_throw_native_async(const char* message, NitroError* _nitro_err) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
+void nitro_type_coverage_throw_native_async(const char* message) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
 #ifdef __OBJC__
     @try {
         _nitro_type_coverage_call_throwNativeAsync(message);
     } @catch (NSException* e) {
         if (_nitro_err) {
+            // sync: write exception to out-param error slot.
             _nitro_err->hasError = 1;
             _nitro_err->name    = strdup([e.name UTF8String]);
             _nitro_err->message = strdup([e.reason UTF8String]);
             _nitro_err->code = nullptr;
             _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
         }
     }
 #else

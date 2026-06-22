@@ -48,7 +48,8 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
 
     // ── Enum ──────────────────────────────────────────────────────────────────
     override fun echoStatus(value: TcStatus): TcStatus = value
-    override fun echoNullableStatus(value: TcStatus?): TcStatus = value ?: TcStatus.OK
+    // Must return TcStatus? (nullable) so the bridge encodes null as -1L sentinel
+    override fun echoNullableStatus(value: TcStatus?): TcStatus? = value
 
     // ── Struct ────────────────────────────────────────────────────────────────
     override fun echoPoint(value: TcPoint): TcPoint = value

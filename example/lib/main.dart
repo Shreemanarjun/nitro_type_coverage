@@ -34,121 +34,117 @@ class _DemoPageState extends State<_DemoPage> {
   final _result = signal<String>('—');
   final _loading = signal<bool>(false);
 
-  plugin.TcPoint? _lastPoint;
-  plugin.TcConfig? _lastConfig;
 
   plugin.NitroTypeCoverage get _api => plugin.NitroTypeCoverage.instance;
 
   // ── Primitives ────────────────────────────────────────────────────────────
 
-  void _echoInt() {
+  Future<void> _echoInt() async {
     final v = _api.echoInt(42);
     _result.value = 'echoInt(42) = $v';
   }
 
-  void _echoDouble() {
+  Future<void> _echoDouble() async {
     final v = _api.echoDouble(3.14);
     _result.value = 'echoDouble(3.14) = $v';
   }
 
-  void _echoBool() {
+  Future<void> _echoBool() async {
     final v = _api.echoBool(true);
     _result.value = 'echoBool(true) = $v';
   }
 
-  void _echoString() {
+  Future<void> _echoString() async {
     final v = _api.echoString('Hello Nitro');
     _result.value = 'echoString("Hello Nitro") = $v';
   }
 
   // ── Multi-param ──────────────────────────────────────────────────────────
 
-  void _addInts() {
+  Future<void> _addInts() async {
     final v = _api.addInts(1, 2, 3);
     _result.value = 'addInts(1, 2, 3) = $v';
   }
 
-  void _mulDoubles() {
+  Future<void> _mulDoubles() async {
     final v = _api.mulDoubles(2.5, 4.0);
     _result.value = 'mulDoubles(2.5, 4.0) = $v';
   }
 
-  void _joinStrings() {
+  Future<void> _joinStrings() async {
     final v = _api.joinStrings('Hello', 'World', ' ');
     _result.value = 'joinStrings("Hello", "World", " ") = $v';
   }
 
   // ── Nullable ─────────────────────────────────────────────────────────────
 
-  void _echoNullableInt() {
+  Future<void> _echoNullableInt() async {
     final v = _api.echoNullableInt(null);
     _result.value = 'echoNullableInt(null) = $v';
   }
 
-  void _echoNullableDouble() {
+  Future<void> _echoNullableDouble() async {
     final v = _api.echoNullableDouble(2.718);
     _result.value = 'echoNullableDouble(2.718) = $v';
   }
 
-  void _echoNullableBool() {
+  Future<void> _echoNullableBool() async {
     final v = _api.echoNullableBool(null);
     _result.value = 'echoNullableBool(null) = $v';
   }
 
-  void _echoNullableString() {
+  Future<void> _echoNullableString() async {
     final v = _api.echoNullableString('nullable');
     _result.value = 'echoNullableString("nullable") = $v';
   }
 
   // ── Enum ─────────────────────────────────────────────────────────────────
 
-  void _echoStatus() {
+  Future<void> _echoStatus() async {
     final v = _api.echoStatus(plugin.TcStatus.ok);
     _result.value = 'echoStatus(TcStatus.ok) = ${v.name}';
   }
 
-  void _echoNullableStatus() {
+  Future<void> _echoNullableStatus() async {
     final v = _api.echoNullableStatus(plugin.TcStatus.pending);
     _result.value = 'echoNullableStatus(TcStatus.pending) = ${v?.name}';
   }
 
   // ── Struct ───────────────────────────────────────────────────────────────
 
-  void _echoPoint() {
+  Future<void> _echoPoint() async {
     final v = _api.echoPoint(plugin.TcPoint(x: 1.0, y: 2.0, z: 3.0));
-    _lastPoint = v;
     _result.value = 'echoPoint(1,2,3) = (${v.x}, ${v.y}, ${v.z})';
   }
 
   // ── Record ───────────────────────────────────────────────────────────────
 
-  void _echoConfig() {
+  Future<void> _echoConfig() async {
     final v = _api.echoConfig(
       plugin.TcConfig(name: 'test', count: 10, enabled: true, threshold: 0.5),
     );
-    _lastConfig = v;
     _result.value =
         'echoConfig(name:${v.name}, count:${v.count}, enabled:${v.enabled})';
   }
 
   // ── TypedData (zero-copy) ────────────────────────────────────────────────
 
-  void _echoBytes() {
+  Future<void> _echoBytes() async {
     final v = _api.echoBytes(Uint8List.fromList([1, 2, 3, 4]));
     _result.value = 'echoBytes([1,2,3,4]) = $v';
   }
 
-  void _echoFloats() {
+  Future<void> _echoFloats() async {
     final v = _api.echoFloats(Float32List.fromList([1.1, 2.2, 3.3]));
     _result.value = 'echoFloats([1.1,2.2,3.3]) = $v';
   }
 
-  void _echoFloat64s() {
+  Future<void> _echoFloat64s() async {
     final v = _api.echoFloat64s(Float64List.fromList([1.1, 2.2, 3.3]));
     _result.value = 'echoFloat64s([1.1,2.2,3.3]) = $v';
   }
 
-  void _echoInt32s() {
+  Future<void> _echoInt32s() async {
     final v = _api.echoInt32s(Int32List.fromList([10, 20, 30]));
     _result.value = 'echoInt32s([10,20,30]) = $v';
   }
@@ -221,7 +217,7 @@ class _DemoPageState extends State<_DemoPage> {
 
   // ── Callback ─────────────────────────────────────────────────────────────
 
-  void _onIntEvent() {
+  Future<void> _onIntEvent() async {
     _api.onIntEvent((value) {
       _result.value = 'onIntEvent callback: $value';
     });
@@ -230,31 +226,31 @@ class _DemoPageState extends State<_DemoPage> {
 
   // ── Properties ───────────────────────────────────────────────────────────
 
-  void _getSetPrecision() {
+  Future<void> _getSetPrecision() async {
     _api.precision = 42;
     final v = _api.precision;
     _result.value = 'precision get/set = $v';
   }
 
-  void _getSetTag() {
+  Future<void> _getSetTag() async {
     _api.tag = 'demo-tag';
     final v = _api.tag;
     _result.value = 'tag get/set = "$v"';
   }
 
-  void _getSetNullableRate() {
+  Future<void> _getSetNullableRate() async {
     _api.nullableRate = 0.75;
     final v = _api.nullableRate;
     _result.value = 'nullableRate get/set = $v';
   }
 
-  void _getSetEnabled() {
+  Future<void> _getSetEnabled() async {
     _api.enabled = true;
     final v = _api.enabled;
     _result.value = 'enabled get/set = $v';
   }
 
-  void _getSetCurrentStatus() {
+  Future<void> _getSetCurrentStatus() async {
     _api.currentStatus = plugin.TcStatus.ok;
     final v = _api.currentStatus;
     _result.value = 'currentStatus get/set = ${v.name}';
@@ -263,7 +259,7 @@ class _DemoPageState extends State<_DemoPage> {
   // ── Streams ──────────────────────────────────────────────────────────────
 
   StreamSubscription<int>? _intSub;
-  void _listenIntStream() {
+  Future<void> _listenIntStream() async {
     _intSub?.cancel();
     _intSub = _api.intStream().listen((v) {
       _result.value = 'intStream: $v';
@@ -272,7 +268,7 @@ class _DemoPageState extends State<_DemoPage> {
   }
 
   StreamSubscription<plugin.TcPoint>? _pointSub;
-  void _listenPointStream() {
+  Future<void> _listenPointStream() async {
     _pointSub?.cancel();
     _pointSub = _api.pointStream().listen((v) {
       _result.value = 'pointStream: (${v.x}, ${v.y}, ${v.z})';
@@ -280,17 +276,33 @@ class _DemoPageState extends State<_DemoPage> {
     _result.value = 'pointStream listening ✓';
   }
 
-  void _cancelStreams() {
+  StreamSubscription<bool>? _boolSub;
+  Future<void> _listenBoolStream() async {
+    _boolSub?.cancel();
+    _boolSub = _api.boolStream().listen((v) {
+      _result.value = 'boolStream: $v';
+    });
+    _result.value = 'boolStream listening ✓';
+  }
+
+  Future<void> _configureStream() async {
+    _api.configureStream(0, 5);
+    _result.value = 'configureStream(from:0, count:5) ✓ — check stream listeners';
+  }
+
+  Future<void> _cancelStreams() async {
     _intSub?.cancel();
     _pointSub?.cancel();
+    _boolSub?.cancel();
     _intSub = null;
     _pointSub = null;
-    _result.value = 'streams cancelled ✓';
+    _boolSub = null;
+    _result.value = 'all streams cancelled ✓';
   }
 
   // ── Error handling ───────────────────────────────────────────────────────
 
-  void _throwNative() {
+  Future<void> _throwNative() async {
     try {
       _api.throwNative('test error');
     } catch (e) {
@@ -403,7 +415,9 @@ class _DemoPageState extends State<_DemoPage> {
                 _section('Streams', [
                   _btn('listen intStream', _listenIntStream),
                   _btn('listen pointStream', _listenPointStream),
-                  _btn('cancel streams', _cancelStreams),
+                  _btn('listen boolStream', _listenBoolStream),
+                  _btn('▶ configureStream(0,5)', _configureStream),
+                  _btn('cancel all streams', _cancelStreams),
                 ]),
                 _section('Error handling', [
                   _btn('throwNative', _throwNative),
@@ -443,14 +457,17 @@ class _DemoPageState extends State<_DemoPage> {
     );
   }
 
-  Widget _btn(String label, VoidCallback? onPressed) {
+  // Accept FutureOr<void> so both sync and async handlers work and are awaited.
+  Widget _btn(String label, Future<void> Function()? onPressed) {
     return ElevatedButton(
       onPressed: onPressed == null
           ? null
           : () async {
               _loading.value = true;
               try {
-                onPressed();
+                await onPressed();
+              } catch (e) {
+                _result.value = 'ERROR: $e';
               } finally {
                 _loading.value = false;
               }

@@ -1,6 +1,9 @@
 plugins {
     id "com.android.library"
-    id "org.jetbrains.kotlin.android"
+    // org.jetbrains.kotlin.android is NOT applied here — Flutter's build
+    // infrastructure applies KGP via its own mechanism (built-in Kotlin).
+    // Explicitly applying KGP here triggers a Flutter deprecation warning.
+    // See: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin
 }
 
 group = "nitro.nitro_type_coverage"
@@ -21,6 +24,12 @@ android {
     }
 
     kotlinOptions { jvmTarget = "17" }
+
+    // Disable Kotlin incremental compilation to avoid stale .class files when
+    // generated bridge method signatures change (e.g. nullable param type fixes).
+    project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        incremental = false
+    }
 
     defaultConfig { minSdk = 24 }
 

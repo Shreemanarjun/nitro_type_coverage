@@ -29,7 +29,7 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     public func echoString(value: String) -> String { value }
 
     // ── Multi-param ───────────────────────────────────────────────────────────
-    public func addInts(a: Int64, b: Int64, c: Int64) -> Int64 { a + b + c }
+    public func addInts(a: Int64, b: Int64, c: Int64) -> Int64 { a &+ b &+ c }
     public func mulDoubles(a: Double, b: Double) -> Double { a * b }
     public func joinStrings(a: String, b: String, separator: String) -> String { a + separator + b }
 
