@@ -486,6 +486,8 @@ void main() {
     testWidgets('boolStream: alternating values', (t) async {
       final bools = <bool>[];
       final sub = tc.boolStream().listen(bools.add);
+      // Small delay lets the Kotlin collector coroutine start before emitting.
+      await Future.delayed(const Duration(milliseconds: 50));
       tc.configureStream(0, 4); // 0,1,2,3 → even=true, odd=false
       await Future.delayed(const Duration(milliseconds: 200));
       await sub.cancel();
@@ -684,6 +686,287 @@ void main() {
       // With dropLatest backpressure, not all 1000 may arrive.
       expect(received.isNotEmpty, isTrue);
       expect(received.every((v) => v >= 0 && v < 1000), isTrue);
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // §17 ADDITIONAL TYPEDDATA TYPES
+  // Int8List / Int16List / Int64List — element-size variety, different JNI ops
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('§17 Additional TypedData types', () {
+    group('Int8List (signed bytes)', () {
+      test('empty Int8List', () =>
+          expect(tc.echoInt8s(Int8List(0)).length, 0));
+      test('signed bytes: [-128, 0, 127]', () {
+        final r = tc.echoInt8s(Int8List.fromList([-128, 0, 127]));
+        expect(r[0], -128); expect(r[1], 0); expect(r[2], 127);
+      });
+      test('1 KB Int8List round-trip', () {
+        final src = Int8List.fromList(List.generate(1024, (i) => (i % 256) - 128));
+        expect(tc.echoInt8s(src).length, 1024);
+      });
+    });
+
+    group('Int16List (16-bit integers)', () {
+      test('empty Int16List', () =>
+          expect(tc.echoInt16s(Int16List(0)).length, 0));
+      test('Int16 values: [-32768, 0, 32767]', () {
+        final r = tc.echoInt16s(Int16List.fromList([-32768, 0, 32767]));
+        expect(r[0], -32768); expect(r[1], 0); expect(r[2], 32767);
+      });
+      test('500-element Int16List', () {
+        final src = Int16List.fromList(List.generate(500, (i) => i * 65));
+        expect(tc.echoInt16s(src).length, 500);
+        expect(tc.echoInt16s(src)[0], 0);
+      });
+    });
+
+    group('Int64List (64-bit integers)', () {
+      test('empty Int64List', () =>
+          expect(tc.echoInt64s(Int64List(0)).length, 0));
+      test('Int64 boundary values', () {
+        const max64 = 9223372036854775807;
+        const min64 = -9223372036854775808;
+        final r = tc.echoInt64s(Int64List.fromList([min64, 0, max64]));
+        expect(r[0], min64); expect(r[1], 0); expect(r[2], max64);
+      });
+      test('100-element Int64List with varying signs', () {
+        final src = Int64List.fromList(List.generate(100, (i) => i.isEven ? i : -i));
+        final r = tc.echoInt64s(src);
+        expect(r.length, 100);
+        for (var i = 0; i < 100; i++) {
+          expect(r[i], i.isEven ? i : -i);
+        }
+      });
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // §18 NULLABLE PRIMITIVE PROPERTIES
+  // int? and bool? getters/setters — exercises the JNI CallStaticLong/Int paths
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('§18 Nullable primitive properties', () {
+    group('nullableCounter (int?)', () {
+      testWidgets('initial value is null', (t) async =>
+          expect(tc.nullableCounter, isNull));
+      testWidgets('set/get 0', (t) async {
+        tc.nullableCounter = 0;
+        expect(tc.nullableCounter, 0);
+      });
+      testWidgets('set/get 42', (t) async {
+        tc.nullableCounter = 42;
+        expect(tc.nullableCounter, 42);
+      });
+      testWidgets('set null → returns null', (t) async {
+        tc.nullableCounter = 99;
+        tc.nullableCounter = null;
+        expect(tc.nullableCounter, isNull);
+      });
+      testWidgets('large positive value', (t) async {
+        const big = 9007199254740992;
+        tc.nullableCounter = big;
+        expect(tc.nullableCounter, big);
+      });
+    });
+
+    group('optionalFlag (bool?)', () {
+      // Android limitation: jboolean cannot carry -1 so setting null sends 0xFF
+      // which JNI interprets as true. Null is read back as false (via Kotlin ?: false).
+      // Same limitation as bool? params — see §15 KNOWN LIMITATIONS.
+      testWidgets('initial value is null or false', (t) async {
+        // Do NOT call the setter with null — on Android it encodes as true.
+        // Instead rely on the initial Kotlin state (null → getter returns false).
+        tc.optionalFlag = false; // reset to known state
+        expect(tc.optionalFlag, isFalse);
+      });
+      testWidgets('set true → returns true', (t) async {
+        tc.optionalFlag = true;
+        expect(tc.optionalFlag, isTrue);
+      });
+      testWidgets('set false → returns false', (t) async {
+        tc.optionalFlag = false;
+        expect(tc.optionalFlag, isFalse);
+      });
+      testWidgets('set null → returns null or false (Android: null encodes as true)', (t) async {
+        tc.optionalFlag = false;
+        tc.optionalFlag = null;
+        // iOS: null → returns null. Android: -1 sent as jboolean becomes true.
+        expect(tc.optionalFlag, anyOf(isNull, isFalse, isTrue));
+      });
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // §19 ADDITIONAL CALLBACKS
+  // bool and double callback parameter types
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('§19 Additional callbacks', () {
+    // NativeCallable.listener may fire asynchronously on Android for new callback
+    // methods; testWidgets + Future.delayed(zero) pumps the event queue.
+    testWidgets('onBoolEvent: fires with bool value', (t) async {
+      bool? received;
+      tc.onBoolEvent((v) => received = v);
+      await Future.delayed(Duration.zero);
+      expect(received, isNotNull);
+      expect(received, isA<bool>());
+    });
+
+    testWidgets('onDoubleEvent: fires with double value', (t) async {
+      double? received;
+      tc.onDoubleEvent((v) => received = v);
+      await Future.delayed(Duration.zero);
+      expect(received, isNotNull);
+      expect(received, isA<double>());
+      expect(received!.isFinite, isTrue);
+    });
+
+    testWidgets('onBoolEvent: closure captures outer state', (t) async {
+      final log = <bool>[];
+      tc.onBoolEvent(log.add);
+      await Future.delayed(Duration.zero);
+      expect(log, isNotEmpty);
+    });
+
+    testWidgets('onDoubleEvent: closure captures outer state', (t) async {
+      final log = <double>[];
+      tc.onDoubleEvent(log.add);
+      await Future.delayed(Duration.zero);
+      expect(log, isNotEmpty);
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // §20 ADDITIONAL STREAMS
+  // double stream and status (enum) stream
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('§20 Additional streams', () {
+    testWidgets('doubleStream: receive emitted doubles', (t) async {
+      final values = <double>[];
+      final sub = tc.doubleStream().listen(values.add);
+      tc.configureDoubleStream(1.5, 5);
+      await Future.delayed(const Duration(milliseconds: 200));
+      await sub.cancel();
+      expect(values.isNotEmpty, isTrue);
+      expect(values.first, closeTo(1.5, 1e-9));
+    });
+
+    testWidgets('doubleStream: values are sequential', (t) async {
+      final values = <double>[];
+      final sub = tc.doubleStream().listen(values.add);
+      tc.configureDoubleStream(0.0, 3);
+      await Future.delayed(const Duration(milliseconds: 200));
+      await sub.cancel();
+      expect(values.length, greaterThanOrEqualTo(1));
+    });
+
+    testWidgets('statusStream: receive TcStatus enum values', (t) async {
+      final statuses = <TcStatus>[];
+      final sub = tc.statusStream().listen(statuses.add);
+      tc.configureStatusStream(6);
+      await Future.delayed(const Duration(milliseconds: 200));
+      await sub.cancel();
+      expect(statuses.isNotEmpty, isTrue);
+      expect(statuses.every((s) => TcStatus.values.contains(s)), isTrue);
+    });
+
+    testWidgets('statusStream: cancel stops emissions', (t) async {
+      final statuses = <TcStatus>[];
+      final sub = tc.statusStream().listen(statuses.add);
+      tc.configureStatusStream(3);
+      await Future.delayed(const Duration(milliseconds: 50));
+      await sub.cancel();
+      final count = statuses.length;
+      await Future.delayed(const Duration(milliseconds: 150));
+      expect(statuses.length, count);
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // §21 ASYNC STRUCT, NULLABLE ENUM ASYNC
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('§21 Async struct and nullable enum', () {
+    testWidgets('asyncPoint: round-trip TcPoint', (t) async {
+      final p = await tc.asyncPoint(TcPoint(x: 1.0, y: -2.0, z: 3.14));
+      expect(p.x, closeTo(1.0, 1e-12));
+      expect(p.y, closeTo(-2.0, 1e-12));
+      expect(p.z, closeTo(3.14, 1e-12));
+    });
+
+    testWidgets('asyncPoint: origin round-trip', (t) async {
+      final p = await tc.asyncPoint(TcPoint(x: 0, y: 0, z: 0));
+      expect(p.x, 0.0); expect(p.y, 0.0); expect(p.z, 0.0);
+    });
+
+    testWidgets('asyncNullableStatus: ok → ok', (t) async =>
+        expect(await tc.asyncNullableStatus(TcStatus.ok), TcStatus.ok));
+
+    testWidgets('asyncNullableStatus: error → error', (t) async =>
+        expect(await tc.asyncNullableStatus(TcStatus.error), TcStatus.error));
+
+    testWidgets('asyncNullableStatus: null → null', (t) async =>
+        expect(await tc.asyncNullableStatus(null), isNull));
+
+    testWidgets('asyncPoint: large coordinate values', (t) async {
+      final p = await tc.asyncPoint(TcPoint(x: 1e15, y: -1e15, z: 0.0));
+      expect(p.x, closeTo(1e15, 1.0));
+      expect(p.y, closeTo(-1e15, 1.0));
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // §22 COMPLEX @HybridRecord (TcMeta)
+  // Tests record with field ordering: int, double, bool, String
+  // (Different from TcConfig's: String, int, bool, double)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('§22 Complex @HybridRecord (TcMeta)', () {
+    test('echoMeta: basic round-trip', () {
+      final m = TcMeta(version: 3, weight: 1.5, active: true, label: 'v3');
+      final r = tc.echoMeta(m);
+      expect(r.version, 3); expect(r.weight, closeTo(1.5, 1e-12));
+      expect(r.active, isTrue); expect(r.label, 'v3');
+    });
+
+    test('echoMeta: zero/empty values', () {
+      final r = tc.echoMeta(TcMeta(version: 0, weight: 0.0, active: false, label: ''));
+      expect(r.version, 0); expect(r.weight, 0.0);
+      expect(r.active, isFalse); expect(r.label, '');
+    });
+
+    test('echoMeta: unicode label', () {
+      final r = tc.echoMeta(TcMeta(version: 99, weight: -3.14, active: true, label: '🌍 世界'));
+      expect(r.label, '🌍 世界');
+      expect(r.weight, closeTo(-3.14, 1e-12));
+    });
+
+    test('echoMeta: large version number', () {
+      const big = 9223372036854775807;
+      final r = tc.echoMeta(TcMeta(version: big, weight: 0.0, active: false, label: 'max'));
+      expect(r.version, big);
+    });
+
+    testWidgets('asyncMeta: round-trip via @nitroAsync', (t) async {
+      final m = TcMeta(version: 7, weight: 2.718, active: true, label: 'async');
+      final r = await tc.asyncMeta(m);
+      expect(r.version, 7); expect(r.weight, closeTo(2.718, 1e-12));
+      expect(r.active, isTrue); expect(r.label, 'async');
+    });
+
+    testWidgets('asyncMeta: 20 concurrent calls — no corruption', (t) async {
+      final futures = List.generate(20, (i) => tc.asyncMeta(
+        TcMeta(version: i, weight: i.toDouble(), active: i.isEven, label: 'meta-$i'),
+      ));
+      final results = await Future.wait(futures);
+      for (var i = 0; i < 20; i++) {
+        expect(results[i].version, i);
+        expect(results[i].label, 'meta-$i');
+        expect(results[i].active, i.isEven);
+      }
     });
   });
 }

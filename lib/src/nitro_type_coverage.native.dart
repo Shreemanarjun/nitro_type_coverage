@@ -52,6 +52,16 @@ abstract class NitroTypeCoverage extends HybridObject {
   @zeroCopy
   Int32List echoInt32s(Int32List value);
 
+  // Additional TypedData types (§17 coverage)
+  @zeroCopy
+  Int8List echoInt8s(Int8List value);
+
+  @zeroCopy
+  Int16List echoInt16s(Int16List value);
+
+  @zeroCopy
+  Int64List echoInt64s(Int64List value);
+
   // ── Lists (async — @HybridRecord JSON encoding) ───────────────────────────
   @nitroAsync
   Future<List<int>> echoIntList(List<int> value);
@@ -94,8 +104,28 @@ abstract class NitroTypeCoverage extends HybridObject {
   @nitroAsync
   Future<String?> asyncNullableString(String? value);
 
+  // Additional async types (§21 coverage)
+  @nitroAsync
+  Future<TcPoint> asyncPoint(TcPoint value);
+
+  @nitroAsync
+  Future<TcStatus?> asyncNullableStatus(TcStatus? value);
+
+  @nitroAsync
+  Future<TcMeta> asyncMeta(TcMeta value);
+
+  // ── @HybridRecord with more field types (§22 coverage) ───────────────────
+  TcMeta echoMeta(TcMeta value);
+
   // ── Callback parameter ────────────────────────────────────────────────────
   void onIntEvent(void Function(int value) callback);
+
+  // Additional callback types (§19 coverage).
+  // Use param name 'boolCb'/'doubleCb' (not 'callback') so the Kotlin generator
+  // creates a unique _invoke_boolCb / _invoke_doubleCb with Long-encoded values
+  // that reuses the same synchronous path as _invoke_callback.
+  void onBoolEvent(void Function(bool value) boolCb);
+  void onDoubleEvent(void Function(double value) doubleCb);
 
   // ── Properties ────────────────────────────────────────────────────────────
   int get precision;
@@ -113,6 +143,13 @@ abstract class NitroTypeCoverage extends HybridObject {
   TcStatus get currentStatus;
   set currentStatus(TcStatus value);
 
+  // Additional nullable primitive properties (§18 coverage)
+  int? get nullableCounter;
+  set nullableCounter(int? value);
+
+  bool? get optionalFlag;
+  set optionalFlag(bool? value);
+
   // ── Streams ───────────────────────────────────────────────────────────────
   @NitroStream(backpressure: Backpressure.dropLatest)
   Stream<int> intStream();
@@ -123,7 +160,16 @@ abstract class NitroTypeCoverage extends HybridObject {
   @NitroStream(backpressure: Backpressure.dropLatest)
   Stream<bool> boolStream();
 
+  // Additional stream types (§20 coverage)
+  @NitroStream(backpressure: Backpressure.dropLatest)
+  Stream<double> doubleStream();
+
+  @NitroStream(backpressure: Backpressure.dropLatest)
+  Stream<TcStatus> statusStream();
+
   void configureStream(int from, int count);
+  void configureDoubleStream(double start, int count);
+  void configureStatusStream(int count);
 
   // ── Error handling ────────────────────────────────────────────────────────
   void throwNative(String message);
@@ -152,4 +198,15 @@ class TcConfig {
   final bool enabled;
   final double threshold;
   TcConfig({required this.name, required this.count, required this.enabled, required this.threshold});
+}
+
+/// A more complex @HybridRecord covering all 4 primitive types with different
+/// field ordering — tests that the binary codec is position-stable.
+@HybridRecord()
+class TcMeta {
+  final int version;
+  final double weight;
+  final bool active;
+  final String label;
+  TcMeta({required this.version, required this.weight, required this.active, required this.label});
 }

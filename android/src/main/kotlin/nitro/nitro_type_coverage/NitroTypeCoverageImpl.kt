@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import nitro.nitro_type_coverage_module.HybridNitroTypeCoverageSpec
 import nitro.nitro_type_coverage_module.TcConfig
+import nitro.nitro_type_coverage_module.TcMeta
 import nitro.nitro_type_coverage_module.TcPoint
 import nitro.nitro_type_coverage_module.TcStatus
 
@@ -18,9 +19,13 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     private val _intStream = MutableSharedFlow<Long>(extraBufferCapacity = 64)
     private val _pointStream = MutableSharedFlow<TcPoint>(extraBufferCapacity = 64)
     private val _boolStream = MutableSharedFlow<Boolean>(extraBufferCapacity = 64)
+    private val _doubleStream = MutableSharedFlow<Double>(extraBufferCapacity = 64)
+    private val _statusStream = MutableSharedFlow<TcStatus>(extraBufferCapacity = 64)
     override val intStream: Flow<Long> = _intStream
     override val pointStream: Flow<TcPoint> = _pointStream
     override val boolStream: Flow<Boolean> = _boolStream
+    override val doubleStream: Flow<Double> = _doubleStream
+    override val statusStream: Flow<TcStatus> = _statusStream
 
     // ── Properties ────────────────────────────────────────────────────────────
     override var precision: Long = 0L
@@ -28,6 +33,8 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     override var nullableRate: Double? = null
     override var enabled: Boolean = false
     override var currentStatus: TcStatus = TcStatus.OK
+    override var nullableCounter: Long? = null
+    override var optionalFlag: Boolean? = null
 
     // ── Primitives ────────────────────────────────────────────────────────────
     override fun echoInt(value: Long): Long = value
@@ -80,6 +87,18 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
         buf.asDoubleBuffer().put(value); buf.rewind(); return buf
     }
 
+    override fun echoInt8s(value: ByteArray): java.nio.ByteBuffer {
+        val buf = java.nio.ByteBuffer.allocateDirect(value.size)
+        buf.put(value); buf.flip(); return buf
+    }
+    override fun echoInt16s(value: ShortArray): java.nio.ByteBuffer {
+        val buf = java.nio.ByteBuffer.allocateDirect(value.size * 2).order(java.nio.ByteOrder.nativeOrder())
+        buf.asShortBuffer().put(value); buf.rewind(); return buf
+    }
+    override fun echoInt64s(value: LongArray): java.nio.ByteBuffer {
+        val buf = java.nio.ByteBuffer.allocateDirect(value.size * 8).order(java.nio.ByteOrder.nativeOrder())
+        buf.asLongBuffer().put(value); buf.rewind(); return buf
+    }
     override fun echoInt32s(value: IntArray): java.nio.ByteBuffer {
         val buf = java.nio.ByteBuffer.allocateDirect(value.size * 4).order(java.nio.ByteOrder.nativeOrder())
         buf.asIntBuffer().put(value); buf.rewind(); return buf
@@ -115,11 +134,21 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     override suspend fun asyncNullableBool(value: Boolean?): Boolean = value ?: false
     override suspend fun asyncNullableString(value: String?): String = value ?: ""
 
+    // ── Async additions ───────────────────────────────────────────────────────
+    override suspend fun asyncPoint(value: TcPoint): TcPoint = value
+    override suspend fun asyncNullableStatus(value: TcStatus?): TcStatus? = value
+    override suspend fun asyncMeta(value: TcMeta): TcMeta = value
+
+    // ── @HybridRecord (TcMeta) ────────────────────────────────────────────────
+    override fun echoMeta(value: TcMeta): TcMeta = value
+
     // ── Callback ──────────────────────────────────────────────────────────────
     override fun onIntEvent(callback: (p0: Long) -> Unit) {
         // Fire immediately with a test value so Dart can verify the callback fires
         callback(42L)
     }
+    override fun onBoolEvent(boolCb: (p0: Boolean) -> Unit) { boolCb(true) }
+    override fun onDoubleEvent(doubleCb: (p0: Double) -> Unit) { doubleCb(2.71828) }
 
     // ── Stream control ────────────────────────────────────────────────────────
     override fun configureStream(from: Long, count: Long) {
@@ -130,6 +159,17 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
                 _pointStream.emit(TcPoint(x = v.toDouble(), y = v.toDouble() * 0.5, z = 0.0))
                 _boolStream.emit(v % 2 == 0L)
             }
+        }
+    }
+    override fun configureDoubleStream(start: Double, count: Long) {
+        CoroutineScope(Dispatchers.Default).launch {
+            for (i in 0 until count) { _doubleStream.emit(start + i.toDouble()) }
+        }
+    }
+    override fun configureStatusStream(count: Long) {
+        val statuses = listOf(TcStatus.OK, TcStatus.ERROR, TcStatus.PENDING)
+        CoroutineScope(Dispatchers.Default).launch {
+            for (i in 0 until count) { _statusStream.emit(statuses[(i % 3).toInt()]) }
         }
     }
 

@@ -133,6 +133,31 @@ extension TcConfigRecordExt on TcConfig {
   }
 }
 
+extension TcMetaRecordExt on TcMeta {
+  static TcMeta fromNative(Pointer<Uint8> ptr) =>
+      fromReader(RecordReader.fromNative(ptr));
+
+  static TcMeta fromReader(RecordReader r) => TcMeta(
+    version: r.readInt(),
+    weight: r.readDouble(),
+    active: r.readBool(),
+    label: r.readString(),
+  );
+
+  void writeFields(RecordWriter writer) {
+    writer.writeInt(version);
+    writer.writeDouble(weight);
+    writer.writeBool(active);
+    writer.writeString(label);
+  }
+
+  Pointer<Uint8> toNative(Allocator alloc) {
+    final writer = RecordWriter();
+    writeFields(writer);
+    return writer.toNative(alloc);
+  }
+}
+
 class _NitroTypeCoverageImpl extends NitroTypeCoverage {
   final DynamicLibrary _dylib;
   final Pointer<NitroErrorFfi> _nitroErr = calloc<NitroErrorFfi>();
@@ -176,7 +201,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     );
     NitroRuntime.checkLinkChecksum(
       'nitro_type_coverage',
-      '4476bbc976ee07ba',
+      '70aa11b14070a472',
       () => _dylib
           .lookupFunction<Pointer<Utf8> Function(), Pointer<Utf8> Function()>(
             'nitro_type_coverage_nitro_bridge_checksum',
@@ -343,6 +368,32 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
         Pointer<Uint8> Function(Pointer<Int32>, Int64, Pointer<NitroErrorFfi>),
         Pointer<Uint8> Function(Pointer<Int32>, int, Pointer<NitroErrorFfi>)
       >('nitro_type_coverage_echo_int32s');
+  late final Pointer<Uint8> Function(Pointer<Int8>, int, Pointer<NitroErrorFfi>)
+  _echoInt8sPtr = _dylib
+      .lookupFunction<
+        Pointer<Uint8> Function(Pointer<Int8>, Int64, Pointer<NitroErrorFfi>),
+        Pointer<Uint8> Function(Pointer<Int8>, int, Pointer<NitroErrorFfi>)
+      >('nitro_type_coverage_echo_int8s');
+  late final Pointer<Uint8> Function(
+    Pointer<Int16>,
+    int,
+    Pointer<NitroErrorFfi>,
+  )
+  _echoInt16sPtr = _dylib
+      .lookupFunction<
+        Pointer<Uint8> Function(Pointer<Int16>, Int64, Pointer<NitroErrorFfi>),
+        Pointer<Uint8> Function(Pointer<Int16>, int, Pointer<NitroErrorFfi>)
+      >('nitro_type_coverage_echo_int16s');
+  late final Pointer<Uint8> Function(
+    Pointer<Int64>,
+    int,
+    Pointer<NitroErrorFfi>,
+  )
+  _echoInt64sPtr = _dylib
+      .lookupFunction<
+        Pointer<Uint8> Function(Pointer<Int64>, Int64, Pointer<NitroErrorFfi>),
+        Pointer<Uint8> Function(Pointer<Int64>, int, Pointer<NitroErrorFfi>)
+      >('nitro_type_coverage_echo_int64s');
   late final Pointer<Uint8> Function(Pointer<Uint8>) _echoIntListPtr = _dylib
       .lookupFunction<
         Pointer<Uint8> Function(Pointer<Uint8>),
@@ -402,6 +453,26 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
         Pointer<Utf8> Function(Pointer<Utf8>),
         Pointer<Utf8> Function(Pointer<Utf8>)
       >('nitro_type_coverage_async_nullable_string');
+  late final Pointer<Void> Function(Pointer<Void>) _asyncPointPtr = _dylib
+      .lookupFunction<
+        Pointer<Void> Function(Pointer<Void>),
+        Pointer<Void> Function(Pointer<Void>)
+      >('nitro_type_coverage_async_point');
+  late final int Function(int) _asyncNullableStatusPtr = _dylib
+      .lookupFunction<Int64 Function(Int64), int Function(int)>(
+        'nitro_type_coverage_async_nullable_status',
+      );
+  late final Pointer<Uint8> Function(Pointer<Uint8>) _asyncMetaPtr = _dylib
+      .lookupFunction<
+        Pointer<Uint8> Function(Pointer<Uint8>),
+        Pointer<Uint8> Function(Pointer<Uint8>)
+      >('nitro_type_coverage_async_meta');
+  late final Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>)
+  _echoMetaPtr = _dylib
+      .lookupFunction<
+        Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>),
+        Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>)
+      >('nitro_type_coverage_echo_meta');
   late final void Function(
     Pointer<NativeFunction<Void Function(Int64)>>,
     Pointer<NitroErrorFfi>,
@@ -417,6 +488,36 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
           Pointer<NitroErrorFfi>,
         )
       >('nitro_type_coverage_on_int_event');
+  late final void Function(
+    Pointer<NativeFunction<Void Function(Int64)>>,
+    Pointer<NitroErrorFfi>,
+  )
+  _onBoolEventPtr = _dylib
+      .lookupFunction<
+        Void Function(
+          Pointer<NativeFunction<Void Function(Int64)>>,
+          Pointer<NitroErrorFfi>,
+        ),
+        void Function(
+          Pointer<NativeFunction<Void Function(Int64)>>,
+          Pointer<NitroErrorFfi>,
+        )
+      >('nitro_type_coverage_on_bool_event');
+  late final void Function(
+    Pointer<NativeFunction<Void Function(Int64)>>,
+    Pointer<NitroErrorFfi>,
+  )
+  _onDoubleEventPtr = _dylib
+      .lookupFunction<
+        Void Function(
+          Pointer<NativeFunction<Void Function(Int64)>>,
+          Pointer<NitroErrorFfi>,
+        ),
+        void Function(
+          Pointer<NativeFunction<Void Function(Int64)>>,
+          Pointer<NitroErrorFfi>,
+        )
+      >('nitro_type_coverage_on_double_event');
   late final void Function(int, int, Pointer<NitroErrorFfi>)
   _configureStreamPtr = _dylib
       .lookup<
@@ -425,6 +526,20 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
       .asFunction<void Function(int, int, Pointer<NitroErrorFfi>)>(
         isLeaf: true,
       );
+  late final void Function(double, int, Pointer<NitroErrorFfi>)
+  _configureDoubleStreamPtr = _dylib
+      .lookup<
+        NativeFunction<Void Function(Double, Int64, Pointer<NitroErrorFfi>)>
+      >('nitro_type_coverage_configure_double_stream')
+      .asFunction<void Function(double, int, Pointer<NitroErrorFfi>)>(
+        isLeaf: true,
+      );
+  late final void Function(int, Pointer<NitroErrorFfi>)
+  _configureStatusStreamPtr = _dylib
+      .lookup<NativeFunction<Void Function(Int64, Pointer<NitroErrorFfi>)>>(
+        'nitro_type_coverage_configure_status_stream',
+      )
+      .asFunction<void Function(int, Pointer<NitroErrorFfi>)>(isLeaf: true);
   late final void Function(Pointer<Utf8>, Pointer<NitroErrorFfi>)
   _throwNativePtr = _dylib
       .lookupFunction<
@@ -490,6 +605,29 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
             'nitro_type_coverage_set_current_status',
           )
           .asFunction<void Function(int, Pointer<NitroErrorFfi>)>(isLeaf: true);
+  late final int Function(Pointer<NitroErrorFfi>) _getNullableCounterPtr =
+      _dylib
+          .lookup<NativeFunction<Int64 Function(Pointer<NitroErrorFfi>)>>(
+            'nitro_type_coverage_get_nullable_counter',
+          )
+          .asFunction<int Function(Pointer<NitroErrorFfi>)>(isLeaf: true);
+  late final void Function(int, Pointer<NitroErrorFfi>) _setNullableCounterPtr =
+      _dylib
+          .lookup<NativeFunction<Void Function(Int64, Pointer<NitroErrorFfi>)>>(
+            'nitro_type_coverage_set_nullable_counter',
+          )
+          .asFunction<void Function(int, Pointer<NitroErrorFfi>)>(isLeaf: true);
+  late final int Function(Pointer<NitroErrorFfi>) _getOptionalFlagPtr = _dylib
+      .lookup<NativeFunction<Int8 Function(Pointer<NitroErrorFfi>)>>(
+        'nitro_type_coverage_get_optional_flag',
+      )
+      .asFunction<int Function(Pointer<NitroErrorFfi>)>(isLeaf: true);
+  late final void Function(int, Pointer<NitroErrorFfi>) _setOptionalFlagPtr =
+      _dylib
+          .lookup<NativeFunction<Void Function(Int8, Pointer<NitroErrorFfi>)>>(
+            'nitro_type_coverage_set_optional_flag',
+          )
+          .asFunction<void Function(int, Pointer<NitroErrorFfi>)>(isLeaf: true);
   late final void Function(int) _registerIntStreamPtr = _dylib
       .lookupFunction<Void Function(Int64), void Function(int)>(
         'nitro_type_coverage_register_int_stream_stream',
@@ -513,6 +651,22 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
   late final void Function(int) _releaseBoolStreamPtr = _dylib
       .lookupFunction<Void Function(Int64), void Function(int)>(
         'nitro_type_coverage_release_bool_stream_stream',
+      );
+  late final void Function(int) _registerDoubleStreamPtr = _dylib
+      .lookupFunction<Void Function(Int64), void Function(int)>(
+        'nitro_type_coverage_register_double_stream_stream',
+      );
+  late final void Function(int) _releaseDoubleStreamPtr = _dylib
+      .lookupFunction<Void Function(Int64), void Function(int)>(
+        'nitro_type_coverage_release_double_stream_stream',
+      );
+  late final void Function(int) _registerStatusStreamPtr = _dylib
+      .lookupFunction<Void Function(Int64), void Function(int)>(
+        'nitro_type_coverage_register_status_stream_stream',
+      );
+  late final void Function(int) _releaseStatusStreamPtr = _dylib
+      .lookupFunction<Void Function(Int64), void Function(int)>(
+        'nitro_type_coverage_release_status_stream_stream',
       );
   // ignore: unused_field
   late final Pointer<NitroErrorFfi> Function() _getErrorPtr = _dylib
@@ -553,6 +707,30 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     return _nativeCallbackCache.putIfAbsent(key, () {
           return NativeCallable<Void Function(Int64)>.listener((int arg0) {
             callback(arg0);
+          });
+        })
+        as NativeCallable<Void Function(Int64)>;
+  }
+
+  NativeCallable<Void Function(Int64)> _nativeCallbackOnBoolEventBoolCb(
+    void Function(bool) callback,
+  ) {
+    final key = ('onBoolEvent.boolCb', callback);
+    return _nativeCallbackCache.putIfAbsent(key, () {
+          return NativeCallable<Void Function(Int64)>.listener((int arg0) {
+            callback(arg0 != 0);
+          });
+        })
+        as NativeCallable<Void Function(Int64)>;
+  }
+
+  NativeCallable<Void Function(Int64)> _nativeCallbackOnDoubleEventDoubleCb(
+    void Function(double) callback,
+  ) {
+    final key = ('onDoubleEvent.doubleCb', callback);
+    return _nativeCallbackCache.putIfAbsent(key, () {
+          return NativeCallable<Void Function(Int64)>.listener((int arg0) {
+            callback(Int64List.fromList([arg0]).buffer.asFloat64List()[0]);
           });
         })
         as NativeCallable<Void Function(Int64)>;
@@ -869,6 +1047,87 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
   }
 
   @override
+  Int8List echoInt8s(Int8List value) {
+    checkDisposed();
+    return NitroRuntime.callSync(
+      () => withArena((arena) {
+        final res = _echoInt8sPtr(
+          value.toPointer(arena),
+          value.length,
+          _nitroErr,
+        );
+        NitroRuntime.throwIfOutParamError(_nitroErr);
+        if (res == nullptr) {
+          throw StateError('Native Int8List return was null');
+        }
+        final byteLength = res.cast<Int64>().value;
+        final dataAddress = Pointer<Int64>.fromAddress(res.address + 8).value;
+        final payloadPtr = Pointer<Int8>.fromAddress(dataAddress);
+        return payloadPtr.asTypedList(
+          byteLength,
+          finalizer: _typedDataReturnFinalizer,
+          token: res.cast<Void>(),
+        );
+      }),
+      methodName: 'echoInt8s',
+    );
+  }
+
+  @override
+  Int16List echoInt16s(Int16List value) {
+    checkDisposed();
+    return NitroRuntime.callSync(
+      () => withArena((arena) {
+        final res = _echoInt16sPtr(
+          value.toPointer(arena),
+          value.length,
+          _nitroErr,
+        );
+        NitroRuntime.throwIfOutParamError(_nitroErr);
+        if (res == nullptr) {
+          throw StateError('Native Int16List return was null');
+        }
+        final byteLength = res.cast<Int64>().value;
+        final dataAddress = Pointer<Int64>.fromAddress(res.address + 8).value;
+        final payloadPtr = Pointer<Int16>.fromAddress(dataAddress);
+        return payloadPtr.asTypedList(
+          byteLength ~/ 2,
+          finalizer: _typedDataReturnFinalizer,
+          token: res.cast<Void>(),
+        );
+      }),
+      methodName: 'echoInt16s',
+    );
+  }
+
+  @override
+  Int64List echoInt64s(Int64List value) {
+    checkDisposed();
+    return NitroRuntime.callSync(
+      () => withArena((arena) {
+        final res = _echoInt64sPtr(
+          value.toPointer(arena),
+          value.length,
+          _nitroErr,
+        );
+        NitroRuntime.throwIfOutParamError(_nitroErr);
+        if (res == nullptr) {
+          throw StateError('Native Int64List return was null');
+        }
+        final byteLength = res.cast<Int64>().value;
+        final dataAddress = Pointer<Int64>.fromAddress(res.address + 8).value;
+        final payloadPtr = Pointer<Int64>.fromAddress(dataAddress);
+        return payloadPtr.asTypedList(
+          byteLength ~/ 8,
+          finalizer: _typedDataReturnFinalizer,
+          token: res.cast<Void>(),
+        );
+      }),
+      methodName: 'echoInt64s',
+    );
+  }
+
+  @override
   Future<List<int>> echoIntList(List<int> value) async {
     checkDisposed();
     final arena = Arena();
@@ -1130,6 +1389,91 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
   }
 
   @override
+  Future<TcPoint> asyncPoint(TcPoint value) async {
+    checkDisposed();
+    final arena = Arena();
+    try {
+      final rawPtr = await NitroRuntime.callAsync<Pointer<Void>>(
+        _asyncPointPtr,
+        [value.toNative(arena).cast<Void>()],
+        getError: _getErrorNativePtr,
+        clearError: _clearErrorNativePtr,
+        methodName: 'asyncPoint',
+      );
+      if (rawPtr == nullptr) {
+        throw StateError('asyncPoint returned null');
+      }
+      final structPtr = Pointer<TcPointFfi>.fromAddress(rawPtr.address);
+      final TcPoint decoded;
+      try {
+        decoded = structPtr.ref.toDart();
+      } finally {
+        structPtr.ref.freeFields();
+        malloc.free(structPtr);
+      }
+      return decoded;
+    } finally {
+      arena.releaseAll();
+    }
+  }
+
+  @override
+  Future<TcStatus?> asyncNullableStatus(TcStatus? value) async {
+    checkDisposed();
+    final res = await NitroRuntime.callAsync<int>(
+      _asyncNullableStatusPtr,
+      [value == null ? -1 : value.nativeValue],
+      getError: _getErrorNativePtr,
+      clearError: _clearErrorNativePtr,
+      methodName: 'asyncNullableStatus',
+    );
+    return res == -1 ? null : res.toTcStatus();
+  }
+
+  @override
+  Future<TcMeta> asyncMeta(TcMeta value) async {
+    checkDisposed();
+    final arena = Arena();
+    try {
+      final rawPtr = await NitroRuntime.callAsync<Pointer<Uint8>>(
+        _asyncMetaPtr,
+        [value.toNative(arena)],
+        getError: _getErrorNativePtr,
+        clearError: _clearErrorNativePtr,
+        methodName: 'asyncMeta',
+      );
+      final TcMeta decoded;
+      try {
+        decoded = TcMetaRecordExt.fromNative(rawPtr);
+      } finally {
+        malloc.free(rawPtr);
+      }
+      return decoded;
+    } finally {
+      arena.releaseAll();
+    }
+  }
+
+  @override
+  TcMeta echoMeta(TcMeta value) {
+    checkDisposed();
+    return NitroRuntime.callSync(
+      () => withArena((arena) {
+        final res = _echoMetaPtr(value.toNative(arena), _nitroErr);
+        NitroRuntime.throwIfOutParamError(_nitroErr);
+        final TcMeta decoded;
+        try {
+          decoded = TcMetaRecordExt.fromNative(res);
+        } finally {
+          malloc.free(res);
+        }
+        return decoded;
+      }),
+      methodName: 'echoMeta',
+    );
+  }
+
+  @override
   void onIntEvent(void Function(int) callback) {
     checkDisposed();
     NitroRuntime.callSync<void>(() {
@@ -1142,12 +1486,54 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
   }
 
   @override
+  void onBoolEvent(void Function(bool) boolCb) {
+    checkDisposed();
+    NitroRuntime.callSync<void>(() {
+      _onBoolEventPtr(
+        _nativeCallbackOnBoolEventBoolCb(boolCb).nativeFunction,
+        _nitroErr,
+      );
+      NitroRuntime.throwIfOutParamError(_nitroErr);
+    }, methodName: 'onBoolEvent');
+  }
+
+  @override
+  void onDoubleEvent(void Function(double) doubleCb) {
+    checkDisposed();
+    NitroRuntime.callSync<void>(() {
+      _onDoubleEventPtr(
+        _nativeCallbackOnDoubleEventDoubleCb(doubleCb).nativeFunction,
+        _nitroErr,
+      );
+      NitroRuntime.throwIfOutParamError(_nitroErr);
+    }, methodName: 'onDoubleEvent');
+  }
+
+  @override
   void configureStream(int from, int count) {
     checkDisposed();
     NitroRuntime.callSync<void>(() {
       _configureStreamPtr(from, count, _nitroErr);
       NitroRuntime.throwIfOutParamError(_nitroErr);
     }, methodName: 'configureStream');
+  }
+
+  @override
+  void configureDoubleStream(double start, int count) {
+    checkDisposed();
+    NitroRuntime.callSync<void>(() {
+      _configureDoubleStreamPtr(start, count, _nitroErr);
+      NitroRuntime.throwIfOutParamError(_nitroErr);
+    }, methodName: 'configureDoubleStream');
+  }
+
+  @override
+  void configureStatusStream(int count) {
+    checkDisposed();
+    NitroRuntime.callSync<void>(() {
+      _configureStatusStreamPtr(count, _nitroErr);
+      NitroRuntime.throwIfOutParamError(_nitroErr);
+    }, methodName: 'configureStatusStream');
   }
 
   @override
@@ -1279,6 +1665,44 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
   }
 
   @override
+  int? get nullableCounter {
+    checkDisposed();
+    return NitroRuntime.callSync(() {
+      final res = _getNullableCounterPtr(_nitroErr);
+      NitroRuntime.throwIfOutParamError(_nitroErr);
+      return res == -1 ? null : res;
+    }, methodName: 'get nullableCounter');
+  }
+
+  @override
+  set nullableCounter(int? value) {
+    checkDisposed();
+    NitroRuntime.callSync<void>(() {
+      _setNullableCounterPtr(value ?? -1, _nitroErr);
+      NitroRuntime.throwIfOutParamError(_nitroErr);
+    }, methodName: 'set nullableCounter');
+  }
+
+  @override
+  bool? get optionalFlag {
+    checkDisposed();
+    return NitroRuntime.callSync(() {
+      final res = _getOptionalFlagPtr(_nitroErr);
+      NitroRuntime.throwIfOutParamError(_nitroErr);
+      return res == -1 ? null : res != 0;
+    }, methodName: 'get optionalFlag');
+  }
+
+  @override
+  set optionalFlag(bool? value) {
+    checkDisposed();
+    NitroRuntime.callSync<void>(() {
+      _setOptionalFlagPtr(value == null ? -1 : (value ? 1 : 0), _nitroErr);
+      NitroRuntime.throwIfOutParamError(_nitroErr);
+    }, methodName: 'set optionalFlag');
+  }
+
+  @override
   Stream<int> intStream() {
     checkDisposed();
     return NitroRuntime.openStream<int>(
@@ -1312,8 +1736,30 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     checkDisposed();
     return NitroRuntime.openStream<bool>(
       register: (port) => _registerBoolStreamPtr(port),
-      unpack: (message) => message as bool,
+      unpack: (message) => (message as int) != 0,
       release: (port) => _releaseBoolStreamPtr(port),
+      backpressure: Backpressure.dropLatest,
+    );
+  }
+
+  @override
+  Stream<double> doubleStream() {
+    checkDisposed();
+    return NitroRuntime.openStream<double>(
+      register: (port) => _registerDoubleStreamPtr(port),
+      unpack: (message) => message as double,
+      release: (port) => _releaseDoubleStreamPtr(port),
+      backpressure: Backpressure.dropLatest,
+    );
+  }
+
+  @override
+  Stream<TcStatus> statusStream() {
+    checkDisposed();
+    return NitroRuntime.openStream<TcStatus>(
+      register: (port) => _registerStatusStreamPtr(port),
+      unpack: (message) => (message as int).toTcStatus(),
+      release: (port) => _releaseStatusStreamPtr(port),
       backpressure: Backpressure.dropLatest,
     );
   }

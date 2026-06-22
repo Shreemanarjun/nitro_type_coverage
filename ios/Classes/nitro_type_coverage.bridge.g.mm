@@ -13,7 +13,7 @@ NITRO_EXPORT uint32_t nitro_type_coverage_nitro_abi_version(void) {
     return 1;
 }
 NITRO_EXPORT const char* nitro_type_coverage_nitro_bridge_checksum(void) {
-    return "4476bbc976ee07ba";
+    return "70aa11b14070a472";
 }
 NITRO_EXPORT intptr_t nitro_type_coverage_init_dart_api_dl(void* data) {
     return Dart_InitializeApiDL(data);
@@ -78,6 +78,9 @@ static jmethodID g_mid_echoBytes_call = nullptr;
 static jmethodID g_mid_echoFloats_call = nullptr;
 static jmethodID g_mid_echoFloat64s_call = nullptr;
 static jmethodID g_mid_echoInt32s_call = nullptr;
+static jmethodID g_mid_echoInt8s_call = nullptr;
+static jmethodID g_mid_echoInt16s_call = nullptr;
+static jmethodID g_mid_echoInt64s_call = nullptr;
 static jmethodID g_mid_echoIntList_call = nullptr;
 static jmethodID g_mid_echoDoubleList_call = nullptr;
 static jmethodID g_mid_echoStringList_call = nullptr;
@@ -91,8 +94,16 @@ static jmethodID g_mid_asyncNullableInt_call = nullptr;
 static jmethodID g_mid_asyncNullableDouble_call = nullptr;
 static jmethodID g_mid_asyncNullableBool_call = nullptr;
 static jmethodID g_mid_asyncNullableString_call = nullptr;
+static jmethodID g_mid_asyncPoint_call = nullptr;
+static jmethodID g_mid_asyncNullableStatus_call = nullptr;
+static jmethodID g_mid_asyncMeta_call = nullptr;
+static jmethodID g_mid_echoMeta_call = nullptr;
 static jmethodID g_mid_onIntEvent_call = nullptr;
+static jmethodID g_mid_onBoolEvent_call = nullptr;
+static jmethodID g_mid_onDoubleEvent_call = nullptr;
 static jmethodID g_mid_configureStream_call = nullptr;
+static jmethodID g_mid_configureDoubleStream_call = nullptr;
+static jmethodID g_mid_configureStatusStream_call = nullptr;
 static jmethodID g_mid_throwNative_call = nullptr;
 static jmethodID g_mid_throwNativeAsync_call = nullptr;
 static jmethodID g_mid_nitro_type_coverage_get_precision_call = nullptr;
@@ -105,12 +116,20 @@ static jmethodID g_mid_nitro_type_coverage_get_enabled_call = nullptr;
 static jmethodID g_mid_nitro_type_coverage_set_enabled_call = nullptr;
 static jmethodID g_mid_nitro_type_coverage_get_current_status_call = nullptr;
 static jmethodID g_mid_nitro_type_coverage_set_current_status_call = nullptr;
+static jmethodID g_mid_nitro_type_coverage_get_nullable_counter_call = nullptr;
+static jmethodID g_mid_nitro_type_coverage_set_nullable_counter_call = nullptr;
+static jmethodID g_mid_nitro_type_coverage_get_optional_flag_call = nullptr;
+static jmethodID g_mid_nitro_type_coverage_set_optional_flag_call = nullptr;
 static jmethodID g_mid_nitro_type_coverage_register_int_stream_stream_call = nullptr;
 static jmethodID g_mid_nitro_type_coverage_release_int_stream_stream_call = nullptr;
 static jmethodID g_mid_nitro_type_coverage_register_point_stream_stream_call = nullptr;
 static jmethodID g_mid_nitro_type_coverage_release_point_stream_stream_call = nullptr;
 static jmethodID g_mid_nitro_type_coverage_register_bool_stream_stream_call = nullptr;
 static jmethodID g_mid_nitro_type_coverage_release_bool_stream_stream_call = nullptr;
+static jmethodID g_mid_nitro_type_coverage_register_double_stream_stream_call = nullptr;
+static jmethodID g_mid_nitro_type_coverage_release_double_stream_stream_call = nullptr;
+static jmethodID g_mid_nitro_type_coverage_register_status_stream_stream_call = nullptr;
+static jmethodID g_mid_nitro_type_coverage_release_status_stream_stream_call = nullptr;
 static jclass g_cls_TcPoint = nullptr;
 static jmethodID g_ctor_TcPoint = nullptr;
 static jfieldID g_fid_TcPoint_x = nullptr;
@@ -742,6 +761,150 @@ uint8_t* nitro_type_coverage_echo_int32s(int32_t* value, int64_t value_length, N
     return (uint8_t*)result;
 }
 
+uint8_t* nitro_type_coverage_echo_int8s(int8_t* value, int64_t value_length, NitroError* _nitro_err) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return nullptr; }
+    jmethodID methodId = g_mid_echoInt8s_call;
+    if (methodId == nullptr) { LOGE("Method not found: echoInt8s_call sig=([B)Ljava/nio/ByteBuffer;"); return nullptr; }
+
+    nitro_type_coverage_clear_error();
+    if (env->PushLocalFrame(16) != 0) { return nullptr; }
+    jbyteArray j_value = env->NewByteArray((jsize)value_length);
+    env->SetByteArrayRegion(j_value, 0, (jsize)value_length, (const jbyte*)value);
+    jobject jbuf = env->CallStaticObjectMethod(g_bridgeClass, methodId, j_value);
+    if (env->ExceptionCheck()) {
+        nitro_report_jni_exception(env, env->ExceptionOccurred(), _nitro_err);
+        env->PopLocalFrame(nullptr);
+        return nullptr;
+    }
+    if (jbuf == nullptr) {
+        env->PopLocalFrame(nullptr);
+        return nullptr;
+    }
+    void* data = env->GetDirectBufferAddress(jbuf);
+    jlong byteLen = env->GetDirectBufferCapacity(jbuf);
+    if (byteLen < 0 || (byteLen > 0 && data == nullptr)) {
+        nitro_report_error("ArgumentError", "echoInt8s: @zeroCopy return must be a direct ByteBuffer", nullptr, nullptr);
+        env->PopLocalFrame(nullptr);
+        return nullptr;
+    }
+    jobject owner = env->NewGlobalRef(jbuf);
+    if (owner == nullptr) {
+        nitro_report_error("OutOfMemoryError", "echoInt8s: failed to retain zero-copy return buffer", nullptr, nullptr);
+        env->PopLocalFrame(nullptr);
+        return nullptr;
+    }
+    int64_t* result = (int64_t*)malloc(sizeof(int64_t) * 3);
+    if (result == nullptr) {
+        env->DeleteGlobalRef(owner);
+        nitro_report_error("OutOfMemoryError", "echoInt8s: failed to allocate zero-copy return envelope", nullptr, nullptr);
+        env->PopLocalFrame(nullptr);
+        return nullptr;
+    }
+    result[0] = (int64_t)byteLen;
+    result[1] = (int64_t)(intptr_t)(data != nullptr ? data : result);
+    result[2] = (int64_t)(intptr_t)owner;
+    env->PopLocalFrame(nullptr);
+    return (uint8_t*)result;
+}
+
+uint8_t* nitro_type_coverage_echo_int16s(int16_t* value, int64_t value_length, NitroError* _nitro_err) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return nullptr; }
+    jmethodID methodId = g_mid_echoInt16s_call;
+    if (methodId == nullptr) { LOGE("Method not found: echoInt16s_call sig=([S)Ljava/nio/ByteBuffer;"); return nullptr; }
+
+    nitro_type_coverage_clear_error();
+    if (env->PushLocalFrame(16) != 0) { return nullptr; }
+    jshortArray j_value = env->NewShortArray((jsize)value_length);
+    env->SetShortArrayRegion(j_value, 0, (jsize)value_length, (const jshort*)value);
+    jobject jbuf = env->CallStaticObjectMethod(g_bridgeClass, methodId, j_value);
+    if (env->ExceptionCheck()) {
+        nitro_report_jni_exception(env, env->ExceptionOccurred(), _nitro_err);
+        env->PopLocalFrame(nullptr);
+        return nullptr;
+    }
+    if (jbuf == nullptr) {
+        env->PopLocalFrame(nullptr);
+        return nullptr;
+    }
+    void* data = env->GetDirectBufferAddress(jbuf);
+    jlong byteLen = env->GetDirectBufferCapacity(jbuf);
+    if (byteLen < 0 || (byteLen > 0 && data == nullptr)) {
+        nitro_report_error("ArgumentError", "echoInt16s: @zeroCopy return must be a direct ByteBuffer", nullptr, nullptr);
+        env->PopLocalFrame(nullptr);
+        return nullptr;
+    }
+    jobject owner = env->NewGlobalRef(jbuf);
+    if (owner == nullptr) {
+        nitro_report_error("OutOfMemoryError", "echoInt16s: failed to retain zero-copy return buffer", nullptr, nullptr);
+        env->PopLocalFrame(nullptr);
+        return nullptr;
+    }
+    int64_t* result = (int64_t*)malloc(sizeof(int64_t) * 3);
+    if (result == nullptr) {
+        env->DeleteGlobalRef(owner);
+        nitro_report_error("OutOfMemoryError", "echoInt16s: failed to allocate zero-copy return envelope", nullptr, nullptr);
+        env->PopLocalFrame(nullptr);
+        return nullptr;
+    }
+    result[0] = (int64_t)byteLen;
+    result[1] = (int64_t)(intptr_t)(data != nullptr ? data : result);
+    result[2] = (int64_t)(intptr_t)owner;
+    env->PopLocalFrame(nullptr);
+    return (uint8_t*)result;
+}
+
+uint8_t* nitro_type_coverage_echo_int64s(int64_t* value, int64_t value_length, NitroError* _nitro_err) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return nullptr; }
+    jmethodID methodId = g_mid_echoInt64s_call;
+    if (methodId == nullptr) { LOGE("Method not found: echoInt64s_call sig=([J)Ljava/nio/ByteBuffer;"); return nullptr; }
+
+    nitro_type_coverage_clear_error();
+    if (env->PushLocalFrame(16) != 0) { return nullptr; }
+    jlongArray j_value = env->NewLongArray((jsize)value_length);
+    env->SetLongArrayRegion(j_value, 0, (jsize)value_length, (const jlong*)value);
+    jobject jbuf = env->CallStaticObjectMethod(g_bridgeClass, methodId, j_value);
+    if (env->ExceptionCheck()) {
+        nitro_report_jni_exception(env, env->ExceptionOccurred(), _nitro_err);
+        env->PopLocalFrame(nullptr);
+        return nullptr;
+    }
+    if (jbuf == nullptr) {
+        env->PopLocalFrame(nullptr);
+        return nullptr;
+    }
+    void* data = env->GetDirectBufferAddress(jbuf);
+    jlong byteLen = env->GetDirectBufferCapacity(jbuf);
+    if (byteLen < 0 || (byteLen > 0 && data == nullptr)) {
+        nitro_report_error("ArgumentError", "echoInt64s: @zeroCopy return must be a direct ByteBuffer", nullptr, nullptr);
+        env->PopLocalFrame(nullptr);
+        return nullptr;
+    }
+    jobject owner = env->NewGlobalRef(jbuf);
+    if (owner == nullptr) {
+        nitro_report_error("OutOfMemoryError", "echoInt64s: failed to retain zero-copy return buffer", nullptr, nullptr);
+        env->PopLocalFrame(nullptr);
+        return nullptr;
+    }
+    int64_t* result = (int64_t*)malloc(sizeof(int64_t) * 3);
+    if (result == nullptr) {
+        env->DeleteGlobalRef(owner);
+        nitro_report_error("OutOfMemoryError", "echoInt64s: failed to allocate zero-copy return envelope", nullptr, nullptr);
+        env->PopLocalFrame(nullptr);
+        return nullptr;
+    }
+    result[0] = (int64_t)byteLen;
+    result[1] = (int64_t)(intptr_t)(data != nullptr ? data : result);
+    result[2] = (int64_t)(intptr_t)owner;
+    env->PopLocalFrame(nullptr);
+    return (uint8_t*)result;
+}
+
 void* nitro_type_coverage_echo_int_list(void* value) {
     NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
     JNIEnv* env = GetEnv();
@@ -1060,6 +1223,111 @@ const char* nitro_type_coverage_async_nullable_string(const char* value) {
     return result;
 }
 
+void* nitro_type_coverage_async_point(void* value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return nullptr; }
+    jmethodID methodId = g_mid_asyncPoint_call;
+    if (methodId == nullptr) { LOGE("Method not found: asyncPoint_call sig=(Lnitro/nitro_type_coverage_module/TcPoint;)Lnitro/nitro_type_coverage_module/TcPoint;"); return nullptr; }
+
+    nitro_type_coverage_clear_error();
+    if (env->PushLocalFrame(16) != 0) { return nullptr; }
+    jobject jobj_value = unpack_TcPoint_to_jni(env, (const TcPoint*)value);
+    jobject jobj = env->CallStaticObjectMethod(g_bridgeClass, methodId, jobj_value);
+    if (env->ExceptionCheck()) {
+        nitro_report_jni_exception(env, env->ExceptionOccurred(), _nitro_err);
+        env->PopLocalFrame(nullptr);
+        return nullptr;
+    }
+    if (jobj == nullptr) {
+        env->PopLocalFrame(nullptr);
+        return nullptr;
+    }
+    TcPoint* result = (TcPoint*)malloc(sizeof(TcPoint));
+    *result = pack_TcPoint_from_jni(env, jobj);
+    env->PopLocalFrame(nullptr);
+    return result;
+}
+
+int64_t nitro_type_coverage_async_nullable_status(int64_t value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return 0; }
+    jmethodID methodId = g_mid_asyncNullableStatus_call;
+    if (methodId == nullptr) { LOGE("Method not found: asyncNullableStatus_call sig=(J)J"); return 0; }
+
+    nitro_type_coverage_clear_error();
+    if (env->PushLocalFrame(16) != 0) { return 0; }
+    int64_t res = env->CallStaticLongMethod(g_bridgeClass, methodId, value);
+    if (env->ExceptionCheck()) {
+        nitro_report_jni_exception(env, env->ExceptionOccurred(), _nitro_err);
+        env->PopLocalFrame(nullptr);
+        return 0;
+    }
+    env->PopLocalFrame(nullptr);
+    return res;
+}
+
+void* nitro_type_coverage_async_meta(void* value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return nullptr; }
+    jmethodID methodId = g_mid_asyncMeta_call;
+    if (methodId == nullptr) { LOGE("Method not found: asyncMeta_call sig=([B)[B"); return nullptr; }
+
+    nitro_type_coverage_clear_error();
+    if (env->PushLocalFrame(16) != 0) { return nullptr; }
+    int32_t value_payload_len = *((const int32_t*)value);
+    int32_t value_total = value_payload_len + 4;
+    jbyteArray j_value = env->NewByteArray((jsize)value_total);
+    env->SetByteArrayRegion(j_value, 0, (jsize)value_total, (const jbyte*)value);
+    jbyteArray jarr = (jbyteArray)env->CallStaticObjectMethod(g_bridgeClass, methodId, j_value);
+    if (env->ExceptionCheck()) {
+        nitro_report_jni_exception(env, env->ExceptionOccurred(), _nitro_err);
+        env->PopLocalFrame(nullptr);
+        return nullptr;
+    }
+    if (jarr == nullptr) {
+        env->PopLocalFrame(nullptr);
+        return nullptr;
+    }
+    jsize len = env->GetArrayLength(jarr);
+    uint8_t* result = (uint8_t*)malloc(len);
+    env->GetByteArrayRegion(jarr, 0, len, (jbyte*)result);
+    env->PopLocalFrame(nullptr);
+    return result;
+}
+
+void* nitro_type_coverage_echo_meta(void* value, NitroError* _nitro_err) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return nullptr; }
+    jmethodID methodId = g_mid_echoMeta_call;
+    if (methodId == nullptr) { LOGE("Method not found: echoMeta_call sig=([B)[B"); return nullptr; }
+
+    nitro_type_coverage_clear_error();
+    if (env->PushLocalFrame(16) != 0) { return nullptr; }
+    int32_t value_payload_len = *((const int32_t*)value);
+    int32_t value_total = value_payload_len + 4;
+    jbyteArray j_value = env->NewByteArray((jsize)value_total);
+    env->SetByteArrayRegion(j_value, 0, (jsize)value_total, (const jbyte*)value);
+    jbyteArray jarr = (jbyteArray)env->CallStaticObjectMethod(g_bridgeClass, methodId, j_value);
+    if (env->ExceptionCheck()) {
+        nitro_report_jni_exception(env, env->ExceptionOccurred(), _nitro_err);
+        env->PopLocalFrame(nullptr);
+        return nullptr;
+    }
+    if (jarr == nullptr) {
+        env->PopLocalFrame(nullptr);
+        return nullptr;
+    }
+    jsize len = env->GetArrayLength(jarr);
+    uint8_t* result = (uint8_t*)malloc(len);
+    env->GetByteArrayRegion(jarr, 0, len, (jbyte*)result);
+    env->PopLocalFrame(nullptr);
+    return result;
+}
+
 void nitro_type_coverage_on_int_event(void (*callback)(int64_t), NitroError* _nitro_err) {
     if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
     JNIEnv* env = GetEnv();
@@ -1074,6 +1342,34 @@ void nitro_type_coverage_on_int_event(void (*callback)(int64_t), NitroError* _ni
     if (env->ExceptionCheck()) { nitro_report_jni_exception(env, env->ExceptionOccurred(), _nitro_err); }
 }
 
+void nitro_type_coverage_on_bool_event(void (*boolCb)(int8_t), NitroError* _nitro_err) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return; }
+    jmethodID methodId = g_mid_onBoolEvent_call;
+    if (methodId == nullptr) { LOGE("Method not found: onBoolEvent_call sig=(J)V"); return; }
+
+    nitro_type_coverage_clear_error();
+    if (env->PushLocalFrame(16) != 0) { return; }
+    env->CallStaticVoidMethod(g_bridgeClass, methodId, (jlong)boolCb);
+    env->PopLocalFrame(nullptr);
+    if (env->ExceptionCheck()) { nitro_report_jni_exception(env, env->ExceptionOccurred(), _nitro_err); }
+}
+
+void nitro_type_coverage_on_double_event(void (*doubleCb)(double), NitroError* _nitro_err) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return; }
+    jmethodID methodId = g_mid_onDoubleEvent_call;
+    if (methodId == nullptr) { LOGE("Method not found: onDoubleEvent_call sig=(J)V"); return; }
+
+    nitro_type_coverage_clear_error();
+    if (env->PushLocalFrame(16) != 0) { return; }
+    env->CallStaticVoidMethod(g_bridgeClass, methodId, (jlong)doubleCb);
+    env->PopLocalFrame(nullptr);
+    if (env->ExceptionCheck()) { nitro_report_jni_exception(env, env->ExceptionOccurred(), _nitro_err); }
+}
+
 void nitro_type_coverage_configure_stream(int64_t from, int64_t count, NitroError* _nitro_err) {
     if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
     JNIEnv* env = GetEnv();
@@ -1084,6 +1380,34 @@ void nitro_type_coverage_configure_stream(int64_t from, int64_t count, NitroErro
     nitro_type_coverage_clear_error();
     if (env->PushLocalFrame(16) != 0) { return; }
     env->CallStaticVoidMethod(g_bridgeClass, methodId, from, count);
+    env->PopLocalFrame(nullptr);
+    if (env->ExceptionCheck()) { nitro_report_jni_exception(env, env->ExceptionOccurred(), _nitro_err); }
+}
+
+void nitro_type_coverage_configure_double_stream(double start, int64_t count, NitroError* _nitro_err) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return; }
+    jmethodID methodId = g_mid_configureDoubleStream_call;
+    if (methodId == nullptr) { LOGE("Method not found: configureDoubleStream_call sig=(DJ)V"); return; }
+
+    nitro_type_coverage_clear_error();
+    if (env->PushLocalFrame(16) != 0) { return; }
+    env->CallStaticVoidMethod(g_bridgeClass, methodId, start, count);
+    env->PopLocalFrame(nullptr);
+    if (env->ExceptionCheck()) { nitro_report_jni_exception(env, env->ExceptionOccurred(), _nitro_err); }
+}
+
+void nitro_type_coverage_configure_status_stream(int64_t count, NitroError* _nitro_err) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return; }
+    jmethodID methodId = g_mid_configureStatusStream_call;
+    if (methodId == nullptr) { LOGE("Method not found: configureStatusStream_call sig=(J)V"); return; }
+
+    nitro_type_coverage_clear_error();
+    if (env->PushLocalFrame(16) != 0) { return; }
+    env->CallStaticVoidMethod(g_bridgeClass, methodId, count);
     env->PopLocalFrame(nullptr);
     if (env->ExceptionCheck()) { nitro_report_jni_exception(env, env->ExceptionOccurred(), _nitro_err); }
 }
@@ -1211,7 +1535,7 @@ void nitro_type_coverage_set_enabled(int8_t value, NitroError* _nitro_err) {
     jmethodID methodId = g_mid_nitro_type_coverage_set_enabled_call;
     if (methodId == nullptr) { LOGE("Method not found: nitro_type_coverage_set_enabled_call sig=(Z)V"); return; }
     if (env->PushLocalFrame(8) != 0) { return; }
-    env->CallStaticVoidMethod(g_bridgeClass, methodId, value);
+    env->CallStaticVoidMethod(g_bridgeClass, methodId, (jboolean)(value != 0));
     env->PopLocalFrame(nullptr);
 }
 
@@ -1235,6 +1559,52 @@ void nitro_type_coverage_set_current_status(int64_t value, NitroError* _nitro_er
     if (methodId == nullptr) { LOGE("Method not found: nitro_type_coverage_set_current_status_call sig=(J)V"); return; }
     if (env->PushLocalFrame(8) != 0) { return; }
     env->CallStaticVoidMethod(g_bridgeClass, methodId, value);
+    env->PopLocalFrame(nullptr);
+}
+
+int64_t nitro_type_coverage_get_nullable_counter(NitroError* _nitro_err) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return 0; }
+    jmethodID methodId = g_mid_nitro_type_coverage_get_nullable_counter_call;
+    if (methodId == nullptr) { LOGE("Method not found: nitro_type_coverage_get_nullable_counter_call sig=()J"); return 0; }
+    if (env->PushLocalFrame(8) != 0) { return 0; }
+    int64_t res = (int64_t)env->CallStaticLongMethod(g_bridgeClass, methodId);
+    env->PopLocalFrame(nullptr);
+    return res;
+}
+
+void nitro_type_coverage_set_nullable_counter(int64_t value, NitroError* _nitro_err) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return; }
+    jmethodID methodId = g_mid_nitro_type_coverage_set_nullable_counter_call;
+    if (methodId == nullptr) { LOGE("Method not found: nitro_type_coverage_set_nullable_counter_call sig=(J)V"); return; }
+    if (env->PushLocalFrame(8) != 0) { return; }
+    env->CallStaticVoidMethod(g_bridgeClass, methodId, value);
+    env->PopLocalFrame(nullptr);
+}
+
+int8_t nitro_type_coverage_get_optional_flag(NitroError* _nitro_err) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return false; }
+    jmethodID methodId = g_mid_nitro_type_coverage_get_optional_flag_call;
+    if (methodId == nullptr) { LOGE("Method not found: nitro_type_coverage_get_optional_flag_call sig=()Z"); return false; }
+    if (env->PushLocalFrame(8) != 0) { return false; }
+    bool res = env->CallStaticBooleanMethod(g_bridgeClass, methodId);
+    env->PopLocalFrame(nullptr);
+    return res;
+}
+
+void nitro_type_coverage_set_optional_flag(int8_t value, NitroError* _nitro_err) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return; }
+    jmethodID methodId = g_mid_nitro_type_coverage_set_optional_flag_call;
+    if (methodId == nullptr) { LOGE("Method not found: nitro_type_coverage_set_optional_flag_call sig=(Z)V"); return; }
+    if (env->PushLocalFrame(8) != 0) { return; }
+    env->CallStaticVoidMethod(g_bridgeClass, methodId, (jboolean)(value != 0));
     env->PopLocalFrame(nullptr);
 }
 
@@ -1318,8 +1688,65 @@ void nitro_type_coverage_release_bool_stream_stream(int64_t dart_port) {
 
 JNIEXPORT jboolean JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverageJniBridge_emit_1boolStream(JNIEnv* env, jobject thiz, jlong dartPort, jboolean item) {
     Dart_CObject obj;
-    obj.type = Dart_CObject_kBool;
-    obj.value.as_bool = item;
+    obj.type = Dart_CObject_kInt64;
+    obj.value.as_int64 = item ? 1 : 0;
+    if (!Dart_PostCObject_DL(dartPort, &obj)) {
+        return JNI_FALSE;
+    }
+    return JNI_TRUE;
+}
+
+void nitro_type_coverage_register_double_stream_stream(int64_t dart_port) {
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return; }
+    jmethodID methodId = g_mid_nitro_type_coverage_register_double_stream_stream_call;
+    if (methodId == nullptr) { LOGE("Method not found: nitro_type_coverage_register_double_stream_stream_call sig=(J)V"); return; }
+    env->CallStaticVoidMethod(g_bridgeClass, methodId, dart_port);
+}
+
+void nitro_type_coverage_release_double_stream_stream(int64_t dart_port) {
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return; }
+    jmethodID methodId = g_mid_nitro_type_coverage_release_double_stream_stream_call;
+    if (methodId == nullptr) { LOGE("Method not found: nitro_type_coverage_release_double_stream_stream_call sig=(J)V"); return; }
+    env->CallStaticVoidMethod(g_bridgeClass, methodId, dart_port);
+}
+
+JNIEXPORT jboolean JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverageJniBridge_emit_1doubleStream(JNIEnv* env, jobject thiz, jlong dartPort, jdouble item) {
+    Dart_CObject obj;
+    obj.type = Dart_CObject_kDouble;
+    obj.value.as_double = item;
+    if (!Dart_PostCObject_DL(dartPort, &obj)) {
+        return JNI_FALSE;
+    }
+    return JNI_TRUE;
+}
+
+void nitro_type_coverage_register_status_stream_stream(int64_t dart_port) {
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return; }
+    jmethodID methodId = g_mid_nitro_type_coverage_register_status_stream_stream_call;
+    if (methodId == nullptr) { LOGE("Method not found: nitro_type_coverage_register_status_stream_stream_call sig=(J)V"); return; }
+    env->CallStaticVoidMethod(g_bridgeClass, methodId, dart_port);
+}
+
+void nitro_type_coverage_release_status_stream_stream(int64_t dart_port) {
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return; }
+    jmethodID methodId = g_mid_nitro_type_coverage_release_status_stream_stream_call;
+    if (methodId == nullptr) { LOGE("Method not found: nitro_type_coverage_release_status_stream_stream_call sig=(J)V"); return; }
+    env->CallStaticVoidMethod(g_bridgeClass, methodId, dart_port);
+}
+
+JNIEXPORT jboolean JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverageJniBridge_emit_1statusStream(JNIEnv* env, jobject thiz, jlong dartPort, jobject item) {
+    Dart_CObject obj;
+    // item is a jobject (Kotlin enum). Extract its nativeValue Long field.
+    jclass enumCls = env->GetObjectClass(item);
+    jfieldID fid = enumCls ? env->GetFieldID(enumCls, "nativeValue", "J") : nullptr;
+    if (fid == nullptr) { LOGE("emit_statusStream: cannot find nativeValue on TcStatus"); if (enumCls) env->DeleteLocalRef(enumCls); return JNI_FALSE; }
+    obj.type = Dart_CObject_kInt64;
+    obj.value.as_int64 = (int64_t)env->GetLongField(item, fid);
+    env->DeleteLocalRef(enumCls);
     if (!Dart_PostCObject_DL(dartPort, &obj)) {
         return JNI_FALSE;
     }
@@ -1327,6 +1754,16 @@ JNIEXPORT jboolean JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCov
 }
 
 JNIEXPORT void JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverageJniBridge__1invoke_1callback(JNIEnv* env, jobject thiz, jlong callbackPtr, jlong arg0) {
+    typedef void (*CB)(int64_t);
+    ((CB)callbackPtr)((int64_t)arg0);
+}
+
+JNIEXPORT void JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverageJniBridge__1invoke_1boolCb(JNIEnv* env, jobject thiz, jlong callbackPtr, jlong arg0) {
+    typedef void (*CB)(int64_t);
+    ((CB)callbackPtr)((int64_t)arg0);
+}
+
+JNIEXPORT void JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverageJniBridge__1invoke_1doubleCb(JNIEnv* env, jobject thiz, jlong callbackPtr, jlong arg0) {
     typedef void (*CB)(int64_t);
     ((CB)callbackPtr)((int64_t)arg0);
 }
@@ -1384,6 +1821,12 @@ JNIEXPORT void JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverag
         if (!g_mid_echoFloat64s_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: echoFloat64s_call sig=([D)Ljava/nio/ByteBuffer;"); }
         g_mid_echoInt32s_call = env->GetStaticMethodID(g_bridgeClass, "echoInt32s_call", "([I)Ljava/nio/ByteBuffer;");
         if (!g_mid_echoInt32s_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: echoInt32s_call sig=([I)Ljava/nio/ByteBuffer;"); }
+        g_mid_echoInt8s_call = env->GetStaticMethodID(g_bridgeClass, "echoInt8s_call", "([B)Ljava/nio/ByteBuffer;");
+        if (!g_mid_echoInt8s_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: echoInt8s_call sig=([B)Ljava/nio/ByteBuffer;"); }
+        g_mid_echoInt16s_call = env->GetStaticMethodID(g_bridgeClass, "echoInt16s_call", "([S)Ljava/nio/ByteBuffer;");
+        if (!g_mid_echoInt16s_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: echoInt16s_call sig=([S)Ljava/nio/ByteBuffer;"); }
+        g_mid_echoInt64s_call = env->GetStaticMethodID(g_bridgeClass, "echoInt64s_call", "([J)Ljava/nio/ByteBuffer;");
+        if (!g_mid_echoInt64s_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: echoInt64s_call sig=([J)Ljava/nio/ByteBuffer;"); }
         g_mid_echoIntList_call = env->GetStaticMethodID(g_bridgeClass, "echoIntList_call", "([B)[B");
         if (!g_mid_echoIntList_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: echoIntList_call sig=([B)[B"); }
         g_mid_echoDoubleList_call = env->GetStaticMethodID(g_bridgeClass, "echoDoubleList_call", "([B)[B");
@@ -1410,10 +1853,26 @@ JNIEXPORT void JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverag
         if (!g_mid_asyncNullableBool_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: asyncNullableBool_call sig=(I)Z"); }
         g_mid_asyncNullableString_call = env->GetStaticMethodID(g_bridgeClass, "asyncNullableString_call", "(Ljava/lang/String;)Ljava/lang/String;");
         if (!g_mid_asyncNullableString_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: asyncNullableString_call sig=(Ljava/lang/String;)Ljava/lang/String;"); }
+        g_mid_asyncPoint_call = env->GetStaticMethodID(g_bridgeClass, "asyncPoint_call", "(Lnitro/nitro_type_coverage_module/TcPoint;)Lnitro/nitro_type_coverage_module/TcPoint;");
+        if (!g_mid_asyncPoint_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: asyncPoint_call sig=(Lnitro/nitro_type_coverage_module/TcPoint;)Lnitro/nitro_type_coverage_module/TcPoint;"); }
+        g_mid_asyncNullableStatus_call = env->GetStaticMethodID(g_bridgeClass, "asyncNullableStatus_call", "(J)J");
+        if (!g_mid_asyncNullableStatus_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: asyncNullableStatus_call sig=(J)J"); }
+        g_mid_asyncMeta_call = env->GetStaticMethodID(g_bridgeClass, "asyncMeta_call", "([B)[B");
+        if (!g_mid_asyncMeta_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: asyncMeta_call sig=([B)[B"); }
+        g_mid_echoMeta_call = env->GetStaticMethodID(g_bridgeClass, "echoMeta_call", "([B)[B");
+        if (!g_mid_echoMeta_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: echoMeta_call sig=([B)[B"); }
         g_mid_onIntEvent_call = env->GetStaticMethodID(g_bridgeClass, "onIntEvent_call", "(J)V");
         if (!g_mid_onIntEvent_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: onIntEvent_call sig=(J)V"); }
+        g_mid_onBoolEvent_call = env->GetStaticMethodID(g_bridgeClass, "onBoolEvent_call", "(J)V");
+        if (!g_mid_onBoolEvent_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: onBoolEvent_call sig=(J)V"); }
+        g_mid_onDoubleEvent_call = env->GetStaticMethodID(g_bridgeClass, "onDoubleEvent_call", "(J)V");
+        if (!g_mid_onDoubleEvent_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: onDoubleEvent_call sig=(J)V"); }
         g_mid_configureStream_call = env->GetStaticMethodID(g_bridgeClass, "configureStream_call", "(JJ)V");
         if (!g_mid_configureStream_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: configureStream_call sig=(JJ)V"); }
+        g_mid_configureDoubleStream_call = env->GetStaticMethodID(g_bridgeClass, "configureDoubleStream_call", "(DJ)V");
+        if (!g_mid_configureDoubleStream_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: configureDoubleStream_call sig=(DJ)V"); }
+        g_mid_configureStatusStream_call = env->GetStaticMethodID(g_bridgeClass, "configureStatusStream_call", "(J)V");
+        if (!g_mid_configureStatusStream_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: configureStatusStream_call sig=(J)V"); }
         g_mid_throwNative_call = env->GetStaticMethodID(g_bridgeClass, "throwNative_call", "(Ljava/lang/String;)V");
         if (!g_mid_throwNative_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: throwNative_call sig=(Ljava/lang/String;)V"); }
         g_mid_throwNativeAsync_call = env->GetStaticMethodID(g_bridgeClass, "throwNativeAsync_call", "(Ljava/lang/String;)V");
@@ -1438,6 +1897,14 @@ JNIEXPORT void JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverag
         if (!g_mid_nitro_type_coverage_get_current_status_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nitro_type_coverage_get_current_status_call sig=()J"); }
         g_mid_nitro_type_coverage_set_current_status_call = env->GetStaticMethodID(g_bridgeClass, "nitro_type_coverage_set_current_status_call", "(J)V");
         if (!g_mid_nitro_type_coverage_set_current_status_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nitro_type_coverage_set_current_status_call sig=(J)V"); }
+        g_mid_nitro_type_coverage_get_nullable_counter_call = env->GetStaticMethodID(g_bridgeClass, "nitro_type_coverage_get_nullable_counter_call", "()J");
+        if (!g_mid_nitro_type_coverage_get_nullable_counter_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nitro_type_coverage_get_nullable_counter_call sig=()J"); }
+        g_mid_nitro_type_coverage_set_nullable_counter_call = env->GetStaticMethodID(g_bridgeClass, "nitro_type_coverage_set_nullable_counter_call", "(J)V");
+        if (!g_mid_nitro_type_coverage_set_nullable_counter_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nitro_type_coverage_set_nullable_counter_call sig=(J)V"); }
+        g_mid_nitro_type_coverage_get_optional_flag_call = env->GetStaticMethodID(g_bridgeClass, "nitro_type_coverage_get_optional_flag_call", "()Z");
+        if (!g_mid_nitro_type_coverage_get_optional_flag_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nitro_type_coverage_get_optional_flag_call sig=()Z"); }
+        g_mid_nitro_type_coverage_set_optional_flag_call = env->GetStaticMethodID(g_bridgeClass, "nitro_type_coverage_set_optional_flag_call", "(Z)V");
+        if (!g_mid_nitro_type_coverage_set_optional_flag_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nitro_type_coverage_set_optional_flag_call sig=(Z)V"); }
         g_mid_nitro_type_coverage_register_int_stream_stream_call = env->GetStaticMethodID(g_bridgeClass, "nitro_type_coverage_register_int_stream_stream_call", "(J)V");
         if (!g_mid_nitro_type_coverage_register_int_stream_stream_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nitro_type_coverage_register_int_stream_stream_call sig=(J)V"); }
         g_mid_nitro_type_coverage_release_int_stream_stream_call = env->GetStaticMethodID(g_bridgeClass, "nitro_type_coverage_release_int_stream_stream_call", "(J)V");
@@ -1450,6 +1917,14 @@ JNIEXPORT void JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverag
         if (!g_mid_nitro_type_coverage_register_bool_stream_stream_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nitro_type_coverage_register_bool_stream_stream_call sig=(J)V"); }
         g_mid_nitro_type_coverage_release_bool_stream_stream_call = env->GetStaticMethodID(g_bridgeClass, "nitro_type_coverage_release_bool_stream_stream_call", "(J)V");
         if (!g_mid_nitro_type_coverage_release_bool_stream_stream_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nitro_type_coverage_release_bool_stream_stream_call sig=(J)V"); }
+        g_mid_nitro_type_coverage_register_double_stream_stream_call = env->GetStaticMethodID(g_bridgeClass, "nitro_type_coverage_register_double_stream_stream_call", "(J)V");
+        if (!g_mid_nitro_type_coverage_register_double_stream_stream_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nitro_type_coverage_register_double_stream_stream_call sig=(J)V"); }
+        g_mid_nitro_type_coverage_release_double_stream_stream_call = env->GetStaticMethodID(g_bridgeClass, "nitro_type_coverage_release_double_stream_stream_call", "(J)V");
+        if (!g_mid_nitro_type_coverage_release_double_stream_stream_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nitro_type_coverage_release_double_stream_stream_call sig=(J)V"); }
+        g_mid_nitro_type_coverage_register_status_stream_stream_call = env->GetStaticMethodID(g_bridgeClass, "nitro_type_coverage_register_status_stream_stream_call", "(J)V");
+        if (!g_mid_nitro_type_coverage_register_status_stream_stream_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nitro_type_coverage_register_status_stream_stream_call sig=(J)V"); }
+        g_mid_nitro_type_coverage_release_status_stream_stream_call = env->GetStaticMethodID(g_bridgeClass, "nitro_type_coverage_release_status_stream_stream_call", "(J)V");
+        if (!g_mid_nitro_type_coverage_release_status_stream_stream_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nitro_type_coverage_release_status_stream_stream_call sig=(J)V"); }
     }
 
     // Cache struct class + ctor + field IDs
@@ -1949,6 +2424,81 @@ uint8_t* nitro_type_coverage_echo_int32s(int32_t* value, int64_t value_length, N
 #endif
 }
 
+extern uint8_t* _nitro_type_coverage_call_echoInt8s(int8_t* value, int64_t value_length);
+uint8_t* nitro_type_coverage_echo_int8s(int8_t* value, int64_t value_length, NitroError* _nitro_err) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+#ifdef __OBJC__
+    @try {
+        return _nitro_type_coverage_call_echoInt8s(value, value_length);
+    } @catch (NSException* e) {
+        if (_nitro_err) {
+            // sync: write exception to out-param error slot.
+            _nitro_err->hasError = 1;
+            _nitro_err->name    = strdup([e.name UTF8String]);
+            _nitro_err->message = strdup([e.reason UTF8String]);
+            _nitro_err->code = nullptr;
+            _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
+        }
+        return nullptr;
+    }
+#else
+    return _nitro_type_coverage_call_echoInt8s(value, value_length);
+#endif
+}
+
+extern uint8_t* _nitro_type_coverage_call_echoInt16s(int16_t* value, int64_t value_length);
+uint8_t* nitro_type_coverage_echo_int16s(int16_t* value, int64_t value_length, NitroError* _nitro_err) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+#ifdef __OBJC__
+    @try {
+        return _nitro_type_coverage_call_echoInt16s(value, value_length);
+    } @catch (NSException* e) {
+        if (_nitro_err) {
+            // sync: write exception to out-param error slot.
+            _nitro_err->hasError = 1;
+            _nitro_err->name    = strdup([e.name UTF8String]);
+            _nitro_err->message = strdup([e.reason UTF8String]);
+            _nitro_err->code = nullptr;
+            _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
+        }
+        return nullptr;
+    }
+#else
+    return _nitro_type_coverage_call_echoInt16s(value, value_length);
+#endif
+}
+
+extern uint8_t* _nitro_type_coverage_call_echoInt64s(int64_t* value, int64_t value_length);
+uint8_t* nitro_type_coverage_echo_int64s(int64_t* value, int64_t value_length, NitroError* _nitro_err) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+#ifdef __OBJC__
+    @try {
+        return _nitro_type_coverage_call_echoInt64s(value, value_length);
+    } @catch (NSException* e) {
+        if (_nitro_err) {
+            // sync: write exception to out-param error slot.
+            _nitro_err->hasError = 1;
+            _nitro_err->name    = strdup([e.name UTF8String]);
+            _nitro_err->message = strdup([e.reason UTF8String]);
+            _nitro_err->code = nullptr;
+            _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
+        }
+        return nullptr;
+    }
+#else
+    return _nitro_type_coverage_call_echoInt64s(value, value_length);
+#endif
+}
+
 extern void* _nitro_type_coverage_call_echoIntList(void* value);
 void* nitro_type_coverage_echo_int_list(void* value) {
     NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
@@ -2274,6 +2824,106 @@ const char* nitro_type_coverage_async_nullable_string(const char* value) {
 #endif
 }
 
+extern void* _nitro_type_coverage_call_asyncPoint(void* value);
+void* nitro_type_coverage_async_point(void* value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
+#ifdef __OBJC__
+    @try {
+        return _nitro_type_coverage_call_asyncPoint(value);
+    } @catch (NSException* e) {
+        if (_nitro_err) {
+            // sync: write exception to out-param error slot.
+            _nitro_err->hasError = 1;
+            _nitro_err->name    = strdup([e.name UTF8String]);
+            _nitro_err->message = strdup([e.reason UTF8String]);
+            _nitro_err->code = nullptr;
+            _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
+        }
+        return nullptr;
+    }
+#else
+    return _nitro_type_coverage_call_asyncPoint(value);
+#endif
+}
+
+extern int64_t _nitro_type_coverage_call_asyncNullableStatus(int64_t value);
+int64_t nitro_type_coverage_async_nullable_status(int64_t value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
+#ifdef __OBJC__
+    @try {
+        return _nitro_type_coverage_call_asyncNullableStatus(value);
+    } @catch (NSException* e) {
+        if (_nitro_err) {
+            // sync: write exception to out-param error slot.
+            _nitro_err->hasError = 1;
+            _nitro_err->name    = strdup([e.name UTF8String]);
+            _nitro_err->message = strdup([e.reason UTF8String]);
+            _nitro_err->code = nullptr;
+            _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
+        }
+        return 0;
+    }
+#else
+    return _nitro_type_coverage_call_asyncNullableStatus(value);
+#endif
+}
+
+extern void* _nitro_type_coverage_call_asyncMeta(void* value);
+void* nitro_type_coverage_async_meta(void* value) {
+    NitroError* _nitro_err = nullptr; // async: errors use TLS not out-param
+#ifdef __OBJC__
+    @try {
+        return _nitro_type_coverage_call_asyncMeta(value);
+    } @catch (NSException* e) {
+        if (_nitro_err) {
+            // sync: write exception to out-param error slot.
+            _nitro_err->hasError = 1;
+            _nitro_err->name    = strdup([e.name UTF8String]);
+            _nitro_err->message = strdup([e.reason UTF8String]);
+            _nitro_err->code = nullptr;
+            _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
+        }
+        return nullptr;
+    }
+#else
+    return _nitro_type_coverage_call_asyncMeta(value);
+#endif
+}
+
+extern void* _nitro_type_coverage_call_echoMeta(void* value);
+void* nitro_type_coverage_echo_meta(void* value, NitroError* _nitro_err) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+#ifdef __OBJC__
+    @try {
+        return _nitro_type_coverage_call_echoMeta(value);
+    } @catch (NSException* e) {
+        if (_nitro_err) {
+            // sync: write exception to out-param error slot.
+            _nitro_err->hasError = 1;
+            _nitro_err->name    = strdup([e.name UTF8String]);
+            _nitro_err->message = strdup([e.reason UTF8String]);
+            _nitro_err->code = nullptr;
+            _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
+        }
+        return nullptr;
+    }
+#else
+    return _nitro_type_coverage_call_echoMeta(value);
+#endif
+}
+
 extern void _nitro_type_coverage_call_onIntEvent(void (*callback)(int64_t));
 void nitro_type_coverage_on_int_event(void (*callback)(int64_t), NitroError* _nitro_err) {
     if (_nitro_err) { _nitro_err->hasError = 0; }
@@ -2298,6 +2948,54 @@ void nitro_type_coverage_on_int_event(void (*callback)(int64_t), NitroError* _ni
 #endif
 }
 
+extern void _nitro_type_coverage_call_onBoolEvent(void (*boolCb)(int8_t));
+void nitro_type_coverage_on_bool_event(void (*boolCb)(int8_t), NitroError* _nitro_err) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+#ifdef __OBJC__
+    @try {
+        _nitro_type_coverage_call_onBoolEvent(boolCb);
+    } @catch (NSException* e) {
+        if (_nitro_err) {
+            // sync: write exception to out-param error slot.
+            _nitro_err->hasError = 1;
+            _nitro_err->name    = strdup([e.name UTF8String]);
+            _nitro_err->message = strdup([e.reason UTF8String]);
+            _nitro_err->code = nullptr;
+            _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
+        }
+    }
+#else
+    _nitro_type_coverage_call_onBoolEvent(boolCb);
+#endif
+}
+
+extern void _nitro_type_coverage_call_onDoubleEvent(void (*doubleCb)(double));
+void nitro_type_coverage_on_double_event(void (*doubleCb)(double), NitroError* _nitro_err) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+#ifdef __OBJC__
+    @try {
+        _nitro_type_coverage_call_onDoubleEvent(doubleCb);
+    } @catch (NSException* e) {
+        if (_nitro_err) {
+            // sync: write exception to out-param error slot.
+            _nitro_err->hasError = 1;
+            _nitro_err->name    = strdup([e.name UTF8String]);
+            _nitro_err->message = strdup([e.reason UTF8String]);
+            _nitro_err->code = nullptr;
+            _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
+        }
+    }
+#else
+    _nitro_type_coverage_call_onDoubleEvent(doubleCb);
+#endif
+}
+
 extern void _nitro_type_coverage_call_configureStream(int64_t from, int64_t count);
 void nitro_type_coverage_configure_stream(int64_t from, int64_t count, NitroError* _nitro_err) {
     if (_nitro_err) { _nitro_err->hasError = 0; }
@@ -2319,6 +3017,54 @@ void nitro_type_coverage_configure_stream(int64_t from, int64_t count, NitroErro
     }
 #else
     _nitro_type_coverage_call_configureStream(from, count);
+#endif
+}
+
+extern void _nitro_type_coverage_call_configureDoubleStream(double start, int64_t count);
+void nitro_type_coverage_configure_double_stream(double start, int64_t count, NitroError* _nitro_err) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+#ifdef __OBJC__
+    @try {
+        _nitro_type_coverage_call_configureDoubleStream(start, count);
+    } @catch (NSException* e) {
+        if (_nitro_err) {
+            // sync: write exception to out-param error slot.
+            _nitro_err->hasError = 1;
+            _nitro_err->name    = strdup([e.name UTF8String]);
+            _nitro_err->message = strdup([e.reason UTF8String]);
+            _nitro_err->code = nullptr;
+            _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
+        }
+    }
+#else
+    _nitro_type_coverage_call_configureDoubleStream(start, count);
+#endif
+}
+
+extern void _nitro_type_coverage_call_configureStatusStream(int64_t count);
+void nitro_type_coverage_configure_status_stream(int64_t count, NitroError* _nitro_err) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+#ifdef __OBJC__
+    @try {
+        _nitro_type_coverage_call_configureStatusStream(count);
+    } @catch (NSException* e) {
+        if (_nitro_err) {
+            // sync: write exception to out-param error slot.
+            _nitro_err->hasError = 1;
+            _nitro_err->name    = strdup([e.name UTF8String]);
+            _nitro_err->message = strdup([e.reason UTF8String]);
+            _nitro_err->code = nullptr;
+            _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
+        }
+    }
+#else
+    _nitro_type_coverage_call_configureStatusStream(count);
 #endif
 }
 
@@ -2430,6 +3176,30 @@ void nitro_type_coverage_set_current_status(int64_t value, NitroError* _nitro_er
     _nitro_type_coverage_call_set_currentStatus(value);
 }
 
+extern int64_t _nitro_type_coverage_call_get_nullableCounter(void);
+int64_t nitro_type_coverage_get_nullable_counter(NitroError* _nitro_err) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    return _nitro_type_coverage_call_get_nullableCounter();
+}
+
+extern void _nitro_type_coverage_call_set_nullableCounter(int64_t value);
+void nitro_type_coverage_set_nullable_counter(int64_t value, NitroError* _nitro_err) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    _nitro_type_coverage_call_set_nullableCounter(value);
+}
+
+extern int8_t _nitro_type_coverage_call_get_optionalFlag(void);
+int8_t nitro_type_coverage_get_optional_flag(NitroError* _nitro_err) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    return _nitro_type_coverage_call_get_optionalFlag();
+}
+
+extern void _nitro_type_coverage_call_set_optionalFlag(int8_t value);
+void nitro_type_coverage_set_optional_flag(int8_t value, NitroError* _nitro_err) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    _nitro_type_coverage_call_set_optionalFlag(value);
+}
+
 bool _emit_intStream_to_dart(int64_t dartPort, int64_t item) {
     Dart_CObject obj;
     obj.type = Dart_CObject_kInt64;
@@ -2464,8 +3234,8 @@ void nitro_type_coverage_release_point_stream_stream(int64_t dart_port) {
 
 bool _emit_boolStream_to_dart(int64_t dartPort, int8_t item) {
     Dart_CObject obj;
-    obj.type = Dart_CObject_kBool;
-    obj.value.as_bool = item;
+    obj.type = Dart_CObject_kInt64;
+    obj.value.as_int64 = item ? 1 : 0;
     return Dart_PostCObject_DL(dartPort, &obj);
 }
 
@@ -2476,6 +3246,38 @@ void nitro_type_coverage_register_bool_stream_stream(int64_t dart_port) {
 extern void _nitro_type_coverage_release_boolStream_stream(int64_t dart_port);
 void nitro_type_coverage_release_bool_stream_stream(int64_t dart_port) {
     _nitro_type_coverage_release_boolStream_stream(dart_port);
+}
+
+bool _emit_doubleStream_to_dart(int64_t dartPort, double item) {
+    Dart_CObject obj;
+    obj.type = Dart_CObject_kDouble;
+    obj.value.as_double = item;
+    return Dart_PostCObject_DL(dartPort, &obj);
+}
+
+extern void _nitro_type_coverage_register_doubleStream_stream(int64_t dartPort, bool (*emitCb)(int64_t, double));
+void nitro_type_coverage_register_double_stream_stream(int64_t dart_port) {
+    _nitro_type_coverage_register_doubleStream_stream(dart_port, _emit_doubleStream_to_dart);
+}
+extern void _nitro_type_coverage_release_doubleStream_stream(int64_t dart_port);
+void nitro_type_coverage_release_double_stream_stream(int64_t dart_port) {
+    _nitro_type_coverage_release_doubleStream_stream(dart_port);
+}
+
+bool _emit_statusStream_to_dart(int64_t dartPort, void* item) {
+    Dart_CObject obj;
+    obj.type = Dart_CObject_kInt64;
+    obj.value.as_int64 = (int64_t)item;
+    return Dart_PostCObject_DL(dartPort, &obj);
+}
+
+extern void _nitro_type_coverage_register_statusStream_stream(int64_t dartPort, bool (*emitCb)(int64_t, void*));
+void nitro_type_coverage_register_status_stream_stream(int64_t dart_port) {
+    _nitro_type_coverage_register_statusStream_stream(dart_port, _emit_statusStream_to_dart);
+}
+extern void _nitro_type_coverage_release_statusStream_stream(int64_t dart_port);
+void nitro_type_coverage_release_status_stream_stream(int64_t dart_port) {
+    _nitro_type_coverage_release_statusStream_stream(dart_port);
 }
 
 } // extern "C"
