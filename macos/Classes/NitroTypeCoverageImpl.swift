@@ -83,6 +83,14 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     public func echoNullableIntSafe(value: NitroNullableInt) -> NitroNullableInt { value }
     public func echoNullableDoubleSafe(value: NitroNullableDouble) -> NitroNullableDouble { value }
     public func echoNullableBoolSafe(value: NitroNullableBool) -> NitroNullableBool { value }
+    public func echoIntMap(value: [String: Int64]) -> [String: Int64] { value }
+    public func echoStringMap(value: [String: String]) -> [String: String] { value }
+    public func echoDoubleMap(value: [String: Double]) -> [String: Double] { value }
+    public func echoBoolMap(value: [String: Bool]) -> [String: Bool] { value }
+    public func echoPacket(value: TcPacket) -> TcPacket { value }
+    public func echoNullablePoint(value: TcPoint?) -> TcPoint? { value }
+    public func onPointEvent(pointCb: @escaping (TcPoint) -> Void) { pointCb(TcPoint(x: 1.0, y: 2.0, z: 3.0)) }
+    public func onDetailEvent(detailCb: @escaping (Int64, Double) -> Void) { detailCb(42, 9.81) }
 
     // ── Async nullable ────────────────────────────────────────────────────────
     public func asyncNullableInt(value: Int64?) async throws -> Int64? { value }

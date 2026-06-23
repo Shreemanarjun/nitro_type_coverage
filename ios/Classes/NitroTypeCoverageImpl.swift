@@ -94,6 +94,26 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     public func echoNullableDoubleSafe(value: NitroNullableDouble) -> NitroNullableDouble { value }
     public func echoNullableBoolSafe(value: NitroNullableBool) -> NitroNullableBool { value }
 
+    // ── Maps (§24) ────────────────────────────────────────────────────────────
+    public func echoIntMap(value: [String: Int64]) -> [String: Int64] { value }
+    public func echoStringMap(value: [String: String]) -> [String: String] { value }
+    public func echoDoubleMap(value: [String: Double]) -> [String: Double] { value }
+    public func echoBoolMap(value: [String: Bool]) -> [String: Bool] { value }
+
+    // ── @HybridRecord with enum field (§25) ───────────────────────────────────
+    public func echoPacket(value: TcPacket) -> TcPacket { value }
+
+    // ── Nullable struct (§26) ─────────────────────────────────────────────────
+    public func echoNullablePoint(value: TcPoint?) -> TcPoint? { value }
+
+    // ── Callbacks with struct and multi-params (§27) ──────────────────────────
+    public func onPointEvent(pointCb: @escaping (TcPoint) -> Void) {
+        pointCb(TcPoint(x: 1.0, y: 2.0, z: 3.0))
+    }
+    public func onDetailEvent(detailCb: @escaping (Int64, Double) -> Void) {
+        detailCb(42, 9.81)
+    }
+
     // ── Async additions ───────────────────────────────────────────────────────
     public func asyncPoint(value: TcPoint) async throws -> TcPoint { value }
     public func asyncNullableStatus(value: TcStatus?) async throws -> TcStatus? { value }

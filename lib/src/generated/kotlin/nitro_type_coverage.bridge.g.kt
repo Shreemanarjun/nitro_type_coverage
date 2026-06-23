@@ -142,6 +142,46 @@ data class TcMeta(val version: Long, val weight: Double, val active: Boolean, va
 }
 
 @androidx.annotation.Keep
+data class TcPacket(val name: String, val sequence: Long, val status: TcStatus, val valid: Boolean) {
+    companion object {
+        @JvmStatic fun decodeFrom(buf: java.nio.ByteBuffer): TcPacket {
+            val name = { val len = buf.int; val b = ByteArray(len); buf.get(b); b.toString(Charsets.UTF_8) }()
+            val sequence = buf.long
+            val status = TcStatus.fromNative(buf.long)
+            val valid = (buf.get().toInt() != 0)
+            return TcPacket(name, sequence, status, valid)
+        }
+        @JvmStatic fun decode(bytes: ByteArray): TcPacket {
+            val buf = java.nio.ByteBuffer.wrap(bytes).order(java.nio.ByteOrder.LITTLE_ENDIAN)
+            buf.position(4) // skip 4-byte length prefix
+            return decodeFrom(buf)
+        }
+    }
+
+    fun writeFieldsTo(out: java.io.ByteArrayOutputStream, buf: java.nio.ByteBuffer) {
+        fun writeInt(v: Long) { buf.clear(); buf.putLong(v); out.write(buf.array()) }
+        fun writeInt32(v: Int) { buf.clear(); buf.putInt(v); out.write(buf.array(), 0, 4) }
+        fun writeDouble(v: Double) { buf.clear(); buf.putDouble(v); out.write(buf.array()) }
+        fun writeBool(v: Boolean) { out.write(if (v) 1 else 0) }
+        fun writeString(v: String) { val b = v.toByteArray(Charsets.UTF_8); writeInt32(b.size); out.write(b) }
+        writeString(name)
+        writeInt(sequence.toLong())
+        writeInt(status.nativeValue)
+        writeBool(valid)
+    }
+
+    fun encode(): ByteArray {
+        val out = java.io.ByteArrayOutputStream(53)
+        val buf = java.nio.ByteBuffer.allocate(8).order(java.nio.ByteOrder.LITTLE_ENDIAN)
+        writeFieldsTo(out, buf)
+        val payload = out.toByteArray()
+        val lenBuf = java.nio.ByteBuffer.allocate(4).order(java.nio.ByteOrder.LITTLE_ENDIAN)
+        lenBuf.putInt(payload.size)
+        return lenBuf.array() + payload
+    }
+}
+
+@androidx.annotation.Keep
 data class NitroNullableInt(val hasValue: Boolean, val value: Long) {
     companion object {
         @JvmStatic fun decodeFrom(buf: java.nio.ByteBuffer): NitroNullableInt {
@@ -349,21 +389,37 @@ interface HybridNitroTypeCoverageSpec {
     fun echoNullableDoubleSafe(value: NitroNullableDouble): NitroNullableDouble
     // source: nitro_type_coverage.native.dart:123
     fun echoNullableBoolSafe(value: NitroNullableBool): NitroNullableBool
-    // source: nitro_type_coverage.native.dart:126
-    fun onIntEvent(callback: (p0: Long) -> Unit): Unit
+    // source: nitro_type_coverage.native.dart:129
+    fun echoIntMap(value: Any?): Any?
+    // source: nitro_type_coverage.native.dart:130
+    fun echoStringMap(value: Any?): Any?
+    // source: nitro_type_coverage.native.dart:131
+    fun echoDoubleMap(value: Any?): Any?
     // source: nitro_type_coverage.native.dart:132
+    fun echoBoolMap(value: Any?): Any?
+    // source: nitro_type_coverage.native.dart:138
+    fun echoPacket(value: TcPacket): TcPacket
+    // source: nitro_type_coverage.native.dart:142
+    fun echoNullablePoint(value: TcPoint?): TcPoint?
+    // source: nitro_type_coverage.native.dart:145
+    fun onPointEvent(pointCb: (p0: TcPoint) -> Unit): Unit
+    // source: nitro_type_coverage.native.dart:146
+    fun onDetailEvent(detailCb: (p0: Long, p1: Double) -> Unit): Unit
+    // source: nitro_type_coverage.native.dart:149
+    fun onIntEvent(callback: (p0: Long) -> Unit): Unit
+    // source: nitro_type_coverage.native.dart:155
     fun onBoolEvent(boolCb: (p0: Boolean) -> Unit): Unit
-    // source: nitro_type_coverage.native.dart:133
+    // source: nitro_type_coverage.native.dart:156
     fun onDoubleEvent(doubleCb: (p0: Double) -> Unit): Unit
-    // source: nitro_type_coverage.native.dart:175
+    // source: nitro_type_coverage.native.dart:198
     fun configureStream(from: Long, count: Long): Unit
-    // source: nitro_type_coverage.native.dart:176
+    // source: nitro_type_coverage.native.dart:199
     fun configureDoubleStream(start: Double, count: Long): Unit
-    // source: nitro_type_coverage.native.dart:177
+    // source: nitro_type_coverage.native.dart:200
     fun configureStatusStream(count: Long): Unit
-    // source: nitro_type_coverage.native.dart:180
+    // source: nitro_type_coverage.native.dart:203
     fun throwNative(message: String): Unit
-    // source: nitro_type_coverage.native.dart:183
+    // source: nitro_type_coverage.native.dart:206
     suspend fun throwNativeAsync(message: String): Unit
     var precision: Long
     var tag: String
@@ -764,42 +820,134 @@ object NitroTypeCoverageJniBridge {
         val result = impl.echoNullableBoolSafe(valueDecoded)
         return result.encode()
     }
-    // source: nitro_type_coverage.native.dart:126
+    // source: nitro_type_coverage.native.dart:129
+    @JvmStatic fun echoIntMap_call(value: String): String? {
+        val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
+        @Suppress("UNCHECKED_CAST")
+        val _inputMap: Map<String, Any?> = run {
+            val jo = org.json.JSONObject(value)
+            val m = mutableMapOf<String, Any?>()
+            for (k in jo.keys()) m[k] = jo.get(k)
+            m
+        }
+        val _result = impl.echoIntMap(_inputMap)
+        if (_result == null) return null
+        val _jo = org.json.JSONObject()
+        @Suppress("UNCHECKED_CAST")
+        (_result as Map<String, Any?>).forEach { (k, v) -> _jo.put(k, v) }
+        return _jo.toString()
+    }
+    // source: nitro_type_coverage.native.dart:130
+    @JvmStatic fun echoStringMap_call(value: String): String? {
+        val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
+        @Suppress("UNCHECKED_CAST")
+        val _inputMap: Map<String, Any?> = run {
+            val jo = org.json.JSONObject(value)
+            val m = mutableMapOf<String, Any?>()
+            for (k in jo.keys()) m[k] = jo.get(k)
+            m
+        }
+        val _result = impl.echoStringMap(_inputMap)
+        if (_result == null) return null
+        val _jo = org.json.JSONObject()
+        @Suppress("UNCHECKED_CAST")
+        (_result as Map<String, Any?>).forEach { (k, v) -> _jo.put(k, v) }
+        return _jo.toString()
+    }
+    // source: nitro_type_coverage.native.dart:131
+    @JvmStatic fun echoDoubleMap_call(value: String): String? {
+        val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
+        @Suppress("UNCHECKED_CAST")
+        val _inputMap: Map<String, Any?> = run {
+            val jo = org.json.JSONObject(value)
+            val m = mutableMapOf<String, Any?>()
+            for (k in jo.keys()) m[k] = jo.get(k)
+            m
+        }
+        val _result = impl.echoDoubleMap(_inputMap)
+        if (_result == null) return null
+        val _jo = org.json.JSONObject()
+        @Suppress("UNCHECKED_CAST")
+        (_result as Map<String, Any?>).forEach { (k, v) -> _jo.put(k, v) }
+        return _jo.toString()
+    }
+    // source: nitro_type_coverage.native.dart:132
+    @JvmStatic fun echoBoolMap_call(value: String): String? {
+        val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
+        @Suppress("UNCHECKED_CAST")
+        val _inputMap: Map<String, Any?> = run {
+            val jo = org.json.JSONObject(value)
+            val m = mutableMapOf<String, Any?>()
+            for (k in jo.keys()) m[k] = jo.get(k)
+            m
+        }
+        val _result = impl.echoBoolMap(_inputMap)
+        if (_result == null) return null
+        val _jo = org.json.JSONObject()
+        @Suppress("UNCHECKED_CAST")
+        (_result as Map<String, Any?>).forEach { (k, v) -> _jo.put(k, v) }
+        return _jo.toString()
+    }
+    // source: nitro_type_coverage.native.dart:138
+    @JvmStatic fun echoPacket_call(value: ByteArray): ByteArray {
+        val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
+        val valueBuf = java.nio.ByteBuffer.wrap(value).order(java.nio.ByteOrder.LITTLE_ENDIAN)
+        valueBuf.getInt() // skip Dart 4-byte outer length prefix
+        val valueDecoded = TcPacket.decodeFrom(valueBuf)
+        val result = impl.echoPacket(valueDecoded)
+        return result.encode()
+    }
+    // source: nitro_type_coverage.native.dart:142
+    @JvmStatic fun echoNullablePoint_call(value: TcPoint?): TcPoint? {
+        val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
+        return impl.echoNullablePoint(value)
+    }
+    // source: nitro_type_coverage.native.dart:145
+    @JvmStatic fun onPointEvent_call(pointCb: Long): Unit {
+        val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
+        impl.onPointEvent({ p0: TcPoint -> _invoke_pointCb(pointCb, p0) })
+    }
+    // source: nitro_type_coverage.native.dart:146
+    @JvmStatic fun onDetailEvent_call(detailCb: Long): Unit {
+        val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
+        impl.onDetailEvent({ p0: Long, p1: Double -> _invoke_detailCb(detailCb, p0, java.lang.Double.doubleToRawLongBits(p1)) })
+    }
+    // source: nitro_type_coverage.native.dart:149
     @JvmStatic fun onIntEvent_call(callback: Long): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         impl.onIntEvent({ p0: Long -> _invoke_callback(callback, p0) })
     }
-    // source: nitro_type_coverage.native.dart:132
+    // source: nitro_type_coverage.native.dart:155
     @JvmStatic fun onBoolEvent_call(boolCb: Long): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         impl.onBoolEvent({ p0: Boolean -> _invoke_boolCb(boolCb, if (p0) 1L else 0L) })
     }
-    // source: nitro_type_coverage.native.dart:133
+    // source: nitro_type_coverage.native.dart:156
     @JvmStatic fun onDoubleEvent_call(doubleCb: Long): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         impl.onDoubleEvent({ p0: Double -> _invoke_doubleCb(doubleCb, java.lang.Double.doubleToRawLongBits(p0)) })
     }
-    // source: nitro_type_coverage.native.dart:175
+    // source: nitro_type_coverage.native.dart:198
     @JvmStatic fun configureStream_call(from: Long, count: Long): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         impl.configureStream(from, count)
     }
-    // source: nitro_type_coverage.native.dart:176
+    // source: nitro_type_coverage.native.dart:199
     @JvmStatic fun configureDoubleStream_call(start: Double, count: Long): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         impl.configureDoubleStream(start, count)
     }
-    // source: nitro_type_coverage.native.dart:177
+    // source: nitro_type_coverage.native.dart:200
     @JvmStatic fun configureStatusStream_call(count: Long): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         impl.configureStatusStream(count)
     }
-    // source: nitro_type_coverage.native.dart:180
+    // source: nitro_type_coverage.native.dart:203
     @JvmStatic fun throwNative_call(message: String): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         impl.throwNative(message)
     }
-    // source: nitro_type_coverage.native.dart:183
+    // source: nitro_type_coverage.native.dart:206
     @JvmStatic fun throwNativeAsync_call(message: String): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return _asyncExecutor.submit(java.util.concurrent.Callable {
@@ -947,6 +1095,8 @@ object NitroTypeCoverageJniBridge {
     @JvmStatic fun nitro_type_coverage_release_status_stream_stream_call(dartPort: Long) {
         _streamJobs.remove(Pair("statusStream", dartPort))?.cancel()
     }
+    @JvmStatic external fun _invoke_pointCb(callbackPtr: Long, arg0: TcPoint)
+    @JvmStatic external fun _invoke_detailCb(callbackPtr: Long, arg0: Long, arg1: Long)
     @JvmStatic external fun _invoke_callback(callbackPtr: Long, arg0: Long)
     @JvmStatic external fun _invoke_boolCb(callbackPtr: Long, arg0: Long)
     @JvmStatic external fun _invoke_doubleCb(callbackPtr: Long, arg0: Long)

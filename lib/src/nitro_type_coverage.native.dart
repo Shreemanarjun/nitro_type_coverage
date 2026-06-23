@@ -122,6 +122,29 @@ abstract class NitroTypeCoverage extends HybridObject {
   NitroNullableDouble echoNullableDoubleSafe(NitroNullableDouble value);
   NitroNullableBool echoNullableBoolSafe(NitroNullableBool value);
 
+  // ── Map types — JSON-encoded bridge (§24 coverage) ───────────────────────
+  // Maps are encoded as JSON strings over the C bridge (not binary).
+  // Only Map<String, T> is supported; non-String keys are a known limitation.
+  // Primitive value maps — type-safe, cast via .cast<String, T>()
+  Map<String, int> echoIntMap(Map<String, int> value);
+  Map<String, String> echoStringMap(Map<String, String> value);
+  Map<String, double> echoDoubleMap(Map<String, double> value);
+  Map<String, bool> echoBoolMap(Map<String, bool> value);
+  // LIMITATION: Map<String, @HybridRecord> not supported type-safely.
+  // The Kotlin bridge uses Any? for record-valued maps. Use List<Record> instead.
+
+  // ── @HybridRecord with enum field (§25 coverage) ─────────────────────────
+  // Tests binary codec with mixed primitive + enum field ordering.
+  TcPacket echoPacket(TcPacket value);
+
+  // ── Nullable struct (§26 coverage) ───────────────────────────────────────
+  // TcPoint? — null represented as a null pointer (not a sentinel value).
+  TcPoint? echoNullablePoint(TcPoint? value);
+
+  // ── Callbacks with struct and multi-params (§27 coverage) ────────────────
+  void onPointEvent(void Function(TcPoint point) pointCb);
+  void onDetailEvent(void Function(int id, double score) detailCb);
+
   // ── Callback parameter ────────────────────────────────────────────────────
   void onIntEvent(void Function(int value) callback);
 
@@ -214,6 +237,17 @@ class TcMeta {
   final bool active;
   final String label;
   TcMeta({required this.version, required this.weight, required this.active, required this.label});
+}
+
+/// @HybridRecord with a @HybridEnum field — tests binary codec enum encoding.
+/// Wire: [int32 name_len][name bytes][int64 sequence][int64 status_rawValue][uint8 valid]
+@HybridRecord()
+class TcPacket {
+  final String name;
+  final int sequence;
+  final TcStatus status;
+  final bool valid;
+  TcPacket({required this.name, required this.sequence, required this.status, required this.valid});
 }
 
 // NitroNullableInt, NitroNullableDouble, NitroNullableBool are part of

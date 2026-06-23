@@ -158,6 +158,31 @@ extension TcMetaRecordExt on TcMeta {
   }
 }
 
+extension TcPacketRecordExt on TcPacket {
+  static TcPacket fromNative(Pointer<Uint8> ptr) =>
+      fromReader(RecordReader.fromNative(ptr));
+
+  static TcPacket fromReader(RecordReader r) => TcPacket(
+    name: r.readString(),
+    sequence: r.readInt(),
+    status: r.readInt().toTcStatus(),
+    valid: r.readBool(),
+  );
+
+  void writeFields(RecordWriter writer) {
+    writer.writeString(name);
+    writer.writeInt(sequence);
+    writer.writeInt(status.nativeValue);
+    writer.writeBool(valid);
+  }
+
+  Pointer<Uint8> toNative(Allocator alloc) {
+    final writer = RecordWriter();
+    writeFields(writer);
+    return writer.toNative(alloc);
+  }
+}
+
 class _NitroTypeCoverageImpl extends NitroTypeCoverage {
   final DynamicLibrary _dylib;
   final Pointer<NitroErrorFfi> _nitroErr = calloc<NitroErrorFfi>();
@@ -201,7 +226,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     );
     NitroRuntime.checkLinkChecksum(
       'nitro_type_coverage',
-      '6fc987bf6fe97992',
+      '007b6e223777c3a5',
       () => _dylib
           .lookupFunction<Pointer<Utf8> Function(), Pointer<Utf8> Function()>(
             'nitro_type_coverage_nitro_bridge_checksum',
@@ -491,6 +516,72 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
         Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>),
         Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>)
       >('nitro_type_coverage_echo_nullable_bool_safe');
+  late final Pointer<Utf8> Function(Pointer<Utf8>, Pointer<NitroErrorFfi>)
+  _echoIntMapPtr = _dylib
+      .lookupFunction<
+        Pointer<Utf8> Function(Pointer<Utf8>, Pointer<NitroErrorFfi>),
+        Pointer<Utf8> Function(Pointer<Utf8>, Pointer<NitroErrorFfi>)
+      >('nitro_type_coverage_echo_int_map');
+  late final Pointer<Utf8> Function(Pointer<Utf8>, Pointer<NitroErrorFfi>)
+  _echoStringMapPtr = _dylib
+      .lookupFunction<
+        Pointer<Utf8> Function(Pointer<Utf8>, Pointer<NitroErrorFfi>),
+        Pointer<Utf8> Function(Pointer<Utf8>, Pointer<NitroErrorFfi>)
+      >('nitro_type_coverage_echo_string_map');
+  late final Pointer<Utf8> Function(Pointer<Utf8>, Pointer<NitroErrorFfi>)
+  _echoDoubleMapPtr = _dylib
+      .lookupFunction<
+        Pointer<Utf8> Function(Pointer<Utf8>, Pointer<NitroErrorFfi>),
+        Pointer<Utf8> Function(Pointer<Utf8>, Pointer<NitroErrorFfi>)
+      >('nitro_type_coverage_echo_double_map');
+  late final Pointer<Utf8> Function(Pointer<Utf8>, Pointer<NitroErrorFfi>)
+  _echoBoolMapPtr = _dylib
+      .lookupFunction<
+        Pointer<Utf8> Function(Pointer<Utf8>, Pointer<NitroErrorFfi>),
+        Pointer<Utf8> Function(Pointer<Utf8>, Pointer<NitroErrorFfi>)
+      >('nitro_type_coverage_echo_bool_map');
+  late final Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>)
+  _echoPacketPtr = _dylib
+      .lookupFunction<
+        Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>),
+        Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>)
+      >('nitro_type_coverage_echo_packet');
+  late final Pointer<Void> Function(Pointer<Void>, Pointer<NitroErrorFfi>)
+  _echoNullablePointPtr = _dylib
+      .lookupFunction<
+        Pointer<Void> Function(Pointer<Void>, Pointer<NitroErrorFfi>),
+        Pointer<Void> Function(Pointer<Void>, Pointer<NitroErrorFfi>)
+      >('nitro_type_coverage_echo_nullable_point');
+  late final void Function(
+    Pointer<NativeFunction<Void Function(Pointer<Void>)>>,
+    Pointer<NitroErrorFfi>,
+  )
+  _onPointEventPtr = _dylib
+      .lookupFunction<
+        Void Function(
+          Pointer<NativeFunction<Void Function(Pointer<Void>)>>,
+          Pointer<NitroErrorFfi>,
+        ),
+        void Function(
+          Pointer<NativeFunction<Void Function(Pointer<Void>)>>,
+          Pointer<NitroErrorFfi>,
+        )
+      >('nitro_type_coverage_on_point_event');
+  late final void Function(
+    Pointer<NativeFunction<Void Function(Int64, Int64)>>,
+    Pointer<NitroErrorFfi>,
+  )
+  _onDetailEventPtr = _dylib
+      .lookupFunction<
+        Void Function(
+          Pointer<NativeFunction<Void Function(Int64, Int64)>>,
+          Pointer<NitroErrorFfi>,
+        ),
+        void Function(
+          Pointer<NativeFunction<Void Function(Int64, Int64)>>,
+          Pointer<NitroErrorFfi>,
+        )
+      >('nitro_type_coverage_on_detail_event');
   late final void Function(
     Pointer<NativeFunction<Void Function(Int64)>>,
     Pointer<NitroErrorFfi>,
@@ -718,6 +809,36 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
 
   // Native callback handles are cached so native code can retain
   // callback pointers safely until this HybridObject is disposed.
+  NativeCallable<Void Function(Pointer<Void>)>
+  _nativeCallbackOnPointEventPointCb(void Function(TcPoint) callback) {
+    final key = ('onPointEvent.pointCb', callback);
+    return _nativeCallbackCache.putIfAbsent(key, () {
+          return NativeCallable<Void Function(Pointer<Void>)>.listener((
+            Pointer<Void> arg0,
+          ) {
+            callback(arg0.cast<TcPointFfi>().ref.toDart());
+          });
+        })
+        as NativeCallable<Void Function(Pointer<Void>)>;
+  }
+
+  NativeCallable<Void Function(Int64, Int64)>
+  _nativeCallbackOnDetailEventDetailCb(void Function(int, double) callback) {
+    final key = ('onDetailEvent.detailCb', callback);
+    return _nativeCallbackCache.putIfAbsent(key, () {
+          return NativeCallable<Void Function(Int64, Int64)>.listener((
+            int arg0,
+            int arg1,
+          ) {
+            callback(
+              arg0,
+              Int64List.fromList([arg1]).buffer.asFloat64List()[0],
+            );
+          });
+        })
+        as NativeCallable<Void Function(Int64, Int64)>;
+  }
+
   NativeCallable<Void Function(Int64)> _nativeCallbackOnIntEventCallback(
     void Function(int) callback,
   ) {
@@ -1549,6 +1670,174 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
       }),
       methodName: 'echoNullableBoolSafe',
     );
+  }
+
+  @override
+  Map<String, int> echoIntMap(Map<String, int> value) {
+    checkDisposed();
+    return NitroRuntime.callSync(
+      () => withArena((arena) {
+        final res = _echoIntMapPtr(
+          jsonEncode(value).toNativeUtf8(allocator: arena),
+          _nitroErr,
+        );
+        NitroRuntime.throwIfOutParamError(_nitroErr);
+        final Map<String, int> decoded;
+        try {
+          decoded =
+              (jsonDecode((res as Pointer<Utf8>).toDartString())
+                      as Map<String, dynamic>)
+                  .cast<String, int>();
+        } finally {
+          malloc.free(res);
+        }
+        return decoded;
+      }),
+      methodName: 'echoIntMap',
+    );
+  }
+
+  @override
+  Map<String, String> echoStringMap(Map<String, String> value) {
+    checkDisposed();
+    return NitroRuntime.callSync(
+      () => withArena((arena) {
+        final res = _echoStringMapPtr(
+          jsonEncode(value).toNativeUtf8(allocator: arena),
+          _nitroErr,
+        );
+        NitroRuntime.throwIfOutParamError(_nitroErr);
+        final Map<String, String> decoded;
+        try {
+          decoded =
+              (jsonDecode((res as Pointer<Utf8>).toDartString())
+                      as Map<String, dynamic>)
+                  .cast<String, String>();
+        } finally {
+          malloc.free(res);
+        }
+        return decoded;
+      }),
+      methodName: 'echoStringMap',
+    );
+  }
+
+  @override
+  Map<String, double> echoDoubleMap(Map<String, double> value) {
+    checkDisposed();
+    return NitroRuntime.callSync(
+      () => withArena((arena) {
+        final res = _echoDoubleMapPtr(
+          jsonEncode(value).toNativeUtf8(allocator: arena),
+          _nitroErr,
+        );
+        NitroRuntime.throwIfOutParamError(_nitroErr);
+        final Map<String, double> decoded;
+        try {
+          decoded =
+              (jsonDecode((res as Pointer<Utf8>).toDartString())
+                      as Map<String, dynamic>)
+                  .cast<String, double>();
+        } finally {
+          malloc.free(res);
+        }
+        return decoded;
+      }),
+      methodName: 'echoDoubleMap',
+    );
+  }
+
+  @override
+  Map<String, bool> echoBoolMap(Map<String, bool> value) {
+    checkDisposed();
+    return NitroRuntime.callSync(
+      () => withArena((arena) {
+        final res = _echoBoolMapPtr(
+          jsonEncode(value).toNativeUtf8(allocator: arena),
+          _nitroErr,
+        );
+        NitroRuntime.throwIfOutParamError(_nitroErr);
+        final Map<String, bool> decoded;
+        try {
+          decoded =
+              (jsonDecode((res as Pointer<Utf8>).toDartString())
+                      as Map<String, dynamic>)
+                  .cast<String, bool>();
+        } finally {
+          malloc.free(res);
+        }
+        return decoded;
+      }),
+      methodName: 'echoBoolMap',
+    );
+  }
+
+  @override
+  TcPacket echoPacket(TcPacket value) {
+    checkDisposed();
+    return NitroRuntime.callSync(
+      () => withArena((arena) {
+        final res = _echoPacketPtr(value.toNative(arena), _nitroErr);
+        NitroRuntime.throwIfOutParamError(_nitroErr);
+        final TcPacket decoded;
+        try {
+          decoded = TcPacketRecordExt.fromNative(res);
+        } finally {
+          malloc.free(res);
+        }
+        return decoded;
+      }),
+      methodName: 'echoPacket',
+    );
+  }
+
+  @override
+  TcPoint? echoNullablePoint(TcPoint? value) {
+    checkDisposed();
+    return NitroRuntime.callSync(
+      () => withArena((arena) {
+        final res = _echoNullablePointPtr(
+          value != null ? value.toNative(arena).cast<Void>() : nullptr,
+          _nitroErr,
+        );
+        NitroRuntime.throwIfOutParamError(_nitroErr);
+        if (res == nullptr) return null;
+        final structPtr = Pointer<TcPointFfi>.fromAddress(res.address);
+        final TcPoint decoded;
+        try {
+          decoded = structPtr.ref.toDart();
+        } finally {
+          structPtr.ref.freeFields();
+          malloc.free(structPtr);
+        }
+        return decoded;
+      }),
+      methodName: 'echoNullablePoint',
+    );
+  }
+
+  @override
+  void onPointEvent(void Function(TcPoint) pointCb) {
+    checkDisposed();
+    NitroRuntime.callSync<void>(() {
+      _onPointEventPtr(
+        _nativeCallbackOnPointEventPointCb(pointCb).nativeFunction,
+        _nitroErr,
+      );
+      NitroRuntime.throwIfOutParamError(_nitroErr);
+    }, methodName: 'onPointEvent');
+  }
+
+  @override
+  void onDetailEvent(void Function(int, double) detailCb) {
+    checkDisposed();
+    NitroRuntime.callSync<void>(() {
+      _onDetailEventPtr(
+        _nativeCallbackOnDetailEventDetailCb(detailCb).nativeFunction,
+        _nitroErr,
+      );
+      NitroRuntime.throwIfOutParamError(_nitroErr);
+    }, methodName: 'onDetailEvent');
   }
 
   @override

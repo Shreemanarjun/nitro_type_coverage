@@ -99,6 +99,14 @@ NITRO_EXPORT void* nitro_type_coverage_echo_meta(void* value, NitroError* _nitro
 NITRO_EXPORT void* nitro_type_coverage_echo_nullable_int_safe(void* value, NitroError* _nitro_err);
 NITRO_EXPORT void* nitro_type_coverage_echo_nullable_double_safe(void* value, NitroError* _nitro_err);
 NITRO_EXPORT void* nitro_type_coverage_echo_nullable_bool_safe(void* value, NitroError* _nitro_err);
+NITRO_EXPORT const char* nitro_type_coverage_echo_int_map(const char* value, NitroError* _nitro_err);
+NITRO_EXPORT const char* nitro_type_coverage_echo_string_map(const char* value, NitroError* _nitro_err);
+NITRO_EXPORT const char* nitro_type_coverage_echo_double_map(const char* value, NitroError* _nitro_err);
+NITRO_EXPORT const char* nitro_type_coverage_echo_bool_map(const char* value, NitroError* _nitro_err);
+NITRO_EXPORT void* nitro_type_coverage_echo_packet(void* value, NitroError* _nitro_err);
+NITRO_EXPORT void* nitro_type_coverage_echo_nullable_point(void* value, NitroError* _nitro_err);
+NITRO_EXPORT void nitro_type_coverage_on_point_event(void (*pointCb)(void*), NitroError* _nitro_err);
+NITRO_EXPORT void nitro_type_coverage_on_detail_event(void (*detailCb)(int64_t, double), NitroError* _nitro_err);
 NITRO_EXPORT void nitro_type_coverage_on_int_event(void (*callback)(int64_t), NitroError* _nitro_err);
 NITRO_EXPORT void nitro_type_coverage_on_bool_event(void (*boolCb)(int8_t), NitroError* _nitro_err);
 NITRO_EXPORT void nitro_type_coverage_on_double_event(void (*doubleCb)(double), NitroError* _nitro_err);

@@ -123,6 +123,46 @@ public struct TcMeta {
   }
 }
 
+public struct TcPacket {
+  public var name: String
+  public var sequence: Int64
+  public var status: TcStatus
+  public var valid: Bool
+
+  public init(name: String, sequence: Int64, status: TcStatus, valid: Bool) {
+    self.name = name
+    self.sequence = sequence
+    self.status = status
+    self.valid = valid
+  }
+
+  public static func fromNative(_ ptr: UnsafeMutablePointer<UInt8>) -> TcPacket {
+    return fromReader(NitroRecordReader(ptr: ptr))
+  }
+
+  public static func fromReader(_ r: NitroRecordReader) -> TcPacket {
+    return TcPacket(
+      name: r.readString(),
+      sequence: r.readInt(),
+      status: TcStatus(rawValue: r.readInt())!,
+      valid: r.readBool(),
+    )
+  }
+
+  public func writeFields(_ writer: NitroRecordWriter) {
+    writer.writeString(name)
+    writer.writeInt(sequence)
+    writer.writeInt(status.rawValue)
+    writer.writeBool(valid)
+  }
+
+  public func toNative() -> UnsafeMutablePointer<UInt8>? {
+    let writer = NitroRecordWriter()
+    writeFields(writer)
+    return writer.toNative()
+  }
+}
+
 public struct NitroNullableInt {
   public var hasValue: Bool
   public var value: Int64
@@ -501,21 +541,37 @@ public protocol HybridNitroTypeCoverageProtocol: AnyObject {
     func echoNullableDoubleSafe(value: NitroNullableDouble) -> NitroNullableDouble
     // source: nitro_type_coverage.native.dart:123
     func echoNullableBoolSafe(value: NitroNullableBool) -> NitroNullableBool
-    // source: nitro_type_coverage.native.dart:126
-    func onIntEvent(callback: @escaping (Int64) -> Void) -> Void
+    // source: nitro_type_coverage.native.dart:129
+    func echoIntMap(value: Any) -> Any
+    // source: nitro_type_coverage.native.dart:130
+    func echoStringMap(value: Any) -> Any
+    // source: nitro_type_coverage.native.dart:131
+    func echoDoubleMap(value: Any) -> Any
     // source: nitro_type_coverage.native.dart:132
+    func echoBoolMap(value: Any) -> Any
+    // source: nitro_type_coverage.native.dart:138
+    func echoPacket(value: TcPacket) -> TcPacket
+    // source: nitro_type_coverage.native.dart:142
+    func echoNullablePoint(value: TcPoint?) -> TcPoint?
+    // source: nitro_type_coverage.native.dart:145
+    func onPointEvent(pointCb: @escaping (TcPoint) -> Void) -> Void
+    // source: nitro_type_coverage.native.dart:146
+    func onDetailEvent(detailCb: @escaping (Int64, Double) -> Void) -> Void
+    // source: nitro_type_coverage.native.dart:149
+    func onIntEvent(callback: @escaping (Int64) -> Void) -> Void
+    // source: nitro_type_coverage.native.dart:155
     func onBoolEvent(boolCb: @escaping (Bool) -> Void) -> Void
-    // source: nitro_type_coverage.native.dart:133
+    // source: nitro_type_coverage.native.dart:156
     func onDoubleEvent(doubleCb: @escaping (Double) -> Void) -> Void
-    // source: nitro_type_coverage.native.dart:175
+    // source: nitro_type_coverage.native.dart:198
     func configureStream(from: Int64, count: Int64) -> Void
-    // source: nitro_type_coverage.native.dart:176
+    // source: nitro_type_coverage.native.dart:199
     func configureDoubleStream(start: Double, count: Int64) -> Void
-    // source: nitro_type_coverage.native.dart:177
+    // source: nitro_type_coverage.native.dart:200
     func configureStatusStream(count: Int64) -> Void
-    // source: nitro_type_coverage.native.dart:180
+    // source: nitro_type_coverage.native.dart:203
     func throwNative(message: String) -> Void
-    // source: nitro_type_coverage.native.dart:183
+    // source: nitro_type_coverage.native.dart:206
     func throwNativeAsync(message: String) async throws -> Void
     var precision: Int64 { get set }
     var tag: String { get set }
@@ -991,50 +1047,106 @@ public func _nitro_type_coverage_call_echoNullableBoolSafe(_ value: UnsafeMutabl
     return impl.echoNullableBoolSafe(value: NitroNullableBool.fromNative(value!.assumingMemoryBound(to: UInt8.self))).toNative().map { UnsafeMutableRawPointer($0) }
 }
 
-// source: nitro_type_coverage.native.dart:126
+// source: nitro_type_coverage.native.dart:129
+@_cdecl("_nitro_type_coverage_call_echoIntMap")
+public func _nitro_type_coverage_call_echoIntMap(_ value: Any) -> Any {
+    guard let impl = NitroTypeCoverageRegistry.impl else { return () }
+    return impl.echoIntMap(value: value)
+}
+
+// source: nitro_type_coverage.native.dart:130
+@_cdecl("_nitro_type_coverage_call_echoStringMap")
+public func _nitro_type_coverage_call_echoStringMap(_ value: Any) -> Any {
+    guard let impl = NitroTypeCoverageRegistry.impl else { return () }
+    return impl.echoStringMap(value: value)
+}
+
+// source: nitro_type_coverage.native.dart:131
+@_cdecl("_nitro_type_coverage_call_echoDoubleMap")
+public func _nitro_type_coverage_call_echoDoubleMap(_ value: Any) -> Any {
+    guard let impl = NitroTypeCoverageRegistry.impl else { return () }
+    return impl.echoDoubleMap(value: value)
+}
+
+// source: nitro_type_coverage.native.dart:132
+@_cdecl("_nitro_type_coverage_call_echoBoolMap")
+public func _nitro_type_coverage_call_echoBoolMap(_ value: Any) -> Any {
+    guard let impl = NitroTypeCoverageRegistry.impl else { return () }
+    return impl.echoBoolMap(value: value)
+}
+
+// source: nitro_type_coverage.native.dart:138
+@_cdecl("_nitro_type_coverage_call_echoPacket")
+public func _nitro_type_coverage_call_echoPacket(_ value: UnsafeMutableRawPointer?) -> UnsafeMutableRawPointer? {
+    guard let impl = NitroTypeCoverageRegistry.impl else { return nil }
+    return impl.echoPacket(value: TcPacket.fromNative(value!.assumingMemoryBound(to: UInt8.self))).toNative().map { UnsafeMutableRawPointer($0) }
+}
+
+// source: nitro_type_coverage.native.dart:142
+@_cdecl("_nitro_type_coverage_call_echoNullablePoint")
+public func _nitro_type_coverage_call_echoNullablePoint(_ value: UnsafeRawPointer?) -> UnsafeMutableRawPointer? {
+    guard let impl = NitroTypeCoverageRegistry.impl, let result = impl.echoNullablePoint(value: value.map { $0.assumingMemoryBound(to: _TcPointC.self).pointee.toSwift() }) else { return nil }
+    let ptr = UnsafeMutablePointer<_TcPointC>.allocate(capacity: 1)
+    ptr.initialize(to: _TcPointC.fromSwift(result))
+    return UnsafeMutableRawPointer(ptr)
+}
+
+// source: nitro_type_coverage.native.dart:145
+@_cdecl("_nitro_type_coverage_call_onPointEvent")
+public func _nitro_type_coverage_call_onPointEvent(_ pointCb: @convention(c) (UnsafeRawPointer?) -> Void) -> Void {
+    NitroTypeCoverageRegistry.impl?.onPointEvent(pointCb: { arg0 in var _s0 = _TcPointC.fromSwift(arg0); pointCb(UnsafeRawPointer(&_s0)) })
+}
+
+// source: nitro_type_coverage.native.dart:146
+@_cdecl("_nitro_type_coverage_call_onDetailEvent")
+public func _nitro_type_coverage_call_onDetailEvent(_ detailCb: @convention(c) (Int64, Double) -> Void) -> Void {
+    NitroTypeCoverageRegistry.impl?.onDetailEvent(detailCb: { arg0, arg1 in detailCb(arg0, arg1) })
+}
+
+// source: nitro_type_coverage.native.dart:149
 @_cdecl("_nitro_type_coverage_call_onIntEvent")
 public func _nitro_type_coverage_call_onIntEvent(_ callback: @convention(c) (Int64) -> Void) -> Void {
     NitroTypeCoverageRegistry.impl?.onIntEvent(callback: { arg0 in callback(arg0) })
 }
 
-// source: nitro_type_coverage.native.dart:132
+// source: nitro_type_coverage.native.dart:155
 @_cdecl("_nitro_type_coverage_call_onBoolEvent")
 public func _nitro_type_coverage_call_onBoolEvent(_ boolCb: @convention(c) (Bool) -> Void) -> Void {
     NitroTypeCoverageRegistry.impl?.onBoolEvent(boolCb: { arg0 in boolCb(arg0) })
 }
 
-// source: nitro_type_coverage.native.dart:133
+// source: nitro_type_coverage.native.dart:156
 @_cdecl("_nitro_type_coverage_call_onDoubleEvent")
 public func _nitro_type_coverage_call_onDoubleEvent(_ doubleCb: @convention(c) (Double) -> Void) -> Void {
     NitroTypeCoverageRegistry.impl?.onDoubleEvent(doubleCb: { arg0 in doubleCb(arg0) })
 }
 
-// source: nitro_type_coverage.native.dart:175
+// source: nitro_type_coverage.native.dart:198
 @_cdecl("_nitro_type_coverage_call_configureStream")
 public func _nitro_type_coverage_call_configureStream(_ from: Int64, _ count: Int64) -> Void {
     NitroTypeCoverageRegistry.impl?.configureStream(from: from, count: count)
 }
 
-// source: nitro_type_coverage.native.dart:176
+// source: nitro_type_coverage.native.dart:199
 @_cdecl("_nitro_type_coverage_call_configureDoubleStream")
 public func _nitro_type_coverage_call_configureDoubleStream(_ start: Double, _ count: Int64) -> Void {
     NitroTypeCoverageRegistry.impl?.configureDoubleStream(start: start, count: count)
 }
 
-// source: nitro_type_coverage.native.dart:177
+// source: nitro_type_coverage.native.dart:200
 @_cdecl("_nitro_type_coverage_call_configureStatusStream")
 public func _nitro_type_coverage_call_configureStatusStream(_ count: Int64) -> Void {
     NitroTypeCoverageRegistry.impl?.configureStatusStream(count: count)
 }
 
-// source: nitro_type_coverage.native.dart:180
+// source: nitro_type_coverage.native.dart:203
 @_cdecl("_nitro_type_coverage_call_throwNative")
 public func _nitro_type_coverage_call_throwNative(_ message: UnsafePointer<CChar>?) -> Void {
     let messageStr = message != nil ? String(cString: message!) : ""
     NitroTypeCoverageRegistry.impl?.throwNative(message: messageStr)
 }
 
-// source: nitro_type_coverage.native.dart:183
+// source: nitro_type_coverage.native.dart:206
 @_cdecl("_nitro_type_coverage_call_throwNativeAsync")
 public func _nitro_type_coverage_call_throwNativeAsync(_ message: UnsafePointer<CChar>?) -> Void {
     let messageStr = message != nil ? String(cString: message!) : ""

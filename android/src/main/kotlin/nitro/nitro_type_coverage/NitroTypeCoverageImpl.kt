@@ -11,6 +11,7 @@ import nitro.nitro_type_coverage_module.NitroNullableDouble
 import nitro.nitro_type_coverage_module.NitroNullableInt
 import nitro.nitro_type_coverage_module.TcConfig
 import nitro.nitro_type_coverage_module.TcMeta
+import nitro.nitro_type_coverage_module.TcPacket
 import nitro.nitro_type_coverage_module.TcPoint
 import nitro.nitro_type_coverage_module.TcStatus
 
@@ -149,6 +150,30 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     override fun echoNullableIntSafe(value: NitroNullableInt): NitroNullableInt = value
     override fun echoNullableDoubleSafe(value: NitroNullableDouble): NitroNullableDouble = value
     override fun echoNullableBoolSafe(value: NitroNullableBool): NitroNullableBool = value
+
+    // ── Maps (§24) ───────────────────────────────────────────────────────────
+    @Suppress("UNCHECKED_CAST")
+    override fun echoIntMap(value: Any?): Any? = value
+    @Suppress("UNCHECKED_CAST")
+    override fun echoStringMap(value: Any?): Any? = value
+    @Suppress("UNCHECKED_CAST")
+    override fun echoDoubleMap(value: Any?): Any? = value
+    @Suppress("UNCHECKED_CAST")
+    override fun echoBoolMap(value: Any?): Any? = value
+
+    // ── @HybridRecord with enum field (§25) ───────────────────────────────────
+    override fun echoPacket(value: TcPacket): TcPacket = value
+
+    // ── Nullable struct (§26) ─────────────────────────────────────────────────
+    override fun echoNullablePoint(value: TcPoint?): TcPoint? = value
+
+    // ── Callbacks with struct and multi-params (§27) ──────────────────────────
+    override fun onPointEvent(pointCb: (p0: TcPoint) -> Unit) {
+        pointCb(TcPoint(x = 1.0, y = 2.0, z = 3.0))
+    }
+    override fun onDetailEvent(detailCb: (p0: Long, p1: Double) -> Unit) {
+        detailCb(42L, 9.81)
+    }
 
     // ── Callback ──────────────────────────────────────────────────────────────
     override fun onIntEvent(callback: (p0: Long) -> Unit) {
