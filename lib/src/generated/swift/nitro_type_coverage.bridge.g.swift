@@ -1049,30 +1049,54 @@ public func _nitro_type_coverage_call_echoNullableBoolSafe(_ value: UnsafeMutabl
 
 // source: nitro_type_coverage.native.dart:129
 @_cdecl("_nitro_type_coverage_call_echoIntMap")
-public func _nitro_type_coverage_call_echoIntMap(_ value: Any) -> Any {
-    guard let impl = NitroTypeCoverageRegistry.impl else { return () }
-    return impl.echoIntMap(value: value)
+public func _nitro_type_coverage_call_echoIntMap(_ value: UnsafePointer<CChar>?) -> UnsafeMutablePointer<CChar>? {
+    guard let impl = NitroTypeCoverageRegistry.impl else { return strdup("{}") }
+    guard let jsonInput = value else { return strdup("{}") }
+    guard let inputData = String(cString: jsonInput).data(using: .utf8),
+          let inputMap = try? JSONSerialization.jsonObject(with: inputData) else { return strdup("{}") }
+    let result = impl.echoIntMap(value: inputMap)
+    guard let outputData = try? JSONSerialization.data(withJSONObject: result),
+          let outputStr = String(data: outputData, encoding: .utf8) else { return strdup("{}") }
+    return strdup(outputStr)
 }
 
 // source: nitro_type_coverage.native.dart:130
 @_cdecl("_nitro_type_coverage_call_echoStringMap")
-public func _nitro_type_coverage_call_echoStringMap(_ value: Any) -> Any {
-    guard let impl = NitroTypeCoverageRegistry.impl else { return () }
-    return impl.echoStringMap(value: value)
+public func _nitro_type_coverage_call_echoStringMap(_ value: UnsafePointer<CChar>?) -> UnsafeMutablePointer<CChar>? {
+    guard let impl = NitroTypeCoverageRegistry.impl else { return strdup("{}") }
+    guard let jsonInput = value else { return strdup("{}") }
+    guard let inputData = String(cString: jsonInput).data(using: .utf8),
+          let inputMap = try? JSONSerialization.jsonObject(with: inputData) else { return strdup("{}") }
+    let result = impl.echoStringMap(value: inputMap)
+    guard let outputData = try? JSONSerialization.data(withJSONObject: result),
+          let outputStr = String(data: outputData, encoding: .utf8) else { return strdup("{}") }
+    return strdup(outputStr)
 }
 
 // source: nitro_type_coverage.native.dart:131
 @_cdecl("_nitro_type_coverage_call_echoDoubleMap")
-public func _nitro_type_coverage_call_echoDoubleMap(_ value: Any) -> Any {
-    guard let impl = NitroTypeCoverageRegistry.impl else { return () }
-    return impl.echoDoubleMap(value: value)
+public func _nitro_type_coverage_call_echoDoubleMap(_ value: UnsafePointer<CChar>?) -> UnsafeMutablePointer<CChar>? {
+    guard let impl = NitroTypeCoverageRegistry.impl else { return strdup("{}") }
+    guard let jsonInput = value else { return strdup("{}") }
+    guard let inputData = String(cString: jsonInput).data(using: .utf8),
+          let inputMap = try? JSONSerialization.jsonObject(with: inputData) else { return strdup("{}") }
+    let result = impl.echoDoubleMap(value: inputMap)
+    guard let outputData = try? JSONSerialization.data(withJSONObject: result),
+          let outputStr = String(data: outputData, encoding: .utf8) else { return strdup("{}") }
+    return strdup(outputStr)
 }
 
 // source: nitro_type_coverage.native.dart:132
 @_cdecl("_nitro_type_coverage_call_echoBoolMap")
-public func _nitro_type_coverage_call_echoBoolMap(_ value: Any) -> Any {
-    guard let impl = NitroTypeCoverageRegistry.impl else { return () }
-    return impl.echoBoolMap(value: value)
+public func _nitro_type_coverage_call_echoBoolMap(_ value: UnsafePointer<CChar>?) -> UnsafeMutablePointer<CChar>? {
+    guard let impl = NitroTypeCoverageRegistry.impl else { return strdup("{}") }
+    guard let jsonInput = value else { return strdup("{}") }
+    guard let inputData = String(cString: jsonInput).data(using: .utf8),
+          let inputMap = try? JSONSerialization.jsonObject(with: inputData) else { return strdup("{}") }
+    let result = impl.echoBoolMap(value: inputMap)
+    guard let outputData = try? JSONSerialization.data(withJSONObject: result),
+          let outputStr = String(data: outputData, encoding: .utf8) else { return strdup("{}") }
+    return strdup(outputStr)
 }
 
 // source: nitro_type_coverage.native.dart:138
@@ -1099,8 +1123,8 @@ public func _nitro_type_coverage_call_onPointEvent(_ pointCb: @convention(c) (Un
 
 // source: nitro_type_coverage.native.dart:146
 @_cdecl("_nitro_type_coverage_call_onDetailEvent")
-public func _nitro_type_coverage_call_onDetailEvent(_ detailCb: @convention(c) (Int64, Double) -> Void) -> Void {
-    NitroTypeCoverageRegistry.impl?.onDetailEvent(detailCb: { arg0, arg1 in detailCb(arg0, arg1) })
+public func _nitro_type_coverage_call_onDetailEvent(_ detailCb: @convention(c) (Int64, Int64) -> Void) -> Void {
+    NitroTypeCoverageRegistry.impl?.onDetailEvent(detailCb: { arg0, arg1 in detailCb(arg0, Int64(bitPattern: arg1.bitPattern)) })
 }
 
 // source: nitro_type_coverage.native.dart:149
@@ -1117,8 +1141,8 @@ public func _nitro_type_coverage_call_onBoolEvent(_ boolCb: @convention(c) (Bool
 
 // source: nitro_type_coverage.native.dart:156
 @_cdecl("_nitro_type_coverage_call_onDoubleEvent")
-public func _nitro_type_coverage_call_onDoubleEvent(_ doubleCb: @convention(c) (Double) -> Void) -> Void {
-    NitroTypeCoverageRegistry.impl?.onDoubleEvent(doubleCb: { arg0 in doubleCb(arg0) })
+public func _nitro_type_coverage_call_onDoubleEvent(_ doubleCb: @convention(c) (Int64) -> Void) -> Void {
+    NitroTypeCoverageRegistry.impl?.onDoubleEvent(doubleCb: { arg0 in doubleCb(Int64(bitPattern: arg0.bitPattern)) })
 }
 
 // source: nitro_type_coverage.native.dart:198

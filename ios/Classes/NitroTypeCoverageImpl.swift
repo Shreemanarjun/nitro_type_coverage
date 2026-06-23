@@ -95,10 +95,10 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     public func echoNullableBoolSafe(value: NitroNullableBool) -> NitroNullableBool { value }
 
     // ── Maps (§24) ────────────────────────────────────────────────────────────
-    public func echoIntMap(value: [String: Int64]) -> [String: Int64] { value }
-    public func echoStringMap(value: [String: String]) -> [String: String] { value }
-    public func echoDoubleMap(value: [String: Double]) -> [String: Double] { value }
-    public func echoBoolMap(value: [String: Bool]) -> [String: Bool] { value }
+    public func echoIntMap(value: Any) -> Any { value }
+    public func echoStringMap(value: Any) -> Any { value }
+    public func echoDoubleMap(value: Any) -> Any { value }
+    public func echoBoolMap(value: Any) -> Any { value }
 
     // ── @HybridRecord with enum field (§25) ───────────────────────────────────
     public func echoPacket(value: TcPacket) -> TcPacket { value }

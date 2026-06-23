@@ -31,3 +31,8 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 /build/
 /coverage/
+.claude/*
+.agents/*
+skills-lock.json
+.gitignore
+.dart_skills/skills_config.json

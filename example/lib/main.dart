@@ -1,12 +1,18 @@
 import 'dart:async';
 import 'dart:typed_data';
-
+import 'package:nitro/nitro.dart';
 import 'package:flutter/material.dart';
 import 'package:nitro_type_coverage/nitro_type_coverage.dart' as plugin;
 import 'package:signals_flutter/signals_flutter.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  NitroConfig.instance
+    ..debugMode = true
+    ..timelineTracingEnabled = true
+    ..isolatePoolSize = 4
+    ..logLevel = NitroLogLevel.verbose
+    ..slowCallThresholdUs = 16000;
   runApp(const MyApp());
 }
 
@@ -33,7 +39,6 @@ class _DemoPage extends StatefulWidget {
 class _DemoPageState extends State<_DemoPage> {
   final _result = signal<String>('—');
   final _loading = signal<bool>(false);
-
 
   plugin.NitroTypeCoverage get _api => plugin.NitroTypeCoverage.instance;
 
@@ -287,7 +292,8 @@ class _DemoPageState extends State<_DemoPage> {
 
   Future<void> _configureStream() async {
     _api.configureStream(0, 5);
-    _result.value = 'configureStream(from:0, count:5) ✓ — check stream listeners';
+    _result.value =
+        'configureStream(from:0, count:5) ✓ — check stream listeners';
   }
 
   Future<void> _cancelStreams() async {
