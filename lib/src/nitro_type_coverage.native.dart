@@ -122,6 +122,10 @@ abstract class NitroTypeCoverage extends HybridObject {
   NitroNullableDouble echoNullableDoubleSafe(NitroNullableDouble value);
   NitroNullableBool echoNullableBoolSafe(NitroNullableBool value);
 
+  // ── @HybridRecord with TypedData fields (§29 coverage) ───────────────────
+  // Tests binary codec with Uint8List, Int32List, Float64List inside a record.
+  TcDataRecord echoDataRecord(TcDataRecord value);
+
   // ── Map types — JSON-encoded bridge (§24 coverage) ───────────────────────
   // Maps are encoded as JSON strings over the C bridge (not binary).
   // Only Map<String, T> is supported; non-String keys are a known limitation.
@@ -140,6 +144,31 @@ abstract class NitroTypeCoverage extends HybridObject {
   // ── Nullable struct (§26 coverage) ───────────────────────────────────────
   // TcPoint? — null represented as a null pointer (not a sentinel value).
   TcPoint? echoNullablePoint(TcPoint? value);
+
+  // ── #1 Stream<@HybridRecord> (§30 coverage) ──────────────────────────────
+  // Tests binary codec round-trip through a stream (not just method returns).
+  @NitroStream(backpressure: Backpressure.dropLatest)
+  Stream<TcConfig> configStream();
+  void configureConfigStream(TcConfig seed, int count);
+
+  // ── #2 Nullable @HybridRecord param/return (§30 coverage) ───────────────
+  // TcConfig? — null represented via binary null-tag (1B flag + payload).
+  TcConfig? echoNullableConfig(TcConfig? value);
+
+  // ── #3 Nested @HybridRecord — record field inside a record (§30 coverage) ─
+  TcNested echoNested(TcNested value);
+
+  // ── #4 List<@HybridRecord> as sync param (§30 coverage) ──────────────────
+  // Sync (non-async) method accepting List<@HybridRecord> as parameter.
+  @nitroAsync
+  Future<List<TcConfig>> echoConfigListSync(List<TcConfig> values);
+
+  // ── #5 NitroNullable inside @HybridRecord field (§30 coverage) ───────────
+  TcNullableWrapper echoNullableWrapper(TcNullableWrapper value);
+
+  // ── #6 Bidirectional callback — callback that returns a value (§30 coverage)
+  // The native side calls Dart with an int and receives an int back.
+  void onTransformEvent(int Function(int value) transformCb);
 
   // ── Callbacks with struct and multi-params (§27 coverage) ────────────────
   void onPointEvent(void Function(TcPoint point) pointCb);
@@ -252,3 +281,46 @@ class TcPacket {
 
 // NitroNullableInt, NitroNullableDouble, NitroNullableBool are part of
 // package:nitro — no declaration needed here. Just use them directly.
+
+/// #3: Nested @HybridRecord — a record whose field is another @HybridRecord.
+/// Wire: label(string) → config(@HybridRecord inline) → version(int)
+/// Tests RecordFieldKind.recordObject path in the binary codec.
+@HybridRecord()
+class TcNested {
+  final String label;
+  final TcConfig config;   // RecordFieldKind.recordObject
+  final int version;
+  TcNested({required this.label, required this.config, required this.version});
+}
+
+/// #5: @HybridRecord whose fields are NitroNullable library types.
+/// Tests RecordFieldKind.recordObject where the nested record is a
+/// built-in library type (NitroNullableInt / NitroNullableDouble).
+@HybridRecord()
+class TcNullableWrapper {
+  final NitroNullableInt count;
+  final NitroNullableDouble rate;
+  final String name;
+  TcNullableWrapper({
+    required this.count,
+    required this.rate,
+    required this.name,
+  });
+}
+
+/// @HybridRecord with TypedData fields (§29 coverage).
+/// Tests that binary codec correctly encodes Uint8List, Int32List, Float64List
+/// as [4B element_count][element_bytes] inside a record.
+@HybridRecord()
+class TcDataRecord {
+  final Uint8List bytes;      // raw binary — [4B len][bytes]
+  final Int32List values;     // int32 array — [4B count][int32 * count]
+  final Float64List scores;   // float64 array — [4B count][f64 * count]
+  final String label;         // string field alongside TypedData
+  TcDataRecord({
+    required this.bytes,
+    required this.values,
+    required this.scores,
+    required this.label,
+  });
+}

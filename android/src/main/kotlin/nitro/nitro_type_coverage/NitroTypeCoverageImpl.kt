@@ -10,7 +10,10 @@ import nitro.nitro_type_coverage_module.NitroNullableBool
 import nitro.nitro_type_coverage_module.NitroNullableDouble
 import nitro.nitro_type_coverage_module.NitroNullableInt
 import nitro.nitro_type_coverage_module.TcConfig
+import nitro.nitro_type_coverage_module.TcDataRecord
 import nitro.nitro_type_coverage_module.TcMeta
+import nitro.nitro_type_coverage_module.TcNested
+import nitro.nitro_type_coverage_module.TcNullableWrapper
 import nitro.nitro_type_coverage_module.TcPacket
 import nitro.nitro_type_coverage_module.TcPoint
 import nitro.nitro_type_coverage_module.TcStatus
@@ -145,6 +148,45 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
 
     // ── @HybridRecord (TcMeta) ────────────────────────────────────────────────
     override fun echoMeta(value: TcMeta): TcMeta = value
+
+    // ── @HybridRecord with TypedData fields (§29) ────────────────────────────
+    override fun echoDataRecord(value: TcDataRecord): TcDataRecord = value
+
+    // ── §30: 6 new type coverage features ─────────────────────────────────────
+
+    // #1 Stream<TcConfig>
+    private val _configStream = MutableSharedFlow<TcConfig>(extraBufferCapacity = 64)
+    override val configStream: kotlinx.coroutines.flow.Flow<TcConfig> = _configStream
+    override fun configureConfigStream(seed: TcConfig, count: Long) {
+        CoroutineScope(Dispatchers.Default).launch {
+            for (i in 0 until count) {
+                _configStream.emit(TcConfig(
+                    name = "${seed.name}-$i", count = seed.count + i,
+                    enabled = seed.enabled, threshold = seed.threshold + i * 0.1))
+            }
+        }
+    }
+
+    // #2 Nullable @HybridRecord
+    override fun echoNullableConfig(value: TcConfig?): TcConfig? = value
+
+    // #3 Nested @HybridRecord
+    override fun echoNested(value: TcNested): TcNested = value
+
+    // #4 List<TcConfig> sync param
+    override suspend fun echoConfigListSync(values: Any?): List<TcConfig> {
+        @Suppress("UNCHECKED_CAST")
+        return (values as? List<TcConfig>) ?: emptyList()
+    }
+
+    // #5 NitroNullable inside @HybridRecord
+    override fun echoNullableWrapper(value: TcNullableWrapper): TcNullableWrapper = value
+
+    // #6 Bidirectional callback — call Dart and get the transformed value
+    override fun onTransformEvent(transformCb: (p0: Long) -> Long) {
+        @Suppress("UNUSED_VARIABLE")
+        val result = transformCb(42L)
+    }
 
     // ── NitroNullable built-in types (from package:nitro) ────────────────────
     override fun echoNullableIntSafe(value: NitroNullableInt): NitroNullableInt = value

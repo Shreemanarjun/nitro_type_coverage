@@ -183,6 +183,77 @@ extension TcPacketRecordExt on TcPacket {
   }
 }
 
+extension TcNestedRecordExt on TcNested {
+  static TcNested fromNative(Pointer<Uint8> ptr) =>
+      fromReader(RecordReader.fromNative(ptr));
+
+  static TcNested fromReader(RecordReader r) => TcNested(
+    label: r.readString(),
+    config: TcConfigRecordExt.fromReader(r),
+    version: r.readInt(),
+  );
+
+  void writeFields(RecordWriter writer) {
+    writer.writeString(label);
+    config.writeFields(writer);
+    writer.writeInt(version);
+  }
+
+  Pointer<Uint8> toNative(Allocator alloc) {
+    final writer = RecordWriter();
+    writeFields(writer);
+    return writer.toNative(alloc);
+  }
+}
+
+extension TcNullableWrapperRecordExt on TcNullableWrapper {
+  static TcNullableWrapper fromNative(Pointer<Uint8> ptr) =>
+      fromReader(RecordReader.fromNative(ptr));
+
+  static TcNullableWrapper fromReader(RecordReader r) => TcNullableWrapper(
+    count: NitroNullableInt.fromReader(r),
+    rate: NitroNullableDouble.fromReader(r),
+    name: r.readString(),
+  );
+
+  void writeFields(RecordWriter writer) {
+    count.writeFields(writer);
+    rate.writeFields(writer);
+    writer.writeString(name);
+  }
+
+  Pointer<Uint8> toNative(Allocator alloc) {
+    final writer = RecordWriter();
+    writeFields(writer);
+    return writer.toNative(alloc);
+  }
+}
+
+extension TcDataRecordRecordExt on TcDataRecord {
+  static TcDataRecord fromNative(Pointer<Uint8> ptr) =>
+      fromReader(RecordReader.fromNative(ptr));
+
+  static TcDataRecord fromReader(RecordReader r) => TcDataRecord(
+    bytes: r.readBlob(),
+    values: Int32List.view(r.readBlob().buffer),
+    scores: Float64List.view(r.readBlob().buffer),
+    label: r.readString(),
+  );
+
+  void writeFields(RecordWriter writer) {
+    writer.writeBlob(bytes);
+    writer.writeBlob(values.buffer.asUint8List());
+    writer.writeBlob(scores.buffer.asUint8List());
+    writer.writeString(label);
+  }
+
+  Pointer<Uint8> toNative(Allocator alloc) {
+    final writer = RecordWriter();
+    writeFields(writer);
+    return writer.toNative(alloc);
+  }
+}
+
 class _NitroTypeCoverageImpl extends NitroTypeCoverage {
   final DynamicLibrary _dylib;
   final Pointer<NitroErrorFfi> _nitroErr = calloc<NitroErrorFfi>();
@@ -226,7 +297,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     );
     NitroRuntime.checkLinkChecksum(
       'nitro_type_coverage',
-      '007b6e223777c3a5',
+      'cdc4f9ce79a6ec27',
       () => _dylib
           .lookupFunction<Pointer<Utf8> Function(), Pointer<Utf8> Function()>(
             'nitro_type_coverage_nitro_bridge_checksum',
@@ -516,6 +587,12 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
         Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>),
         Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>)
       >('nitro_type_coverage_echo_nullable_bool_safe');
+  late final Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>)
+  _echoDataRecordPtr = _dylib
+      .lookupFunction<
+        Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>),
+        Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>)
+      >('nitro_type_coverage_echo_data_record');
   late final Pointer<Utf8> Function(Pointer<Utf8>, Pointer<NitroErrorFfi>)
   _echoIntMapPtr = _dylib
       .lookupFunction<
@@ -552,6 +629,50 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
         Pointer<Void> Function(Pointer<Void>, Pointer<NitroErrorFfi>),
         Pointer<Void> Function(Pointer<Void>, Pointer<NitroErrorFfi>)
       >('nitro_type_coverage_echo_nullable_point');
+  late final void Function(Pointer<Uint8>, int, Pointer<NitroErrorFfi>)
+  _configureConfigStreamPtr = _dylib
+      .lookupFunction<
+        Void Function(Pointer<Uint8>, Int64, Pointer<NitroErrorFfi>),
+        void Function(Pointer<Uint8>, int, Pointer<NitroErrorFfi>)
+      >('nitro_type_coverage_configure_config_stream');
+  late final Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>)
+  _echoNullableConfigPtr = _dylib
+      .lookupFunction<
+        Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>),
+        Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>)
+      >('nitro_type_coverage_echo_nullable_config');
+  late final Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>)
+  _echoNestedPtr = _dylib
+      .lookupFunction<
+        Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>),
+        Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>)
+      >('nitro_type_coverage_echo_nested');
+  late final Pointer<Uint8> Function(Pointer<Uint8>) _echoConfigListSyncPtr =
+      _dylib.lookupFunction<
+        Pointer<Uint8> Function(Pointer<Uint8>),
+        Pointer<Uint8> Function(Pointer<Uint8>)
+      >('nitro_type_coverage_echo_config_list_sync');
+  late final Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>)
+  _echoNullableWrapperPtr = _dylib
+      .lookupFunction<
+        Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>),
+        Pointer<Uint8> Function(Pointer<Uint8>, Pointer<NitroErrorFfi>)
+      >('nitro_type_coverage_echo_nullable_wrapper');
+  late final void Function(
+    Pointer<NativeFunction<Int64 Function(Int64)>>,
+    Pointer<NitroErrorFfi>,
+  )
+  _onTransformEventPtr = _dylib
+      .lookupFunction<
+        Void Function(
+          Pointer<NativeFunction<Int64 Function(Int64)>>,
+          Pointer<NitroErrorFfi>,
+        ),
+        void Function(
+          Pointer<NativeFunction<Int64 Function(Int64)>>,
+          Pointer<NitroErrorFfi>,
+        )
+      >('nitro_type_coverage_on_transform_event');
   late final void Function(
     Pointer<NativeFunction<Void Function(Pointer<Void>)>>,
     Pointer<NitroErrorFfi>,
@@ -737,6 +858,14 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
             'nitro_type_coverage_set_optional_flag',
           )
           .asFunction<void Function(int, Pointer<NitroErrorFfi>)>(isLeaf: true);
+  late final void Function(int) _registerConfigStreamPtr = _dylib
+      .lookupFunction<Void Function(Int64), void Function(int)>(
+        'nitro_type_coverage_register_config_stream_stream',
+      );
+  late final void Function(int) _releaseConfigStreamPtr = _dylib
+      .lookupFunction<Void Function(Int64), void Function(int)>(
+        'nitro_type_coverage_release_config_stream_stream',
+      );
   late final void Function(int) _registerIntStreamPtr = _dylib
       .lookupFunction<Void Function(Int64), void Function(int)>(
         'nitro_type_coverage_register_int_stream_stream',
@@ -809,6 +938,17 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
 
   // Native callback handles are cached so native code can retain
   // callback pointers safely until this HybridObject is disposed.
+  NativeCallable<Int64 Function(Int64)>
+  _nativeCallbackOnTransformEventTransformCb(int Function(int) callback) {
+    final key = ('onTransformEvent.transformCb', callback);
+    return _nativeCallbackCache.putIfAbsent(key, () {
+          return NativeCallable<Int64 Function(Int64)>.isolateLocal((int arg0) {
+            return callback(arg0);
+          }, exceptionalReturn: 0);
+        })
+        as NativeCallable<Int64 Function(Int64)>;
+  }
+
   NativeCallable<Void Function(Pointer<Void>)>
   _nativeCallbackOnPointEventPointCb(void Function(TcPoint) callback) {
     final key = ('onPointEvent.pointCb', callback);
@@ -1673,6 +1813,25 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
   }
 
   @override
+  TcDataRecord echoDataRecord(TcDataRecord value) {
+    checkDisposed();
+    return NitroRuntime.callSync(
+      () => withArena((arena) {
+        final res = _echoDataRecordPtr(value.toNative(arena), _nitroErr);
+        NitroRuntime.throwIfOutParamError(_nitroErr);
+        final TcDataRecord decoded;
+        try {
+          decoded = TcDataRecordRecordExt.fromNative(res);
+        } finally {
+          malloc.free(res);
+        }
+        return decoded;
+      }),
+      methodName: 'echoDataRecord',
+    );
+  }
+
+  @override
   Map<String, int> echoIntMap(Map<String, int> value) {
     checkDisposed();
     return NitroRuntime.callSync(
@@ -1684,10 +1843,8 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
         NitroRuntime.throwIfOutParamError(_nitroErr);
         final Map<String, int> decoded;
         try {
-          decoded =
-              (jsonDecode((res as Pointer<Utf8>).toDartString())
-                      as Map<String, dynamic>)
-                  .cast<String, int>();
+          decoded = (jsonDecode(res.toDartString()) as Map<String, dynamic>)
+              .cast<String, int>();
         } finally {
           malloc.free(res);
         }
@@ -1709,10 +1866,8 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
         NitroRuntime.throwIfOutParamError(_nitroErr);
         final Map<String, String> decoded;
         try {
-          decoded =
-              (jsonDecode((res as Pointer<Utf8>).toDartString())
-                      as Map<String, dynamic>)
-                  .cast<String, String>();
+          decoded = (jsonDecode(res.toDartString()) as Map<String, dynamic>)
+              .cast<String, String>();
         } finally {
           malloc.free(res);
         }
@@ -1734,10 +1889,8 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
         NitroRuntime.throwIfOutParamError(_nitroErr);
         final Map<String, double> decoded;
         try {
-          decoded =
-              (jsonDecode((res as Pointer<Utf8>).toDartString())
-                      as Map<String, dynamic>)
-                  .cast<String, double>();
+          decoded = (jsonDecode(res.toDartString()) as Map<String, dynamic>)
+              .cast<String, double>();
         } finally {
           malloc.free(res);
         }
@@ -1759,10 +1912,8 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
         NitroRuntime.throwIfOutParamError(_nitroErr);
         final Map<String, bool> decoded;
         try {
-          decoded =
-              (jsonDecode((res as Pointer<Utf8>).toDartString())
-                      as Map<String, dynamic>)
-                  .cast<String, bool>();
+          decoded = (jsonDecode(res.toDartString()) as Map<String, dynamic>)
+              .cast<String, bool>();
         } finally {
           malloc.free(res);
         }
@@ -1814,6 +1965,119 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
       }),
       methodName: 'echoNullablePoint',
     );
+  }
+
+  @override
+  void configureConfigStream(TcConfig seed, int count) {
+    checkDisposed();
+    return NitroRuntime.callSync(
+      () => withArena((arena) {
+        _configureConfigStreamPtr(seed.toNative(arena), count, _nitroErr);
+        NitroRuntime.throwIfOutParamError(_nitroErr);
+        return;
+      }),
+      methodName: 'configureConfigStream',
+    );
+  }
+
+  @override
+  TcConfig? echoNullableConfig(TcConfig? value) {
+    checkDisposed();
+    return NitroRuntime.callSync(
+      () => withArena((arena) {
+        final res = _echoNullableConfigPtr(
+          value != null ? value.toNative(arena) : nullptr,
+          _nitroErr,
+        );
+        NitroRuntime.throwIfOutParamError(_nitroErr);
+        if (res == nullptr) return null;
+        final TcConfig? decoded;
+        try {
+          decoded = TcConfigRecordExt.fromNative(res);
+        } finally {
+          malloc.free(res);
+        }
+        return decoded;
+      }),
+      methodName: 'echoNullableConfig',
+    );
+  }
+
+  @override
+  TcNested echoNested(TcNested value) {
+    checkDisposed();
+    return NitroRuntime.callSync(
+      () => withArena((arena) {
+        final res = _echoNestedPtr(value.toNative(arena), _nitroErr);
+        NitroRuntime.throwIfOutParamError(_nitroErr);
+        final TcNested decoded;
+        try {
+          decoded = TcNestedRecordExt.fromNative(res);
+        } finally {
+          malloc.free(res);
+        }
+        return decoded;
+      }),
+      methodName: 'echoNested',
+    );
+  }
+
+  @override
+  Future<List<TcConfig>> echoConfigListSync(List<TcConfig> values) async {
+    checkDisposed();
+    final arena = Arena();
+    try {
+      final rawPtr = await NitroRuntime.callAsync<Pointer<Uint8>>(
+        _echoConfigListSyncPtr,
+        [
+          RecordWriter.encodeIndexedList(
+            values,
+            (w, e) => e.writeFields(w),
+            arena,
+          ),
+        ],
+        getError: _getErrorNativePtr,
+        clearError: _clearErrorNativePtr,
+        methodName: 'echoConfigListSync',
+      );
+      return LazyRecordList.decode(
+        rawPtr,
+        (r) => TcConfigRecordExt.fromReader(r),
+      );
+    } finally {
+      arena.releaseAll();
+    }
+  }
+
+  @override
+  TcNullableWrapper echoNullableWrapper(TcNullableWrapper value) {
+    checkDisposed();
+    return NitroRuntime.callSync(
+      () => withArena((arena) {
+        final res = _echoNullableWrapperPtr(value.toNative(arena), _nitroErr);
+        NitroRuntime.throwIfOutParamError(_nitroErr);
+        final TcNullableWrapper decoded;
+        try {
+          decoded = TcNullableWrapperRecordExt.fromNative(res);
+        } finally {
+          malloc.free(res);
+        }
+        return decoded;
+      }),
+      methodName: 'echoNullableWrapper',
+    );
+  }
+
+  @override
+  void onTransformEvent(int Function(int) transformCb) {
+    checkDisposed();
+    NitroRuntime.callSync<void>(() {
+      _onTransformEventPtr(
+        _nativeCallbackOnTransformEventTransformCb(transformCb).nativeFunction,
+        _nitroErr,
+      );
+      NitroRuntime.throwIfOutParamError(_nitroErr);
+    }, methodName: 'onTransformEvent');
   }
 
   @override
@@ -2067,6 +2331,29 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
       _setOptionalFlagPtr(value == null ? -1 : (value ? 1 : 0), _nitroErr);
       NitroRuntime.throwIfOutParamError(_nitroErr);
     }, methodName: 'set optionalFlag');
+  }
+
+  @override
+  Stream<TcConfig> configStream() {
+    checkDisposed();
+    return NitroRuntime.openStream<TcConfig>(
+      register: (port) => _registerConfigStreamPtr(port),
+      unpack: (message) {
+        if (message == null) {
+          throw StateError(
+            'Received null event on non-nullable stream configStream',
+          );
+        }
+        final rawPtr = Pointer<Uint8>.fromAddress(message as int);
+        try {
+          return TcConfigRecordExt.fromNative(rawPtr);
+        } finally {
+          malloc.free(rawPtr);
+        }
+      },
+      release: (port) => _releaseConfigStreamPtr(port),
+      backpressure: Backpressure.dropLatest,
+    );
   }
 
   @override

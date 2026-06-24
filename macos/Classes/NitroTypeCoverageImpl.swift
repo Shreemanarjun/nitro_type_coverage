@@ -87,10 +87,29 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     public func echoStringMap(value: Any) -> Any { value }
     public func echoDoubleMap(value: Any) -> Any { value }
     public func echoBoolMap(value: Any) -> Any { value }
+    public func echoDataRecord(value: TcDataRecord) -> TcDataRecord { value }
     public func echoPacket(value: TcPacket) -> TcPacket { value }
     public func echoNullablePoint(value: TcPoint?) -> TcPoint? { value }
     public func onPointEvent(pointCb: @escaping (TcPoint) -> Void) { pointCb(TcPoint(x: 1.0, y: 2.0, z: 3.0)) }
     public func onDetailEvent(detailCb: @escaping (Int64, Double) -> Void) { detailCb(42, 9.81) }
+
+    // ── §30: 6 new type coverage features ────────────────────────────────────
+    private let _configStreamSubject = PassthroughSubject<TcConfig, Never>()
+    public var configStream: AnyPublisher<TcConfig, Never> { _configStreamSubject.eraseToAnyPublisher() }
+    public func configureConfigStream(seed: TcConfig, count: Int64) {
+        Task {
+            for i in 0..<count {
+                _configStreamSubject.send(TcConfig(
+                    name: "\(seed.name)-\(i)", count: seed.count + i,
+                    enabled: seed.enabled, threshold: seed.threshold + Double(i) * 0.1))
+            }
+        }
+    }
+    public func echoNullableConfig(value: TcConfig?) -> TcConfig? { value }
+    public func echoNested(value: TcNested) -> TcNested { value }
+    public func echoConfigListSync(values: [TcConfig]) async throws -> [TcConfig] { values }
+    public func echoNullableWrapper(value: TcNullableWrapper) -> TcNullableWrapper { value }
+    public func onTransformEvent(transformCb: @escaping (Int64) -> Int64) { let _ = transformCb(42) }
 
     // ── Async nullable ────────────────────────────────────────────────────────
     public func asyncNullableInt(value: Int64?) async throws -> Int64? { value }

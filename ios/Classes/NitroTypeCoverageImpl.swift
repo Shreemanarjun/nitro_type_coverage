@@ -100,6 +100,42 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     public func echoDoubleMap(value: Any) -> Any { value }
     public func echoBoolMap(value: Any) -> Any { value }
 
+    // ── @HybridRecord with TypedData fields (§29) ────────────────────────────
+    public func echoDataRecord(value: TcDataRecord) -> TcDataRecord { value }
+
+    // ── §30: 6 new type coverage features ────────────────────────────────────
+
+    // #1 Stream<TcConfig>
+    private let _configStreamSubject = PassthroughSubject<TcConfig, Never>()
+    public var configStream: AnyPublisher<TcConfig, Never> { _configStreamSubject.eraseToAnyPublisher() }
+    public func configureConfigStream(seed: TcConfig, count: Int64) {
+        Task {
+            for i in 0..<count {
+                _configStreamSubject.send(TcConfig(
+                    name: "\(seed.name)-\(i)", count: seed.count + i,
+                    enabled: seed.enabled, threshold: seed.threshold + Double(i) * 0.1))
+            }
+        }
+    }
+
+    // #2 Nullable @HybridRecord
+    public func echoNullableConfig(value: TcConfig?) -> TcConfig? { value }
+
+    // #3 Nested @HybridRecord
+    public func echoNested(value: TcNested) -> TcNested { value }
+
+    // #4 List<TcConfig> sync param
+    public func echoConfigListSync(values: [TcConfig]) async throws -> [TcConfig] { values }
+
+    // #5 NitroNullable inside @HybridRecord
+    public func echoNullableWrapper(value: TcNullableWrapper) -> TcNullableWrapper { value }
+
+    // #6 Bidirectional callback — native calls Dart, receives a value back
+    public func onTransformEvent(transformCb: @escaping (Int64) -> Int64) {
+        // Call the Dart callback with 42 and verify we get a transformed value back
+        let _ = transformCb(42)
+    }
+
     // ── @HybridRecord with enum field (§25) ───────────────────────────────────
     public func echoPacket(value: TcPacket) -> TcPacket { value }
 
