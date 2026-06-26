@@ -2,8 +2,10 @@ package nitro.nitro_type_coverage
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import nitro.nitro_type_coverage_module.HybridNitroTypeCoverageSpec
 import nitro.nitro_type_coverage_module.NitroNullableBool
@@ -17,6 +19,7 @@ import nitro.nitro_type_coverage_module.TcNullableWrapper
 import nitro.nitro_type_coverage_module.TcPacket
 import nitro.nitro_type_coverage_module.TcPoint
 import nitro.nitro_type_coverage_module.TcStatus
+import nitro.nitro_type_coverage_module.TcStructHolder
 
 /// Complete echo implementation of HybridNitroTypeCoverageSpec.
 /// Every method returns exactly what it receives.
@@ -55,8 +58,8 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     override fun joinStrings(a: String, b: String, separator: String): String = a + separator + b
 
     // ── Nullable primitives ───────────────────────────────────────────────────
-    override fun echoNullableInt(value: Long?): Long = value ?: Long.MIN_VALUE
-    override fun echoNullableDouble(value: Double?): Double = value ?: Double.NaN
+    override fun echoNullableInt(value: Long?): Long? = value
+    override fun echoNullableDouble(value: Double?): Double? = value
     override fun echoNullableBool(value: Boolean?): Boolean? = value
     override fun echoNullableString(value: String?): String = value ?: ""
 
@@ -136,8 +139,8 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     override suspend fun asyncConfig(value: TcConfig): TcConfig = value
 
     // ── Async nullable ────────────────────────────────────────────────────────
-    override suspend fun asyncNullableInt(value: Long?): Long = value ?: Long.MIN_VALUE
-    override suspend fun asyncNullableDouble(value: Double?): Double = value ?: Double.NaN
+    override suspend fun asyncNullableInt(value: Long?): Long? = value
+    override suspend fun asyncNullableDouble(value: Double?): Double? = value
     override suspend fun asyncNullableBool(value: Boolean?): Boolean? = value
     override suspend fun asyncNullableString(value: String?): String = value ?: ""
 
@@ -208,6 +211,30 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
 
     // ── Nullable struct (§26) ─────────────────────────────────────────────────
     override fun echoNullablePoint(value: TcPoint?): TcPoint? = value
+
+    // ── #5: @HybridStruct in @HybridRecord (§32) ──────────────────────────────
+    override fun echoStructHolder(value: TcStructHolder): TcStructHolder = value
+
+    // ── #4: Bidirectional callbacks with non-int returns (§32) ───────────────
+    override fun onStringTransform(stringCb: (p0: Long) -> String) {
+        @Suppress("UNUSED_VARIABLE")
+        val result = stringCb(42L)  // Dart returns "transformed_42" or similar
+    }
+    override fun onDoubleTransform(doubleCb: (p0: Long) -> Double) {
+        @Suppress("UNUSED_VARIABLE")
+        val result = doubleCb(7L)  // Dart returns 7.0 * 1.5 = 10.5 or similar
+    }
+
+    // ── #9: Batch stream (§32) ─────────────────────────────────────────────────
+    // Channel.UNLIMITED buffers all emitted items unconditionally, so items
+    // are never dropped even when the bridge collector hasn't subscribed yet.
+    private val _batchIntChannel = Channel<Long>(Channel.UNLIMITED)
+    override val batchIntStream: kotlinx.coroutines.flow.Flow<Long> = _batchIntChannel.receiveAsFlow()
+    override fun configureBatchStream(from: Long, count: Long) {
+        CoroutineScope(Dispatchers.Default).launch {
+            for (i in 0 until count) { _batchIntChannel.send(from + i) }
+        }
+    }
 
     // ── Callbacks with struct and multi-params (§27) ──────────────────────────
     override fun onPointEvent(pointCb: (p0: TcPoint) -> Unit) {

@@ -170,6 +170,18 @@ abstract class NitroTypeCoverage extends HybridObject {
   // The native side calls Dart with an int and receives an int back.
   void onTransformEvent(int Function(int value) transformCb);
 
+  // ── #5: @HybridStruct embedded in @HybridRecord (§32 coverage) ──────────
+  TcStructHolder echoStructHolder(TcStructHolder value);
+
+  // ── #4: Bidirectional callbacks with non-int return types (§32 coverage) ─
+  void onStringTransform(String Function(int value) stringCb);
+  void onDoubleTransform(double Function(int value) doubleCb);
+
+  // ── #9: Batch stream (§32 coverage) ──────────────────────────────────────
+  @NitroStream(backpressure: Backpressure.batch, batchMaxSize: 16)
+  Stream<int> batchIntStream();
+  void configureBatchStream(int from, int count);
+
   // ── Callbacks with struct and multi-params (§27 coverage) ────────────────
   void onPointEvent(void Function(TcPoint point) pointCb);
   void onDetailEvent(void Function(int id, double score) detailCb);
@@ -322,5 +334,20 @@ class TcDataRecord {
     required this.values,
     required this.scores,
     required this.label,
+  });
+}
+
+/// #5: @HybridStruct embedded as a field inside a @HybridRecord (§32 coverage).
+/// TcPoint uses RecordFieldKind.struct — each field encoded inline as primitives.
+/// Wire: label(string) → origin.x(f64) → origin.y(f64) → origin.z(f64) → radius(f64)
+@HybridRecord()
+class TcStructHolder {
+  final String label;
+  final TcPoint origin;   // RecordFieldKind.struct — embedded inline
+  final double radius;
+  TcStructHolder({
+    required this.label,
+    required this.origin,
+    required this.radius,
   });
 }

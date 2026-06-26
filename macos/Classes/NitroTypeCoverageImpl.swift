@@ -90,6 +90,25 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     public func echoDataRecord(value: TcDataRecord) -> TcDataRecord { value }
     public func echoPacket(value: TcPacket) -> TcPacket { value }
     public func echoNullablePoint(value: TcPoint?) -> TcPoint? { value }
+
+    // ── #5: @HybridStruct in @HybridRecord (§32) ─────────────────────────────
+    public func echoStructHolder(value: TcStructHolder) -> TcStructHolder { value }
+
+    // ── #4: Bidirectional callbacks with non-int returns (§32) ──────────────
+    public func onStringTransform(stringCb: @escaping (Int64) -> String) {
+        _ = stringCb(42)
+    }
+    public func onDoubleTransform(doubleCb: @escaping (Int64) -> Double) {
+        _ = doubleCb(7)
+    }
+
+    // ── #9: Batch stream (§32) ────────────────────────────────────────────────
+    private var _batchIntSubject = PassthroughSubject<Int64, Never>()
+    public var batchIntStream: AnyPublisher<Int64, Never> { _batchIntSubject.eraseToAnyPublisher() }
+    public func configureBatchStream(from: Int64, count: Int64) {
+        Task { for i in 0..<count { _batchIntSubject.send(from + i) } }
+    }
+
     public func onPointEvent(pointCb: @escaping (TcPoint) -> Void) { pointCb(TcPoint(x: 1.0, y: 2.0, z: 3.0)) }
     public func onDetailEvent(detailCb: @escaping (Int64, Double) -> Void) { detailCb(42, 9.81) }
 

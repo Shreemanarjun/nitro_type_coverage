@@ -62,6 +62,8 @@ dev_dependencies:
 dependency_overrides:
   nitro:
     path: ../../../flutter_package/nitro_ecosystem/packages/nitro
+  nitro_annotations:
+    path: ../../../flutter_package/nitro_ecosystem/packages/nitro_annotations
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

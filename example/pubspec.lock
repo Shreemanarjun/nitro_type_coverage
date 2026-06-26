@@ -170,12 +170,11 @@ packages:
     source: path
     version: "0.4.4"
   nitro_annotations:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: nitro_annotations
-      sha256: "57a17ea8fa2786bb21d983db47b2c78dacda446b5640753e2f2fba32ff43ef0d"
-      url: "https://pub.dev"
-    source: hosted
+      path: "../../../flutter_package/nitro_ecosystem/packages/nitro_annotations"
+      relative: true
+    source: path
     version: "0.4.4"
   nitro_type_coverage:
     dependency: "direct main"
