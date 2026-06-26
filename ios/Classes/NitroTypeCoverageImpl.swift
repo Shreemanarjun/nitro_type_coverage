@@ -164,6 +164,62 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
         }
     }
 
+    private var _batchDoubleSubject = PassthroughSubject<Double, Never>()
+    public var batchDoubleStream: AnyPublisher<Double, Never> {
+        _batchDoubleSubject.eraseToAnyPublisher()
+    }
+    public func configureBatchDoubleStream(values: [Double]) {
+        DispatchQueue.global().async { [weak self] in
+            for v in values { self?._batchDoubleSubject.send(v) }
+        }
+    }
+
+    private var _batchBoolSubject = PassthroughSubject<Bool, Never>()
+    public var batchBoolStream: AnyPublisher<Bool, Never> {
+        _batchBoolSubject.eraseToAnyPublisher()
+    }
+    public func configureBatchBoolStream(values: [Bool]) {
+        DispatchQueue.global().async { [weak self] in
+            for v in values { self?._batchBoolSubject.send(v) }
+        }
+    }
+
+    // ── §35: Bool/enum bidirectional callbacks ────────────────────────────────
+    public func onBoolTransform(boolCb: @escaping (Int64) -> Bool) {
+        _ = boolCb(42)  // Dart returns true when value == 42
+    }
+    public func onStatusTransform(statusCb: @escaping (Int64) -> TcStatus) {
+        _ = statusCb(42)  // Dart returns .ok for 42
+    }
+
+    // ── §35: List<bool> and List<TcPoint> ────────────────────────────────────
+    public func echoListBool(value: [Bool]) async throws -> [Bool] { value }
+    public func echoPointList(values: [TcPoint]) async throws -> [TcPoint] { values }
+
+    // ── §35: @NitroNativeAsync with typed returns ──────────────────────────────
+    public func nativeAsyncInt(value: Int64) async throws -> Int64 { value }
+    public func nativeAsyncDouble(value: Double) async throws -> Double { value }
+    public func nativeAsyncBool(value: Bool) async throws -> Bool { value }
+    public func nativeAsyncString(value: String) async throws -> String { value }
+
+    // ── §35: Stream<String> ───────────────────────────────────────────────────
+    private let _stringStreamSubject = PassthroughSubject<String, Never>()
+    public var stringStream: AnyPublisher<String, Never> { _stringStreamSubject.eraseToAnyPublisher() }
+    public func configureStringStream(values: [String]) {
+        DispatchQueue.global().async { [weak self] in
+            for v in values { self?._stringStreamSubject.send(v) }
+        }
+    }
+
+    // ── §35: Backpressure.block stream ────────────────────────────────────────
+    private let _blockIntSubject = PassthroughSubject<Int64, Never>()
+    public var blockIntStream: AnyPublisher<Int64, Never> { _blockIntSubject.eraseToAnyPublisher() }
+    public func configureBlockIntStream(from: Int64, count: Int64) {
+        DispatchQueue.global().async { [weak self] in
+            for i in 0..<count { self?._blockIntSubject.send(from + i) }
+        }
+    }
+
     // ── Callbacks with struct and multi-params (§27) ──────────────────────────
     public func onPointEvent(pointCb: @escaping (TcPoint) -> Void) {
         pointCb(TcPoint(x: 1.0, y: 2.0, z: 3.0))
@@ -214,5 +270,26 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
 
     public func throwNativeAsync(message: String) async throws {
         throw NSError(domain: "NativeTestError", code: 1, userInfo: [NSLocalizedDescriptionKey: message])
+    }
+
+    // ── §36: @NitroOwned ─────────────────────────────────────────────────────
+    public func acquireBuffer(size: Int64) -> UnsafeMutableRawPointer? {
+        // Allocate a raw buffer of `size` bytes; Dart side wraps it in NativeHandle + finalizer.
+        return UnsafeMutableRawPointer.allocate(byteCount: Int(size), alignment: 16)
+    }
+
+    // ── §36: @NitroVariant ────────────────────────────────────────────────────
+    public func echoEvent(event: TcEvent) -> TcEvent { return event }
+
+    // ── §36: @NitroResult ─────────────────────────────────────────────────────
+    public func safeDiv(a: Double, b: Double) throws -> Double {
+        if b == 0.0 { throw NSError(domain: "NitroTypeCoverage", code: 1, userInfo: [NSLocalizedDescriptionKey: "division by zero"]) }
+        return a / b
+    }
+
+    public func validateLabel(label: String) throws -> String {
+        let trimmed = label.trimmingCharacters(in: .whitespaces)
+        if trimmed.isEmpty { throw NSError(domain: "NitroTypeCoverage", code: 2, userInfo: [NSLocalizedDescriptionKey: "empty label"]) }
+        return trimmed
     }
 }

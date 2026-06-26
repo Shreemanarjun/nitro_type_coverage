@@ -53,6 +53,8 @@ NITRO_EXPORT intptr_t nitro_type_coverage_init_dart_api_dl(void* data);
 NITRO_EXPORT NitroError* nitro_type_coverage_get_error(void);
 NITRO_EXPORT void nitro_type_coverage_clear_error(void);
 NITRO_EXPORT void nitro_type_coverage_release_typed_data_return(void* ptr);
+/// Release the handle returned by acquireBuffer(). Called by Dart NativeFinalizer.
+NITRO_EXPORT void nitro_type_coverage_acquire_buffer_release(void* handle);
 
 
 
@@ -116,6 +118,18 @@ NITRO_EXPORT void* nitro_type_coverage_echo_struct_holder(void* value, NitroErro
 NITRO_EXPORT void nitro_type_coverage_on_string_transform(const char* (*stringCb)(int64_t), NitroError* _nitro_err);
 NITRO_EXPORT void nitro_type_coverage_on_double_transform(double (*doubleCb)(int64_t), NitroError* _nitro_err);
 NITRO_EXPORT void nitro_type_coverage_configure_batch_stream(int64_t from, int64_t count, NitroError* _nitro_err);
+NITRO_EXPORT void nitro_type_coverage_configure_batch_double_stream(void* values, NitroError* _nitro_err);
+NITRO_EXPORT void nitro_type_coverage_configure_batch_bool_stream(void* values, NitroError* _nitro_err);
+NITRO_EXPORT void nitro_type_coverage_on_bool_transform(int8_t (*boolCb)(int64_t), NitroError* _nitro_err);
+NITRO_EXPORT void nitro_type_coverage_on_status_transform(int64_t (*statusCb)(int64_t), NitroError* _nitro_err);
+NITRO_EXPORT void* nitro_type_coverage_echo_list_bool(void* value);
+NITRO_EXPORT void* nitro_type_coverage_echo_point_list(void* values);
+NITRO_EXPORT void nitro_type_coverage_native_async_int(int64_t value, int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_native_async_double(double value, int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_native_async_bool(int8_t value, int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_native_async_string(const char* value, int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_configure_string_stream(void* values, NitroError* _nitro_err);
+NITRO_EXPORT void nitro_type_coverage_configure_block_int_stream(int64_t from, int64_t count, NitroError* _nitro_err);
 NITRO_EXPORT void nitro_type_coverage_on_point_event(void (*pointCb)(void*), NitroError* _nitro_err);
 NITRO_EXPORT void nitro_type_coverage_on_detail_event(void (*detailCb)(int64_t, double), NitroError* _nitro_err);
 NITRO_EXPORT void nitro_type_coverage_on_int_event(void (*callback)(int64_t), NitroError* _nitro_err);
@@ -126,6 +140,10 @@ NITRO_EXPORT void nitro_type_coverage_configure_double_stream(double start, int6
 NITRO_EXPORT void nitro_type_coverage_configure_status_stream(int64_t count, NitroError* _nitro_err);
 NITRO_EXPORT void nitro_type_coverage_throw_native(const char* message, NitroError* _nitro_err);
 NITRO_EXPORT void nitro_type_coverage_throw_native_async(const char* message);
+NITRO_EXPORT void* nitro_type_coverage_acquire_buffer(int64_t size, NitroError* _nitro_err);
+NITRO_EXPORT uint8_t* nitro_type_coverage_echo_event(void* event, NitroError* _nitro_err);
+NITRO_EXPORT uint8_t* nitro_type_coverage_safe_div(double a, double b, NitroError* _nitro_err);
+NITRO_EXPORT uint8_t* nitro_type_coverage_validate_label(const char* label, NitroError* _nitro_err);
 
 // Properties
 NITRO_EXPORT int64_t nitro_type_coverage_get_precision(NitroError* _nitro_err);
@@ -150,6 +168,18 @@ NITRO_EXPORT void nitro_type_coverage_release_config_stream_stream(int64_t dart_
 // Stream<int> batchIntStream
 NITRO_EXPORT void nitro_type_coverage_register_batch_int_stream_stream(int64_t dart_port);
 NITRO_EXPORT void nitro_type_coverage_release_batch_int_stream_stream(int64_t dart_port);
+// Stream<double> batchDoubleStream
+NITRO_EXPORT void nitro_type_coverage_register_batch_double_stream_stream(int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_release_batch_double_stream_stream(int64_t dart_port);
+// Stream<bool> batchBoolStream
+NITRO_EXPORT void nitro_type_coverage_register_batch_bool_stream_stream(int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_release_batch_bool_stream_stream(int64_t dart_port);
+// Stream<String> stringStream
+NITRO_EXPORT void nitro_type_coverage_register_string_stream_stream(int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_release_string_stream_stream(int64_t dart_port);
+// Stream<int> blockIntStream
+NITRO_EXPORT void nitro_type_coverage_register_block_int_stream_stream(int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_release_block_int_stream_stream(int64_t dart_port);
 // Stream<int> intStream
 NITRO_EXPORT void nitro_type_coverage_register_int_stream_stream(int64_t dart_port);
 NITRO_EXPORT void nitro_type_coverage_release_int_stream_stream(int64_t dart_port);

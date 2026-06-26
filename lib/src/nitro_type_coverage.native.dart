@@ -182,6 +182,48 @@ abstract class NitroTypeCoverage extends HybridObject {
   Stream<int> batchIntStream();
   void configureBatchStream(int from, int count);
 
+  @NitroStream(backpressure: Backpressure.batch, batchMaxSize: 16)
+  Stream<double> batchDoubleStream();
+  void configureBatchDoubleStream(List<double> values);
+
+  @NitroStream(backpressure: Backpressure.batch, batchMaxSize: 16)
+  Stream<bool> batchBoolStream();
+  void configureBatchBoolStream(List<bool> values);
+
+  // ── #4: Bidirectional callbacks with bool and enum returns (§35 coverage) ─
+  void onBoolTransform(bool Function(int value) boolCb);
+  void onStatusTransform(TcStatus Function(int value) statusCb);
+
+  // ── §35: List<bool> and List<@HybridStruct> param/return ─────────────────
+  @nitroAsync
+  Future<List<bool>> echoListBool(List<bool> value);
+
+  @nitroAsync
+  Future<List<TcPoint>> echoPointList(List<TcPoint> values);
+
+  // ── §35: @NitroNativeAsync with typed returns ─────────────────────────────
+  @nitroNativeAsync
+  Future<int> nativeAsyncInt(int value);
+
+  @nitroNativeAsync
+  Future<double> nativeAsyncDouble(double value);
+
+  @nitroNativeAsync
+  Future<bool> nativeAsyncBool(bool value);
+
+  @nitroNativeAsync
+  Future<String> nativeAsyncString(String value);
+
+  // ── §35: Stream<String> — validates the kString emit path ────────────────
+  @NitroStream(backpressure: Backpressure.dropLatest)
+  Stream<String> stringStream();
+  void configureStringStream(List<String> values);
+
+  // ── §35: Backpressure.block stream ────────────────────────────────────────
+  @NitroStream(backpressure: Backpressure.block)
+  Stream<int> blockIntStream();
+  void configureBlockIntStream(int from, int count);
+
   // ── Callbacks with struct and multi-params (§27 coverage) ────────────────
   void onPointEvent(void Function(TcPoint point) pointCb);
   void onDetailEvent(void Function(int id, double score) detailCb);
@@ -245,6 +287,25 @@ abstract class NitroTypeCoverage extends HybridObject {
 
   @nitroAsync
   Future<void> throwNativeAsync(String message);
+
+  // ── §36: @NitroOwned — returns an opaque handle ──────────────────────────
+  // acquireBuffer returns an opaque native handle via @NitroOwned.
+  @NitroOwned()
+  NativeHandle<Void> acquireBuffer(int size);
+
+  // ── §36: @NitroVariant — sealed class round-trip ─────────────────────────
+  // echoEvent echoes a TcEvent variant through the C bridge.
+  TcEvent echoEvent(TcEvent event);
+
+  // ── §36: @NitroResult — safe division with error result ──────────────────
+  // safeDiv returns NitroResultValue<double>: NitroOk(a/b) or NitroErr("division by zero").
+  @NitroResult()
+  NitroResultValue<double> safeDiv(double a, double b);
+
+  // ── §36: @NitroResult<String> — label validation ─────────────────────────
+  // validateLabel returns NitroResultValue<String>: NitroOk(trimmed) or NitroErr("empty label").
+  @NitroResult()
+  NitroResultValue<String> validateLabel(String label);
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -350,4 +411,31 @@ class TcStructHolder {
     required this.origin,
     required this.radius,
   });
+}
+
+/// §36: @NitroVariant sealed class — three event cases.
+/// Wire format: [4B len][1B tag: 0=Tap, 1=Scroll, 2=Resize][case fields]
+///   Tap:    [int64 x][int64 y]
+///   Scroll: [float64 delta]
+///   Resize: [int64 width][int64 height]
+@NitroVariant()
+sealed class TcEvent {
+  const TcEvent();
+}
+
+class TcEventTap extends TcEvent {
+  final int x;
+  final int y;
+  const TcEventTap({required this.x, required this.y});
+}
+
+class TcEventScroll extends TcEvent {
+  final double delta;
+  const TcEventScroll({required this.delta});
+}
+
+class TcEventResize extends TcEvent {
+  final int width;
+  final int height;
+  const TcEventResize({required this.width, required this.height});
 }

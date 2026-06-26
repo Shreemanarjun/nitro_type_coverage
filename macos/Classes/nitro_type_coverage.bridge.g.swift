@@ -3,6 +3,11 @@
 // Generated from: nitro_type_coverage.native.dart
 import Foundation
 import Combine
+import NitroTypeCoverageCpp
+
+public protocol NitroEncodable {
+    func toNative() -> UnsafeMutablePointer<UInt8>?
+}
 
 // --- Enums ---
 public enum TcStatus: Int64 {
@@ -59,7 +64,7 @@ extension TcPoint {
   }
 }
 
-public struct TcConfig {
+public struct TcConfig: NitroEncodable {
   public var name: String
   public var count: Int64
   public var enabled: Bool
@@ -99,7 +104,7 @@ public struct TcConfig {
   }
 }
 
-public struct TcMeta {
+public struct TcMeta: NitroEncodable {
   public var version: Int64
   public var weight: Double
   public var active: Bool
@@ -139,7 +144,7 @@ public struct TcMeta {
   }
 }
 
-public struct TcPacket {
+public struct TcPacket: NitroEncodable {
   public var name: String
   public var sequence: Int64
   public var status: TcStatus
@@ -179,7 +184,7 @@ public struct TcPacket {
   }
 }
 
-public struct TcNested {
+public struct TcNested: NitroEncodable {
   public var label: String
   public var config: TcConfig
   public var version: Int64
@@ -215,7 +220,7 @@ public struct TcNested {
   }
 }
 
-public struct TcNullableWrapper {
+public struct TcNullableWrapper: NitroEncodable {
   public var count: NitroNullableInt
   public var rate: NitroNullableDouble
   public var name: String
@@ -251,7 +256,7 @@ public struct TcNullableWrapper {
   }
 }
 
-public struct TcDataRecord {
+public struct TcDataRecord: NitroEncodable {
   public var bytes: Data
   public var values: [Int32]
   public var scores: [Double]
@@ -291,7 +296,7 @@ public struct TcDataRecord {
   }
 }
 
-public struct TcStructHolder {
+public struct TcStructHolder: NitroEncodable {
   public var label: String
   public var origin: TcPoint
   public var radius: Double
@@ -327,7 +332,7 @@ public struct TcStructHolder {
   }
 }
 
-public struct NitroNullableInt {
+public struct NitroNullableInt: NitroEncodable {
   public var hasValue: Bool
   public var value: Int64
 
@@ -363,7 +368,7 @@ public struct NitroNullableInt {
   }
 }
 
-public struct NitroNullableDouble {
+public struct NitroNullableDouble: NitroEncodable {
   public var hasValue: Bool
   public var value: Double
 
@@ -399,7 +404,7 @@ public struct NitroNullableDouble {
   }
 }
 
-public struct NitroNullableBool {
+public struct NitroNullableBool: NitroEncodable {
   public var hasValue: Bool
   public var value: Bool
 
@@ -436,157 +441,196 @@ public struct NitroNullableBool {
 }
 
 public class NitroRecordWriter {
-    public var bytes: [UInt8] = []
-    public init() {}
-    public func writeInt(_ v: Int64) {
-        var val = v.littleEndian
-        withUnsafeBytes(of: &val) { bytes.append(contentsOf: $0) }
-    }
-    public func writeInt32(_ v: Int32) {
-        var val = v.littleEndian
-        withUnsafeBytes(of: &val) { bytes.append(contentsOf: $0) }
-    }
-    public func writeDouble(_ v: Double) {
-        var val = v.bitPattern.littleEndian
-        withUnsafeBytes(of: &val) { bytes.append(contentsOf: $0) }
-    }
-    public func writeBool(_ v: Bool) {
-        bytes.append(v ? 1 : 0)
-    }
-    public func writeString(_ v: String) {
-        let utf8 = Array(v.utf8)
-        writeInt32(Int32(utf8.count))
-        bytes.append(contentsOf: utf8)
-    }
-    public func writeNullTag(_ isNull: Bool) {
-        bytes.append(isNull ? 0 : 1)
-    }
-    public func writeBlob(_ v: Data) {
-        writeInt32(Int32(v.count))
-        bytes.append(contentsOf: Array(v))
-    }
-    public func toNative() -> UnsafeMutablePointer<UInt8>? {
-        let total = 4 + bytes.count
-        let ptr = UnsafeMutablePointer<UInt8>.allocate(capacity: total)
-        var length = Int32(bytes.count).littleEndian
-        _ = memcpy(ptr, &length, 4)
-        if bytes.count > 0 {
-            _ = memcpy(ptr.advanced(by: 4), bytes, bytes.count)
-        }
-        return ptr
-    }
-    public static func encodeList<T>(_ items: [T], writeItem: (NitroRecordWriter, T) -> Void) -> UnsafeMutablePointer<UInt8>? {
-        let w = NitroRecordWriter()
-        w.writeInt32(Int32(items.count))
-        for item in items { writeItem(w, item) }
-        return w.toNative()
-    }
-    /// Encodes a list with a per-item byte-offset table for O(1) random access.
-    /// Wire format (payload after outer 4B length prefix):
-    ///   [int32 count][int64 × count offsets from payload start][item bytes...]
-    /// Counterpart: Dart LazyRecordList.decode / RecordWriter.encodeIndexedList.
-    public static func encodeIndexedList<T>(_ items: [T], writeItem: (NitroRecordWriter, T) -> Void) -> UnsafeMutablePointer<UInt8>? {
-        var blobs: [[UInt8]] = []
-        for item in items {
-            let w = NitroRecordWriter()
-            writeItem(w, item)
-            blobs.append(w.bytes)
-        }
-        var pos = 4 + 8 * blobs.count
-        var offsets: [Int64] = []
-        for blob in blobs {
-            offsets.append(Int64(pos))
-            pos += blob.count
-        }
-        let w = NitroRecordWriter()
-        w.writeInt32(Int32(blobs.count))
-        for off in offsets { w.writeInt(off) }
-        for blob in blobs { w.bytes.append(contentsOf: blob) }
-        return w.toNative()
-    }
+  public var bytes: [UInt8] = []
+  public init() {}
+  public func writeInt(_ v: Int64) {
+      var val = v.littleEndian
+      withUnsafeBytes(of: &val) { bytes.append(contentsOf: $0) }
+  }
+  public func writeInt32(_ v: Int32) {
+      var val = v.littleEndian
+      withUnsafeBytes(of: &val) { bytes.append(contentsOf: $0) }
+  }
+  public func writeDouble(_ v: Double) {
+      var val = v.bitPattern.littleEndian
+      withUnsafeBytes(of: &val) { bytes.append(contentsOf: $0) }
+  }
+  public func writeBool(_ v: Bool) {
+      bytes.append(v ? 1 : 0)
+  }
+  public func writeString(_ v: String) {
+      let utf8 = Array(v.utf8)
+      writeInt32(Int32(utf8.count))
+      bytes.append(contentsOf: utf8)
+  }
+  public func writeNullTag(_ isNull: Bool) {
+      bytes.append(isNull ? 0 : 1)
+  }
+  public func writeBlob(_ v: Data) {
+      writeInt32(Int32(v.count))
+      bytes.append(contentsOf: Array(v))
+  }
+  public func toNative() -> UnsafeMutablePointer<UInt8>? {
+      let total = 4 + bytes.count
+      let ptr = UnsafeMutablePointer<UInt8>.allocate(capacity: total)
+      var length = Int32(bytes.count).littleEndian
+      _ = memcpy(ptr, &length, 4)
+      if bytes.count > 0 {
+          _ = memcpy(ptr.advanced(by: 4), bytes, bytes.count)
+      }
+      return ptr
+  }
+  public static func encodeList<T>(_ items: [T], writeItem: (NitroRecordWriter, T) -> Void) -> UnsafeMutablePointer<UInt8>? {
+      let w = NitroRecordWriter()
+      w.writeInt32(Int32(items.count))
+      for item in items { writeItem(w, item) }
+      return w.toNative()
+  }
+  /// Encodes a list with a per-item byte-offset table for O(1) random access.
+  /// Wire format (payload after outer 4B length prefix):
+  ///   [int32 count][int64 × count offsets from payload start][item bytes...]
+  /// Counterpart: Dart LazyRecordList.decode / RecordWriter.encodeIndexedList.
+  public static func encodeIndexedList<T>(_ items: [T], writeItem: (NitroRecordWriter, T) -> Void) -> UnsafeMutablePointer<UInt8>? {
+      var blobs: [[UInt8]] = []
+      for item in items {
+          let w = NitroRecordWriter()
+          writeItem(w, item)
+          blobs.append(w.bytes)
+      }
+      var pos = 4 + 8 * blobs.count
+      var offsets: [Int64] = []
+      for blob in blobs {
+          offsets.append(Int64(pos))
+          pos += blob.count
+      }
+      let w = NitroRecordWriter()
+      w.writeInt32(Int32(blobs.count))
+      for off in offsets { w.writeInt(off) }
+      for blob in blobs { w.bytes.append(contentsOf: blob) }
+      return w.toNative()
+  }
 }
 
 public class NitroRecordReader {
-    public let bytes: UnsafeMutablePointer<UInt8>
-    public var pos: Int = 0
-    public init(ptr: UnsafeMutablePointer<UInt8>) {
-        self.bytes = ptr.advanced(by: 4)
+  public let bytes: UnsafeMutablePointer<UInt8>
+  public var pos: Int = 0
+  public init(ptr: UnsafeMutablePointer<UInt8>) {
+      self.bytes = ptr.advanced(by: 4)
+  }
+  public init(payload: UnsafeMutablePointer<UInt8>) {
+      self.bytes = payload
+  }
+  public func readInt() -> Int64 {
+      var v: Int64 = 0
+      _ = memcpy(&v, bytes.advanced(by: pos), 8)
+      pos += 8
+      return Int64(littleEndian: v)
+  }
+  public func readInt32() -> Int32 {
+      var v: Int32 = 0
+      _ = memcpy(&v, bytes.advanced(by: pos), 4)
+      pos += 4
+      return Int32(littleEndian: v)
+  }
+  public func readDouble() -> Double {
+      var v: UInt64 = 0
+      _ = memcpy(&v, bytes.advanced(by: pos), 8)
+      pos += 8
+      return Double(bitPattern: UInt64(littleEndian: v))
+  }
+  public func readBool() -> Bool {
+      let v = bytes[pos]
+      pos += 1
+      return v != 0
+  }
+  public func readString() -> String {
+      let len = Int(readInt32())
+      guard len > 0 else { return "" }
+      let s = String(bytes: UnsafeBufferPointer(start: bytes.advanced(by: pos), count: len), encoding: .utf8) ?? ""
+      pos += len
+      return s
+  }
+  public func readNullTag() -> Bool {
+      let v = bytes[pos]
+      pos += 1
+      return v == 0
+  }
+  public func readBlob() -> Data {
+      let len = Int(readInt32())
+      let data = Data(bytes: bytes.advanced(by: pos), count: len)
+      pos += len
+      return data
+  }
+  public func readBlobAsPointer() -> UnsafeMutablePointer<UInt8>? {
+      let len = Int(readInt32())
+      if (len == 0) { return nil }
+      let ptr = UnsafeMutablePointer<UInt8>.allocate(capacity: len)
+      ptr.initialize(from: bytes.advanced(by: pos), count: len)
+      pos += len
+      return ptr
+  }
+  public static func decodeList<T>(_ ptr: UnsafeMutablePointer<UInt8>, readItem: (NitroRecordReader) -> T) -> [T] {
+      let r = NitroRecordReader(ptr: ptr)
+      let count = r.readInt32()
+      var items: [T] = []
+      for _ in 0..<count {
+          items.append(readItem(r))
+      }
+      return items
+  }
+  /// Decodes a list encoded by Dart's RecordWriter.encodeIndexedList / encodeIndexedPrimitiveList.
+  /// Wire format (payload after outer 4B length prefix):
+  ///   [int32 count][int64 × count offsets from payload start][item bytes...]
+  /// The offset table is skipped; items are read sequentially after it.
+  public static func decodeIndexedList<T>(_ ptr: UnsafeMutablePointer<UInt8>, readItem: (NitroRecordReader) -> T) -> [T] {
+      let r = NitroRecordReader(ptr: ptr)
+      let count = r.readInt32()
+      r.pos += Int(count) * 8  // skip Int64 offset table
+      var items: [T] = []
+      for _ in 0..<count {
+          items.append(readItem(r))
+      }
+      return items
+  }
+}
+
+public enum TcEvent: NitroEncodable {
+  case tap(x: Int64, y: Int64)
+  case scroll(delta: Double)
+  case resize(width: Int64, height: Int64)
+
+  public static func fromReader(_ r: NitroRecordReader) -> TcEvent {
+    let tag = r.bytes[r.pos]
+    r.pos += 1
+    switch tag {
+    case 0: return .tap(x: r.readInt(), y: r.readInt())
+    case 1: return .scroll(delta: r.readDouble())
+    case 2: return .resize(width: r.readInt(), height: r.readInt())
+    default: fatalError("Unknown TcEvent tag: \(tag)")
     }
-    public init(payload: UnsafeMutablePointer<UInt8>) {
-        self.bytes = payload
+  }
+
+  public func writeFields(to w: NitroRecordWriter) {
+    switch self {
+    case .tap(let x, let y):
+      w.bytes.append(UInt8(0))
+      w.writeInt(x)
+      w.writeInt(y)
+    case .scroll(let delta):
+      w.bytes.append(UInt8(1))
+      w.writeDouble(delta)
+    case .resize(let width, let height):
+      w.bytes.append(UInt8(2))
+      w.writeInt(width)
+      w.writeInt(height)
     }
-    public func readInt() -> Int64 {
-        var v: Int64 = 0
-        _ = memcpy(&v, bytes.advanced(by: pos), 8)
-        pos += 8
-        return Int64(littleEndian: v)
-    }
-    public func readInt32() -> Int32 {
-        var v: Int32 = 0
-        _ = memcpy(&v, bytes.advanced(by: pos), 4)
-        pos += 4
-        return Int32(littleEndian: v)
-    }
-    public func readDouble() -> Double {
-        var v: UInt64 = 0
-        _ = memcpy(&v, bytes.advanced(by: pos), 8)
-        pos += 8
-        return Double(bitPattern: UInt64(littleEndian: v))
-    }
-    public func readBool() -> Bool {
-        let v = bytes[pos]
-        pos += 1
-        return v != 0
-    }
-    public func readString() -> String {
-        let len = Int(readInt32())
-        guard len > 0 else { return "" }
-        let s = String(bytes: UnsafeBufferPointer(start: bytes.advanced(by: pos), count: len), encoding: .utf8) ?? ""
-        pos += len
-        return s
-    }
-    public func readNullTag() -> Bool {
-        let v = bytes[pos]
-        pos += 1
-        return v == 0
-    }
-    public func readBlob() -> Data {
-        let len = Int(readInt32())
-        let data = Data(bytes: bytes.advanced(by: pos), count: len)
-        pos += len
-        return data
-    }
-    public func readBlobAsPointer() -> UnsafeMutablePointer<UInt8>? {
-        let len = Int(readInt32())
-        if (len == 0) { return nil }
-        let ptr = UnsafeMutablePointer<UInt8>.allocate(capacity: len)
-        ptr.initialize(from: bytes.advanced(by: pos), count: len)
-        pos += len
-        return ptr
-    }
-    public static func decodeList<T>(_ ptr: UnsafeMutablePointer<UInt8>, readItem: (NitroRecordReader) -> T) -> [T] {
-        let r = NitroRecordReader(ptr: ptr)
-        let count = r.readInt32()
-        var items: [T] = []
-        for _ in 0..<count {
-            items.append(readItem(r))
-        }
-        return items
-    }
-    /// Decodes a list encoded by Dart's RecordWriter.encodeIndexedList / encodeIndexedPrimitiveList.
-    /// Wire format (payload after outer 4B length prefix):
-    ///   [int32 count][int64 × count offsets from payload start][item bytes...]
-    /// The offset table is skipped; items are read sequentially after it.
-    public static func decodeIndexedList<T>(_ ptr: UnsafeMutablePointer<UInt8>, readItem: (NitroRecordReader) -> T) -> [T] {
-        let r = NitroRecordReader(ptr: ptr)
-        let count = r.readInt32()
-        r.pos += Int(count) * 8  // skip Int64 offset table
-        var items: [T] = []
-        for _ in 0..<count {
-            items.append(readItem(r))
-        }
-        return items
-    }
+  }
+
+  public func toNative() -> UnsafeMutablePointer<UInt8>? {
+    let writer = NitroRecordWriter()
+    writeFields(to: writer)
+    return writer.toNative()
+  }
 }
 
 // Binary map encode/decode — [4B payload_len][4B count][entries: [4B kLen][kBytes][1B tag][vBytes]]
@@ -665,6 +709,71 @@ private func _nitroMakeZeroCopyTypedDataArrayReturn<T>(_ values: [T]) -> UnsafeM
     return values.withUnsafeBufferPointer { buffer in
         _nitroMakeZeroCopyTypedDataReturn(UnsafeRawBufferPointer(buffer))
     }
+}
+
+// MARK: - @NitroResult encoding helpers
+
+private func _nitroWriteResultTag(_ tag: UInt8, _ payload: UnsafeMutablePointer<UInt8>?, _ payloadLen: Int) -> UnsafeMutablePointer<UInt8>? {
+    let total = 1 + payloadLen
+    guard let buf = UnsafeMutablePointer<UInt8>.allocate(capacity: total) as UnsafeMutablePointer<UInt8>? else { return nil }
+    buf[0] = tag
+    if payloadLen > 0, let payload = payload {
+        buf.advanced(by: 1).initialize(from: payload, count: payloadLen)
+    }
+    return buf
+}
+
+private func _nitroEncodeResultInt64(_ v: Int64) -> UnsafeMutablePointer<UInt8>? {
+    let w = NitroRecordWriter()
+    w.writeInt(v)
+    guard let payload = w.toNative() else { return _nitroWriteResultTag(0, nil, 0) }
+    let payloadLen = 4 + Int(payload.pointee)  // 4B prefix + payload bytes
+    return _nitroWriteResultTag(0, payload, payloadLen)
+}
+
+// Overload for plain Int (non-nullable) convenience
+private func _nitroEncodeResultInt64(_ v: Int) -> UnsafeMutablePointer<UInt8>? {
+    return _nitroEncodeResultInt64(Int64(v))
+}
+
+private func _nitroEncodeResultFloat64(_ v: Double) -> UnsafeMutablePointer<UInt8>? {
+    let w = NitroRecordWriter()
+    w.writeDouble(v)
+    guard let payload = w.toNative() else { return _nitroWriteResultTag(0, nil, 0) }
+    let payloadLen = 4 + Int(payload.pointee)
+    return _nitroWriteResultTag(0, payload, payloadLen)
+}
+
+private func _nitroEncodeResultBool(_ v: Bool) -> UnsafeMutablePointer<UInt8>? {
+    let w = NitroRecordWriter()
+    w.writeBool(v)
+    guard let payload = w.toNative() else { return _nitroWriteResultTag(0, nil, 0) }
+    let payloadLen = 4 + Int(payload.pointee)
+    return _nitroWriteResultTag(0, payload, payloadLen)
+}
+
+private func _nitroEncodeResultString(_ v: String) -> UnsafeMutablePointer<UInt8>? {
+    let w = NitroRecordWriter()
+    w.writeString(v)
+    guard let payload = w.toNative() else { return _nitroWriteResultTag(0, nil, 0) }
+    let payloadLen = 4 + Int(payload.pointee)
+    return _nitroWriteResultTag(0, payload, payloadLen)
+}
+
+// For @HybridRecord / @NitroVariant result types — encode via toNative()/writeFields
+private func _nitroEncodeResultRecord<T: NitroEncodable>(_ v: T) -> UnsafeMutablePointer<UInt8>? {
+    guard let payload = v.toNative() else { return _nitroWriteResultTag(0, nil, 0) }
+    let payloadLen = 4 + Int(payload.pointee)
+    return _nitroWriteResultTag(0, payload, payloadLen)
+}
+
+private func _nitroEncodeResultError(_ error: Error) -> UnsafeMutablePointer<UInt8>? {
+    let msg = error.localizedDescription
+    let w = NitroRecordWriter()
+    w.writeString(msg)
+    guard let payload = w.toNative() else { return _nitroWriteResultTag(1, nil, 0) }
+    let payloadLen = 4 + Int(payload.pointee)
+    return _nitroWriteResultTag(1, payload, payloadLen)
 }
 
 /**
@@ -792,26 +901,58 @@ public protocol HybridNitroTypeCoverageProtocol: AnyObject {
     func onDoubleTransform(doubleCb: @escaping (Int64) -> Double) -> Void
     // source: nitro_type_coverage.native.dart:183
     func configureBatchStream(from: Int64, count: Int64) -> Void
-    // source: nitro_type_coverage.native.dart:186
-    func onPointEvent(pointCb: @escaping (TcPoint) -> Void) -> Void
     // source: nitro_type_coverage.native.dart:187
+    func configureBatchDoubleStream(values: [Double]) -> Void
+    // source: nitro_type_coverage.native.dart:191
+    func configureBatchBoolStream(values: [Bool]) -> Void
+    // source: nitro_type_coverage.native.dart:194
+    func onBoolTransform(boolCb: @escaping (Int64) -> Bool) -> Void
+    // source: nitro_type_coverage.native.dart:195
+    func onStatusTransform(statusCb: @escaping (Int64) -> TcStatus) -> Void
+    // source: nitro_type_coverage.native.dart:199
+    func echoListBool(value: [Bool]) async throws -> [Bool]
+    // source: nitro_type_coverage.native.dart:202
+    func echoPointList(values: [TcPoint]) async throws -> [TcPoint]
+    // source: nitro_type_coverage.native.dart:206
+    func nativeAsyncInt(value: Int64) async throws -> Int64
+    // source: nitro_type_coverage.native.dart:209
+    func nativeAsyncDouble(value: Double) async throws -> Double
+    // source: nitro_type_coverage.native.dart:212
+    func nativeAsyncBool(value: Bool) async throws -> Bool
+    // source: nitro_type_coverage.native.dart:215
+    func nativeAsyncString(value: String) async throws -> String
+    // source: nitro_type_coverage.native.dart:220
+    func configureStringStream(values: [String]) -> Void
+    // source: nitro_type_coverage.native.dart:225
+    func configureBlockIntStream(from: Int64, count: Int64) -> Void
+    // source: nitro_type_coverage.native.dart:228
+    func onPointEvent(pointCb: @escaping (TcPoint) -> Void) -> Void
+    // source: nitro_type_coverage.native.dart:229
     func onDetailEvent(detailCb: @escaping (Int64, Double) -> Void) -> Void
-    // source: nitro_type_coverage.native.dart:190
+    // source: nitro_type_coverage.native.dart:232
     func onIntEvent(callback: @escaping (Int64) -> Void) -> Void
-    // source: nitro_type_coverage.native.dart:196
+    // source: nitro_type_coverage.native.dart:238
     func onBoolEvent(boolCb: @escaping (Bool) -> Void) -> Void
-    // source: nitro_type_coverage.native.dart:197
-    func onDoubleEvent(doubleCb: @escaping (Double) -> Void) -> Void
     // source: nitro_type_coverage.native.dart:239
+    func onDoubleEvent(doubleCb: @escaping (Double) -> Void) -> Void
+    // source: nitro_type_coverage.native.dart:281
     func configureStream(from: Int64, count: Int64) -> Void
-    // source: nitro_type_coverage.native.dart:240
+    // source: nitro_type_coverage.native.dart:282
     func configureDoubleStream(start: Double, count: Int64) -> Void
-    // source: nitro_type_coverage.native.dart:241
+    // source: nitro_type_coverage.native.dart:283
     func configureStatusStream(count: Int64) -> Void
-    // source: nitro_type_coverage.native.dart:244
+    // source: nitro_type_coverage.native.dart:286
     func throwNative(message: String) -> Void
-    // source: nitro_type_coverage.native.dart:247
+    // source: nitro_type_coverage.native.dart:289
     func throwNativeAsync(message: String) async throws -> Void
+    // source: nitro_type_coverage.native.dart:294
+    func acquireBuffer(size: Int64) -> UnsafeMutableRawPointer?
+    // source: nitro_type_coverage.native.dart:298
+    func echoEvent(event: TcEvent) -> TcEvent
+    // source: nitro_type_coverage.native.dart:303
+    func safeDiv(a: Double, b: Double) throws -> Double
+    // source: nitro_type_coverage.native.dart:308
+    func validateLabel(label: String) throws -> String
     var precision: Int64 { get set }
     var tag: String { get set }
     var nullableRate: Double? { get set }
@@ -821,6 +962,10 @@ public protocol HybridNitroTypeCoverageProtocol: AnyObject {
     var optionalFlag: Bool? { get set }
     var configStream: AnyPublisher<TcConfig, Never> { get }
     var batchIntStream: AnyPublisher<Int64, Never> { get }
+    var batchDoubleStream: AnyPublisher<Double, Never> { get }
+    var batchBoolStream: AnyPublisher<Bool, Never> { get }
+    var stringStream: AnyPublisher<String, Never> { get }
+    var blockIntStream: AnyPublisher<Int64, Never> { get }
     var intStream: AnyPublisher<Int64, Never> { get }
     var pointStream: AnyPublisher<TcPoint, Never> { get }
     var boolStream: AnyPublisher<Bool, Never> { get }
@@ -841,6 +986,20 @@ public class NitroTypeCoverageRegistry {
     // Stream: batchIntStream cancellables keyed by dartPort
     public static var _batchIntStreamCancellables = [Int64: AnyCancellable]()
     public static var _batchIntStreamFlushTimers: [Int64: DispatchSourceTimer] = [:]
+
+    // Stream: batchDoubleStream cancellables keyed by dartPort
+    public static var _batchDoubleStreamCancellables = [Int64: AnyCancellable]()
+    public static var _batchDoubleStreamFlushTimers: [Int64: DispatchSourceTimer] = [:]
+
+    // Stream: batchBoolStream cancellables keyed by dartPort
+    public static var _batchBoolStreamCancellables = [Int64: AnyCancellable]()
+    public static var _batchBoolStreamFlushTimers: [Int64: DispatchSourceTimer] = [:]
+
+    // Stream: stringStream cancellables keyed by dartPort
+    public static var _stringStreamCancellables = [Int64: AnyCancellable]()
+
+    // Stream: blockIntStream cancellables keyed by dartPort
+    public static var _blockIntStreamCancellables = [Int64: AnyCancellable]()
 
     // Stream: intStream cancellables keyed by dartPort
     public static var _intStreamCancellables = [Int64: AnyCancellable]()
@@ -1438,62 +1597,213 @@ public func _nitro_type_coverage_call_configureBatchStream(_ from: Int64, _ coun
     NitroTypeCoverageRegistry.impl?.configureBatchStream(from: from, count: count)
 }
 
-// source: nitro_type_coverage.native.dart:186
+// source: nitro_type_coverage.native.dart:187
+@_cdecl("_nitro_type_coverage_call_configureBatchDoubleStream")
+public func _nitro_type_coverage_call_configureBatchDoubleStream(_ values: UnsafeMutableRawPointer?) -> Void {
+    let valuesPtr = values?.assumingMemoryBound(to: UInt8.self)
+    let valuesDecoded = valuesPtr.map { NitroRecordReader.decodeIndexedList($0) { r in r.readDouble() } } ?? []
+    NitroTypeCoverageRegistry.impl?.configureBatchDoubleStream(values: valuesDecoded)
+}
+
+// source: nitro_type_coverage.native.dart:191
+@_cdecl("_nitro_type_coverage_call_configureBatchBoolStream")
+public func _nitro_type_coverage_call_configureBatchBoolStream(_ values: UnsafeMutableRawPointer?) -> Void {
+    let valuesPtr = values?.assumingMemoryBound(to: UInt8.self)
+    let valuesDecoded = valuesPtr.map { NitroRecordReader.decodeIndexedList($0) { r in r.readBool() } } ?? []
+    NitroTypeCoverageRegistry.impl?.configureBatchBoolStream(values: valuesDecoded)
+}
+
+// source: nitro_type_coverage.native.dart:194
+@_cdecl("_nitro_type_coverage_call_onBoolTransform")
+public func _nitro_type_coverage_call_onBoolTransform(_ boolCb: @convention(c) (Int64) -> Int64) -> Void {
+    NitroTypeCoverageRegistry.impl?.onBoolTransform(boolCb: { arg0 in (boolCb(arg0)) != 0 })
+}
+
+// source: nitro_type_coverage.native.dart:195
+@_cdecl("_nitro_type_coverage_call_onStatusTransform")
+public func _nitro_type_coverage_call_onStatusTransform(_ statusCb: @convention(c) (Int64) -> Int64) -> Void {
+    NitroTypeCoverageRegistry.impl?.onStatusTransform(statusCb: { arg0 in TcStatus(rawValue: statusCb(arg0))! })
+}
+
+// source: nitro_type_coverage.native.dart:199
+@_cdecl("_nitro_type_coverage_call_echoListBool")
+public func _nitro_type_coverage_call_echoListBool(_ value: UnsafeMutableRawPointer?) -> UnsafeMutableRawPointer? {
+    let valuePtr = value?.assumingMemoryBound(to: UInt8.self)
+    let valueDecoded = valuePtr.map { NitroRecordReader.decodeIndexedList($0) { r in r.readBool() } } ?? []
+    guard let impl = NitroTypeCoverageRegistry.impl else { return nil }
+    let sema = DispatchSemaphore(value: 0)
+    var result: [Bool]? = nil
+    Task.detached {
+        result = try? await impl.echoListBool(value: valueDecoded)
+        sema.signal()
+    }
+    sema.wait()
+    guard let r = result else { return nil }
+    return NitroRecordWriter.encodeList(r) { w, e in w.writeBool(e) }.map { UnsafeMutableRawPointer($0) }
+}
+
+// source: nitro_type_coverage.native.dart:202
+@_cdecl("_nitro_type_coverage_call_echoPointList")
+public func _nitro_type_coverage_call_echoPointList(_ values: UnsafeMutableRawPointer?) -> UnsafeMutableRawPointer? {
+    let valuesPtr = values?.assumingMemoryBound(to: UInt8.self)
+    let valuesDecoded = valuesPtr.map { NitroRecordReader.decodeIndexedList($0) { r in TcPoint.fromReader(r) } } ?? []
+    guard let impl = NitroTypeCoverageRegistry.impl else { return nil }
+    let sema = DispatchSemaphore(value: 0)
+    var result: [TcPoint]? = nil
+    Task.detached {
+        result = try? await impl.echoPointList(values: valuesDecoded)
+        sema.signal()
+    }
+    sema.wait()
+    guard let r = result else { return nil }
+    return NitroRecordWriter.encodeIndexedList(r) { w, e in e.writeFields(w) }.map { UnsafeMutableRawPointer($0) }
+}
+
+// source: nitro_type_coverage.native.dart:206
+@_cdecl("_nitro_type_coverage_call_nativeAsyncInt")
+public func _nitro_type_coverage_call_nativeAsyncInt(_ value: Int64, _ dartPort: Int64) {
+    guard let impl = NitroTypeCoverageRegistry.impl else {
+        var _null = Dart_CObject()
+        _null.type = Dart_CObject_kNull
+        Dart_PostCObject_DL(dartPort, &_null)
+        return
+    }
+    Task.detached {
+        let _result = (try? await impl.nativeAsyncInt(value: value)) ?? 0
+        var _obj = Dart_CObject()
+        _obj.type = Dart_CObject_kInt64
+        _obj.value.as_int64 = Int64(_result)
+        Dart_PostCObject_DL(dartPort, &_obj)
+    }
+}
+
+// source: nitro_type_coverage.native.dart:209
+@_cdecl("_nitro_type_coverage_call_nativeAsyncDouble")
+public func _nitro_type_coverage_call_nativeAsyncDouble(_ value: Double, _ dartPort: Int64) {
+    guard let impl = NitroTypeCoverageRegistry.impl else {
+        var _null = Dart_CObject()
+        _null.type = Dart_CObject_kNull
+        Dart_PostCObject_DL(dartPort, &_null)
+        return
+    }
+    Task.detached {
+        let _result = (try? await impl.nativeAsyncDouble(value: value)) ?? 0.0
+        var _obj = Dart_CObject()
+        _obj.type = Dart_CObject_kDouble
+        _obj.value.as_double = _result
+        Dart_PostCObject_DL(dartPort, &_obj)
+    }
+}
+
+// source: nitro_type_coverage.native.dart:212
+@_cdecl("_nitro_type_coverage_call_nativeAsyncBool")
+public func _nitro_type_coverage_call_nativeAsyncBool(_ value: Int8, _ dartPort: Int64) {
+    guard let impl = NitroTypeCoverageRegistry.impl else {
+        var _null = Dart_CObject()
+        _null.type = Dart_CObject_kNull
+        Dart_PostCObject_DL(dartPort, &_null)
+        return
+    }
+    Task.detached {
+        let _result = (try? await impl.nativeAsyncBool(value: value != 0)) ?? false
+        var _obj = Dart_CObject()
+        _obj.type = Dart_CObject_kBool
+        _obj.value.as_bool = _result
+        Dart_PostCObject_DL(dartPort, &_obj)
+    }
+}
+
+// source: nitro_type_coverage.native.dart:215
+@_cdecl("_nitro_type_coverage_call_nativeAsyncString")
+public func _nitro_type_coverage_call_nativeAsyncString(_ value: UnsafePointer<CChar>?, _ dartPort: Int64) {
+    let valueStr = value != nil ? String(cString: value!) : ""
+    guard let impl = NitroTypeCoverageRegistry.impl else {
+        var _null = Dart_CObject()
+        _null.type = Dart_CObject_kNull
+        Dart_PostCObject_DL(dartPort, &_null)
+        return
+    }
+    Task.detached {
+        let _result = (try? await impl.nativeAsyncString(value: valueStr)) ?? ""
+        _result.withCString { cStr in
+            var _obj = Dart_CObject()
+            _obj.type = Dart_CObject_kString
+            _obj.value.as_string = cStr
+            Dart_PostCObject_DL(dartPort, &_obj)
+        }
+    }
+}
+
+// source: nitro_type_coverage.native.dart:220
+@_cdecl("_nitro_type_coverage_call_configureStringStream")
+public func _nitro_type_coverage_call_configureStringStream(_ values: UnsafeMutableRawPointer?) -> Void {
+    let valuesPtr = values?.assumingMemoryBound(to: UInt8.self)
+    let valuesDecoded = valuesPtr.map { NitroRecordReader.decodeIndexedList($0) { r in r.readString() } } ?? []
+    NitroTypeCoverageRegistry.impl?.configureStringStream(values: valuesDecoded)
+}
+
+// source: nitro_type_coverage.native.dart:225
+@_cdecl("_nitro_type_coverage_call_configureBlockIntStream")
+public func _nitro_type_coverage_call_configureBlockIntStream(_ from: Int64, _ count: Int64) -> Void {
+    NitroTypeCoverageRegistry.impl?.configureBlockIntStream(from: from, count: count)
+}
+
+// source: nitro_type_coverage.native.dart:228
 @_cdecl("_nitro_type_coverage_call_onPointEvent")
 public func _nitro_type_coverage_call_onPointEvent(_ pointCb: @convention(c) (Int64, Int64, Int64) -> Void) -> Void {
     NitroTypeCoverageRegistry.impl?.onPointEvent(pointCb: { arg0 in pointCb(Int64(bitPattern: arg0.x.bitPattern), Int64(bitPattern: arg0.y.bitPattern), Int64(bitPattern: arg0.z.bitPattern)) })
 }
 
-// source: nitro_type_coverage.native.dart:187
+// source: nitro_type_coverage.native.dart:229
 @_cdecl("_nitro_type_coverage_call_onDetailEvent")
 public func _nitro_type_coverage_call_onDetailEvent(_ detailCb: @convention(c) (Int64, Int64) -> Void) -> Void {
     NitroTypeCoverageRegistry.impl?.onDetailEvent(detailCb: { arg0, arg1 in detailCb(arg0, Int64(bitPattern: arg1.bitPattern)) })
 }
 
-// source: nitro_type_coverage.native.dart:190
+// source: nitro_type_coverage.native.dart:232
 @_cdecl("_nitro_type_coverage_call_onIntEvent")
 public func _nitro_type_coverage_call_onIntEvent(_ callback: @convention(c) (Int64) -> Void) -> Void {
     NitroTypeCoverageRegistry.impl?.onIntEvent(callback: { arg0 in callback(arg0) })
 }
 
-// source: nitro_type_coverage.native.dart:196
+// source: nitro_type_coverage.native.dart:238
 @_cdecl("_nitro_type_coverage_call_onBoolEvent")
 public func _nitro_type_coverage_call_onBoolEvent(_ boolCb: @convention(c) (Bool) -> Void) -> Void {
     NitroTypeCoverageRegistry.impl?.onBoolEvent(boolCb: { arg0 in boolCb(arg0) })
 }
 
-// source: nitro_type_coverage.native.dart:197
+// source: nitro_type_coverage.native.dart:239
 @_cdecl("_nitro_type_coverage_call_onDoubleEvent")
 public func _nitro_type_coverage_call_onDoubleEvent(_ doubleCb: @convention(c) (Int64) -> Void) -> Void {
     NitroTypeCoverageRegistry.impl?.onDoubleEvent(doubleCb: { arg0 in doubleCb(Int64(bitPattern: arg0.bitPattern)) })
 }
 
-// source: nitro_type_coverage.native.dart:239
+// source: nitro_type_coverage.native.dart:281
 @_cdecl("_nitro_type_coverage_call_configureStream")
 public func _nitro_type_coverage_call_configureStream(_ from: Int64, _ count: Int64) -> Void {
     NitroTypeCoverageRegistry.impl?.configureStream(from: from, count: count)
 }
 
-// source: nitro_type_coverage.native.dart:240
+// source: nitro_type_coverage.native.dart:282
 @_cdecl("_nitro_type_coverage_call_configureDoubleStream")
 public func _nitro_type_coverage_call_configureDoubleStream(_ start: Double, _ count: Int64) -> Void {
     NitroTypeCoverageRegistry.impl?.configureDoubleStream(start: start, count: count)
 }
 
-// source: nitro_type_coverage.native.dart:241
+// source: nitro_type_coverage.native.dart:283
 @_cdecl("_nitro_type_coverage_call_configureStatusStream")
 public func _nitro_type_coverage_call_configureStatusStream(_ count: Int64) -> Void {
     NitroTypeCoverageRegistry.impl?.configureStatusStream(count: count)
 }
 
-// source: nitro_type_coverage.native.dart:244
+// source: nitro_type_coverage.native.dart:286
 @_cdecl("_nitro_type_coverage_call_throwNative")
 public func _nitro_type_coverage_call_throwNative(_ message: UnsafePointer<CChar>?) -> Void {
     let messageStr = message != nil ? String(cString: message!) : ""
     NitroTypeCoverageRegistry.impl?.throwNative(message: messageStr)
 }
 
-// source: nitro_type_coverage.native.dart:247
+// source: nitro_type_coverage.native.dart:289
 @_cdecl("_nitro_type_coverage_call_throwNativeAsync")
 public func _nitro_type_coverage_call_throwNativeAsync(_ message: UnsafePointer<CChar>?) -> Void {
     let messageStr = message != nil ? String(cString: message!) : ""
@@ -1510,6 +1820,48 @@ public func _nitro_type_coverage_call_throwNativeAsync(_ message: UnsafePointer<
         NSException(name: NSExceptionName((_e as NSError).domain),
                     reason: (_e as NSError).localizedDescription,
                     userInfo: nil).raise()
+    }
+}
+
+// source: nitro_type_coverage.native.dart:294
+@_cdecl("_nitro_type_coverage_call_acquireBuffer")
+public func _nitro_type_coverage_call_acquireBuffer(_ size: Int64) -> UnsafeMutableRawPointer? {
+    guard let impl = NitroTypeCoverageRegistry.impl else { return nil }
+    return impl.acquireBuffer(size: size)
+}
+
+// source: nitro_type_coverage.native.dart:298
+@_cdecl("_nitro_type_coverage_call_echoEvent")
+public func _nitro_type_coverage_call_echoEvent(_ event: UnsafeMutableRawPointer?) -> UnsafeMutablePointer<UInt8>? {
+    guard let impl = NitroTypeCoverageRegistry.impl else { return nil }
+    let _vResult = impl.echoEvent(event: TcEvent.fromReader(NitroRecordReader(ptr: event!.assumingMemoryBound(to: UInt8.self))))
+    let _vw = NitroRecordWriter()
+    _vResult.writeFields(to: _vw)
+    return _vw.toNative().map { UnsafeMutablePointer($0) }
+}
+
+// source: nitro_type_coverage.native.dart:303
+@_cdecl("_nitro_type_coverage_call_safeDiv")
+public func _nitro_type_coverage_call_safeDiv(_ a: Double, _ b: Double) -> UnsafeMutablePointer<UInt8>? {
+    guard let impl = NitroTypeCoverageRegistry.impl else { return nil }
+    do {
+        let result = try impl.safeDiv(a: a, b: b)
+        return _nitroEncodeResultFloat64(result)
+    } catch {
+        return _nitroEncodeResultError(error)
+    }
+}
+
+// source: nitro_type_coverage.native.dart:308
+@_cdecl("_nitro_type_coverage_call_validateLabel")
+public func _nitro_type_coverage_call_validateLabel(_ label: UnsafePointer<CChar>?) -> UnsafeMutablePointer<UInt8>? {
+    let labelStr = label != nil ? String(cString: label!) : ""
+    guard let impl = NitroTypeCoverageRegistry.impl else { return nil }
+    do {
+        let result = try impl.validateLabel(label: labelStr)
+        return _nitroEncodeResultString(result)
+    } catch {
+        return _nitroEncodeResultError(error)
     }
 }
 
@@ -1629,7 +1981,7 @@ public func _nitro_type_coverage_register_batchIntStream_stream(
     NitroTypeCoverageRegistry._batchIntStreamCancellables[dartPort] =
         NitroTypeCoverageRegistry.impl?.batchIntStream.sink { item in
             _lock.lock()
-            _buf.append(item as! Int64)
+            _buf.append(item)
             let needsFlush = _buf.count >= 16
             _lock.unlock()
             if needsFlush { _flush() }
@@ -1642,6 +1994,120 @@ public func _nitro_type_coverage_release_batchIntStream_stream(_ dartPort: Int64
     NitroTypeCoverageRegistry._batchIntStreamFlushTimers.removeValue(forKey: dartPort)
     NitroTypeCoverageRegistry._batchIntStreamCancellables[dartPort]?.cancel()
     NitroTypeCoverageRegistry._batchIntStreamCancellables.removeValue(forKey: dartPort)
+}
+@_cdecl("_nitro_type_coverage_register_batchDoubleStream_stream")
+public func _nitro_type_coverage_register_batchDoubleStream_stream(
+    _ dartPort: Int64,
+    _ emitBatch: @convention(c) (Int64, UnsafeMutablePointer<Int64>?, Int32) -> Bool
+) {
+    let _lock = NSLock()
+    var _buf = [Int64]()
+    _buf.reserveCapacity(16)
+    func _flush() {
+        _lock.lock()
+        guard !_buf.isEmpty else { _lock.unlock(); return }
+        var arr = _buf; _buf.removeAll(keepingCapacity: true)
+        _lock.unlock()
+        let count = Int32(arr.count)
+        _ = arr.withUnsafeMutableBufferPointer { emitBatch(dartPort, $0.baseAddress, count) }
+    }
+    let _timer = DispatchSource.makeTimerSource(queue: .global())
+    _timer.schedule(deadline: .now() + .milliseconds(10), repeating: .milliseconds(10))
+    _timer.setEventHandler { _flush() }
+    _timer.resume()
+    NitroTypeCoverageRegistry._batchDoubleStreamFlushTimers[dartPort] = _timer
+    NitroTypeCoverageRegistry._batchDoubleStreamCancellables[dartPort] =
+        NitroTypeCoverageRegistry.impl?.batchDoubleStream.sink { item in
+            _lock.lock()
+            _buf.append(Int64(bitPattern: item.bitPattern))
+            let needsFlush = _buf.count >= 16
+            _lock.unlock()
+            if needsFlush { _flush() }
+        }
+}
+
+@_cdecl("_nitro_type_coverage_release_batchDoubleStream_stream")
+public func _nitro_type_coverage_release_batchDoubleStream_stream(_ dartPort: Int64) {
+    NitroTypeCoverageRegistry._batchDoubleStreamFlushTimers[dartPort]?.cancel()
+    NitroTypeCoverageRegistry._batchDoubleStreamFlushTimers.removeValue(forKey: dartPort)
+    NitroTypeCoverageRegistry._batchDoubleStreamCancellables[dartPort]?.cancel()
+    NitroTypeCoverageRegistry._batchDoubleStreamCancellables.removeValue(forKey: dartPort)
+}
+@_cdecl("_nitro_type_coverage_register_batchBoolStream_stream")
+public func _nitro_type_coverage_register_batchBoolStream_stream(
+    _ dartPort: Int64,
+    _ emitBatch: @convention(c) (Int64, UnsafeMutablePointer<Int64>?, Int32) -> Bool
+) {
+    let _lock = NSLock()
+    var _buf = [Int64]()
+    _buf.reserveCapacity(16)
+    func _flush() {
+        _lock.lock()
+        guard !_buf.isEmpty else { _lock.unlock(); return }
+        var arr = _buf; _buf.removeAll(keepingCapacity: true)
+        _lock.unlock()
+        let count = Int32(arr.count)
+        _ = arr.withUnsafeMutableBufferPointer { emitBatch(dartPort, $0.baseAddress, count) }
+    }
+    let _timer = DispatchSource.makeTimerSource(queue: .global())
+    _timer.schedule(deadline: .now() + .milliseconds(10), repeating: .milliseconds(10))
+    _timer.setEventHandler { _flush() }
+    _timer.resume()
+    NitroTypeCoverageRegistry._batchBoolStreamFlushTimers[dartPort] = _timer
+    NitroTypeCoverageRegistry._batchBoolStreamCancellables[dartPort] =
+        NitroTypeCoverageRegistry.impl?.batchBoolStream.sink { item in
+            _lock.lock()
+            _buf.append(item ? 1 : 0)
+            let needsFlush = _buf.count >= 16
+            _lock.unlock()
+            if needsFlush { _flush() }
+        }
+}
+
+@_cdecl("_nitro_type_coverage_release_batchBoolStream_stream")
+public func _nitro_type_coverage_release_batchBoolStream_stream(_ dartPort: Int64) {
+    NitroTypeCoverageRegistry._batchBoolStreamFlushTimers[dartPort]?.cancel()
+    NitroTypeCoverageRegistry._batchBoolStreamFlushTimers.removeValue(forKey: dartPort)
+    NitroTypeCoverageRegistry._batchBoolStreamCancellables[dartPort]?.cancel()
+    NitroTypeCoverageRegistry._batchBoolStreamCancellables.removeValue(forKey: dartPort)
+}
+@_cdecl("_nitro_type_coverage_register_stringStream_stream")
+public func _nitro_type_coverage_register_stringStream_stream(
+    _ dartPort: Int64,
+    _ emitCb: @convention(c) (Int64, UnsafeMutablePointer<Int8>?) -> Bool
+) {
+    NitroTypeCoverageRegistry._stringStreamCancellables[dartPort] =
+        NitroTypeCoverageRegistry.impl?.stringStream.sink { item in
+            item.withCString { ptr in
+                if !emitCb(dartPort, UnsafeMutablePointer(mutating: ptr)) {
+                    NitroTypeCoverageRegistry._stringStreamCancellables.removeValue(forKey: dartPort)?.cancel()
+                }
+            }
+        }
+}
+
+@_cdecl("_nitro_type_coverage_release_stringStream_stream")
+public func _nitro_type_coverage_release_stringStream_stream(_ dartPort: Int64) {
+    NitroTypeCoverageRegistry._stringStreamCancellables[dartPort]?.cancel()
+    NitroTypeCoverageRegistry._stringStreamCancellables.removeValue(forKey: dartPort)
+}
+@_cdecl("_nitro_type_coverage_register_blockIntStream_stream")
+public func _nitro_type_coverage_register_blockIntStream_stream(
+    _ dartPort: Int64,
+    _ emitCb: @convention(c) (Int64, Int64) -> Bool
+) {
+    NitroTypeCoverageRegistry._blockIntStreamCancellables[dartPort] =
+        NitroTypeCoverageRegistry.impl?.blockIntStream.sink { item in
+            if !emitCb(dartPort, item) {
+                NitroTypeCoverageRegistry._blockIntStreamCancellables.removeValue(forKey: dartPort)?.cancel()
+            }
+        }
+}
+
+@_cdecl("_nitro_type_coverage_release_blockIntStream_stream")
+public func _nitro_type_coverage_release_blockIntStream_stream(_ dartPort: Int64) {
+    NitroTypeCoverageRegistry._blockIntStreamCancellables[dartPort]?.cancel()
+    NitroTypeCoverageRegistry._blockIntStreamCancellables.removeValue(forKey: dartPort)
 }
 @_cdecl("_nitro_type_coverage_register_intStream_stream")
 public func _nitro_type_coverage_register_intStream_stream(

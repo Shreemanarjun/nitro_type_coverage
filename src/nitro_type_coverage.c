@@ -1,4 +1,5 @@
 #include "nitro_type_coverage.h"
+#include <stdlib.h>
 
 // A very short-lived native function.
 //

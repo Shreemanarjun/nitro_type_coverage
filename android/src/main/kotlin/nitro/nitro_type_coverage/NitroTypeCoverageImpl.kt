@@ -17,6 +17,7 @@ import nitro.nitro_type_coverage_module.TcMeta
 import nitro.nitro_type_coverage_module.TcNested
 import nitro.nitro_type_coverage_module.TcNullableWrapper
 import nitro.nitro_type_coverage_module.TcPacket
+import nitro.nitro_type_coverage_module.TcEvent
 import nitro.nitro_type_coverage_module.TcPoint
 import nitro.nitro_type_coverage_module.TcStatus
 import nitro.nitro_type_coverage_module.TcStructHolder
@@ -236,6 +237,74 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
         }
     }
 
+    private val _batchDoubleChannel = Channel<Double>(Channel.UNLIMITED)
+    override val batchDoubleStream: kotlinx.coroutines.flow.Flow<Double> = _batchDoubleChannel.receiveAsFlow()
+    @Suppress("UNCHECKED_CAST")
+    override fun configureBatchDoubleStream(values: Any?) {
+        val list = (values as? List<Double>) ?: return
+        CoroutineScope(Dispatchers.Default).launch {
+            for (v in list) { _batchDoubleChannel.send(v) }
+        }
+    }
+
+    private val _batchBoolChannel = Channel<Boolean>(Channel.UNLIMITED)
+    override val batchBoolStream: kotlinx.coroutines.flow.Flow<Boolean> = _batchBoolChannel.receiveAsFlow()
+    @Suppress("UNCHECKED_CAST")
+    override fun configureBatchBoolStream(values: Any?) {
+        // Bridge decodes bool items as Long (0L = false, non-zero = true)
+        val list = (values as? List<Any>) ?: return
+        CoroutineScope(Dispatchers.Default).launch {
+            for (v in list) { _batchBoolChannel.send((v as? Long ?: 0L) != 0L) }
+        }
+    }
+
+    // ── §35: Bool/enum bidirectional callbacks ─────────────────────────────────
+    override fun onBoolTransform(boolCb: (p0: Long) -> Boolean) {
+        @Suppress("UNUSED_VARIABLE")
+        val result = boolCb(42L)  // Dart returns true/false based on value
+    }
+    override fun onStatusTransform(statusCb: (p0: Long) -> TcStatus) {
+        @Suppress("UNUSED_VARIABLE")
+        val result = statusCb(42L)  // Dart returns TcStatus based on value
+    }
+
+    // ── §35: List<bool> and List<TcPoint> ────────────────────────────────────
+    @Suppress("UNCHECKED_CAST")
+    override suspend fun echoListBool(value: Any?): List<Boolean> {
+        val list = value as? List<*> ?: return emptyList()
+        return list.map { (it as? Long ?: 0L) != 0L }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override suspend fun echoPointList(values: Any?): List<TcPoint> =
+        (values as? List<TcPoint>) ?: emptyList()
+
+    // ── §35: @NitroNativeAsync with typed returns ──────────────────────────────
+    override suspend fun nativeAsyncInt(value: Long): Long = value
+    override suspend fun nativeAsyncDouble(value: Double): Double = value
+    override suspend fun nativeAsyncBool(value: Boolean): Boolean = value
+    override suspend fun nativeAsyncString(value: String): String = value
+
+    // ── §35: Stream<String> ───────────────────────────────────────────────────
+    private val _stringStream = MutableSharedFlow<String>(extraBufferCapacity = 64)
+    override val stringStream: kotlinx.coroutines.flow.Flow<String> = _stringStream
+    @Suppress("UNCHECKED_CAST")
+    override fun configureStringStream(values: Any?) {
+        val list = (values as? List<String>) ?: return
+        CoroutineScope(Dispatchers.Default).launch {
+            for (v in list) { _stringStream.emit(v) }
+        }
+    }
+
+    // ── §35: Backpressure.block stream ────────────────────────────────────────
+    private val _blockIntStream = MutableSharedFlow<Long>(extraBufferCapacity = 64)
+    override val blockIntStream: kotlinx.coroutines.flow.Flow<Long> = _blockIntStream
+    override fun configureBlockIntStream(from: Long, count: Long) {
+        CoroutineScope(Dispatchers.Default).launch {
+            for (i in 0 until count) { _blockIntStream.emit(from + i) }
+        }
+    }
+
     // ── Callbacks with struct and multi-params (§27) ──────────────────────────
     override fun onPointEvent(pointCb: (p0: TcPoint) -> Unit) {
         pointCb(TcPoint(x = 1.0, y = 2.0, z = 3.0))
@@ -282,5 +351,37 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
 
     override suspend fun throwNativeAsync(message: String) {
         throw RuntimeException(message)
+    }
+
+    // ── §36: @NitroOwned ─────────────────────────────────────────────────────
+    // acquireBuffer: allocate a ByteArray of `size` bytes and return its address.
+    // The bridge wraps this as a NativeHandle<Void> (opaque pointer).
+    override fun acquireBuffer(size: Long): Long {
+        // Allocate on Kotlin side; return address via sun.misc.Unsafe or store globally.
+        // For testing, we just return a stable non-null Long pointer value.
+        val buf = ByteArray(size.toInt())
+        // Store in a static list to prevent GC; return index + 1 as "pointer"
+        val idx = _ownedBuffers.size.toLong()
+        _ownedBuffers.add(buf)
+        return idx + 1L  // Non-zero = valid handle
+    }
+
+    // ── §36: @NitroVariant ────────────────────────────────────────────────────
+    override fun echoEvent(event: TcEvent): TcEvent = event
+
+    // ── §36: @NitroResult ─────────────────────────────────────────────────────
+    override fun safeDiv(a: Double, b: Double): Double {
+        if (b == 0.0) throw ArithmeticException("division by zero")
+        return a / b
+    }
+
+    override fun validateLabel(label: String): String {
+        val trimmed = label.trim()
+        if (trimmed.isEmpty()) throw IllegalArgumentException("empty label")
+        return trimmed
+    }
+
+    companion object {
+        private val _ownedBuffers = mutableListOf<ByteArray>()
     }
 }
