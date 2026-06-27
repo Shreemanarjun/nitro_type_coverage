@@ -374,7 +374,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     );
     NitroRuntime.checkLinkChecksum(
       'nitro_type_coverage',
-      '7e9470573eb772f3',
+      '4a904930a93a244f',
       () => _dylib
           .lookupFunction<Pointer<Utf8> Function(), Pointer<Utf8> Function()>(
             'nitro_type_coverage_nitro_bridge_checksum',
@@ -1030,6 +1030,38 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
         Pointer<Uint8> Function(Pointer<Utf8>, Pointer<NitroErrorFfi>),
         Pointer<Uint8> Function(Pointer<Utf8>, Pointer<NitroErrorFfi>)
       >('nitro_type_coverage_validate_label');
+  late final Pointer<Void> Function(int) _asyncAcquireBufferPtr = _dylib
+      .lookupFunction<
+        Pointer<Void> Function(Int64),
+        Pointer<Void> Function(int)
+      >('nitro_type_coverage_async_acquire_buffer');
+  late final void Function(Pointer<Void>) _asyncAcquireBufferReleaseFn = _dylib
+      .lookupFunction<
+        Void Function(Pointer<Void>),
+        void Function(Pointer<Void>)
+      >('nitro_type_coverage_async_acquire_buffer_release');
+  late final NativeFinalizer _asyncAcquireBufferFinalizer = NativeFinalizer(
+    _dylib
+        .lookup<NativeFunction<Void Function(Pointer<Void>)>>(
+          'nitro_type_coverage_async_acquire_buffer_release',
+        )
+        .cast(),
+  );
+  late final Pointer<Uint8> Function(Pointer<Uint8>) _asyncEchoEventPtr = _dylib
+      .lookupFunction<
+        Pointer<Uint8> Function(Pointer<Uint8>),
+        Pointer<Uint8> Function(Pointer<Uint8>)
+      >('nitro_type_coverage_async_echo_event');
+  late final Pointer<Uint8> Function(double, double) _asyncSafeDivPtr = _dylib
+      .lookupFunction<
+        Pointer<Uint8> Function(Double, Double),
+        Pointer<Uint8> Function(double, double)
+      >('nitro_type_coverage_async_safe_div');
+  late final Pointer<Uint8> Function(Pointer<Utf8>) _asyncValidateLabelPtr =
+      _dylib.lookupFunction<
+        Pointer<Uint8> Function(Pointer<Utf8>),
+        Pointer<Uint8> Function(Pointer<Utf8>)
+      >('nitro_type_coverage_async_validate_label');
   late final int Function(Pointer<NitroErrorFfi>) _getPrecisionPtr = _dylib
       .lookup<NativeFunction<Int64 Function(Pointer<NitroErrorFfi>)>>(
         'nitro_type_coverage_get_precision',
@@ -2896,6 +2928,101 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
       }),
       methodName: 'validateLabel',
     );
+  }
+
+  @override
+  Future<NativeHandle<Void>> asyncAcquireBuffer(int size) async {
+    checkDisposed();
+    final res = await NitroRuntime.callAsync<Pointer<Void>>(
+      _asyncAcquireBufferPtr,
+      [size],
+      getError: _getErrorNativePtr,
+      clearError: _clearErrorNativePtr,
+      methodName: 'asyncAcquireBuffer',
+    );
+    final handle = NativeHandle<Void>.fromAddress(res.address);
+    _asyncAcquireBufferFinalizer.attach(handle, res.cast(), detach: handle);
+    handle.attachReleaseCallback((addr) {
+      _asyncAcquireBufferReleaseFn(Pointer<Void>.fromAddress(addr));
+      _asyncAcquireBufferFinalizer.detach(handle);
+    });
+    return handle;
+  }
+
+  @override
+  Future<TcEvent> asyncEchoEvent(TcEvent event) async {
+    checkDisposed();
+    final arena = Arena();
+    try {
+      final res = await NitroRuntime.callAsync<Pointer<Uint8>>(
+        _asyncEchoEventPtr,
+        [event.toNative(arena)],
+        getError: _getErrorNativePtr,
+        clearError: _clearErrorNativePtr,
+        methodName: 'asyncEchoEvent',
+      );
+      if (res == nullptr) throw StateError('TcEvent returned null');
+      final _variant;
+      try {
+        _variant = TcEventVariantExt.fromNative(res);
+      } finally {
+        malloc.free(res);
+      }
+      return _variant;
+    } finally {
+      arena.releaseAll();
+    }
+  }
+
+  @override
+  Future<NitroResultValue<double>> asyncSafeDiv(double a, double b) async {
+    checkDisposed();
+    final res = await NitroRuntime.callAsync<Pointer<Uint8>>(
+      _asyncSafeDivPtr,
+      [a, b],
+      getError: _getErrorNativePtr,
+      clearError: _clearErrorNativePtr,
+      methodName: 'asyncSafeDiv',
+    );
+    try {
+      final _tag = res[0];
+      if (_tag != 0) {
+        final _errR = RecordReader.fromNative(res + 1);
+        return NitroErr(_errR.readString());
+      }
+      final _r = RecordReader.fromNative(res + 1);
+      return NitroOk(_r.readDouble());
+    } finally {
+      malloc.free(res);
+    }
+  }
+
+  @override
+  Future<NitroResultValue<String>> asyncValidateLabel(String label) async {
+    checkDisposed();
+    final arena = Arena();
+    try {
+      final res = await NitroRuntime.callAsync<Pointer<Uint8>>(
+        _asyncValidateLabelPtr,
+        [label.toNativeUtf8(allocator: arena)],
+        getError: _getErrorNativePtr,
+        clearError: _clearErrorNativePtr,
+        methodName: 'asyncValidateLabel',
+      );
+      try {
+        final _tag = res[0];
+        if (_tag != 0) {
+          final _errR = RecordReader.fromNative(res + 1);
+          return NitroErr(_errR.readString());
+        }
+        final _r = RecordReader.fromNative(res + 1);
+        return NitroOk(_r.readString());
+      } finally {
+        malloc.free(res);
+      }
+    } finally {
+      arena.releaseAll();
+    }
   }
 
   @override

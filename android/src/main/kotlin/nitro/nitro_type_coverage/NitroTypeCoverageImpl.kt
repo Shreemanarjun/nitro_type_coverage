@@ -381,6 +381,26 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
         return trimmed
     }
 
+    // ── §37: @nitroAsync + @NitroOwned/@NitroVariant/@NitroResult ────────────
+    override suspend fun asyncAcquireBuffer(size: Long): Long {
+        val idx = _ownedBuffers.size.toLong()
+        _ownedBuffers.add(ByteArray(size.toInt()))
+        return idx + 1L
+    }
+
+    override suspend fun asyncEchoEvent(event: TcEvent): TcEvent = event
+
+    override suspend fun asyncSafeDiv(a: Double, b: Double): Double {
+        if (b == 0.0) throw ArithmeticException("division by zero")
+        return a / b
+    }
+
+    override suspend fun asyncValidateLabel(label: String): String {
+        val trimmed = label.trim()
+        if (trimmed.isEmpty()) throw IllegalArgumentException("empty label")
+        return trimmed
+    }
+
     companion object {
         private val _ownedBuffers = mutableListOf<ByteArray>()
     }

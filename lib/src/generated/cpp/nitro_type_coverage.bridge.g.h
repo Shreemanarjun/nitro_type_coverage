@@ -54,7 +54,9 @@ NITRO_EXPORT NitroError* nitro_type_coverage_get_error(void);
 NITRO_EXPORT void nitro_type_coverage_clear_error(void);
 NITRO_EXPORT void nitro_type_coverage_release_typed_data_return(void* ptr);
 /// Release the handle returned by acquireBuffer(). Called by Dart NativeFinalizer.
+/// Release the handle returned by asyncAcquireBuffer(). Called by Dart NativeFinalizer.
 NITRO_EXPORT void nitro_type_coverage_acquire_buffer_release(void* handle);
+NITRO_EXPORT void nitro_type_coverage_async_acquire_buffer_release(void* handle);
 
 
 
@@ -144,6 +146,10 @@ NITRO_EXPORT void* nitro_type_coverage_acquire_buffer(int64_t size, NitroError* 
 NITRO_EXPORT uint8_t* nitro_type_coverage_echo_event(void* event, NitroError* _nitro_err);
 NITRO_EXPORT uint8_t* nitro_type_coverage_safe_div(double a, double b, NitroError* _nitro_err);
 NITRO_EXPORT uint8_t* nitro_type_coverage_validate_label(const char* label, NitroError* _nitro_err);
+NITRO_EXPORT void* nitro_type_coverage_async_acquire_buffer(int64_t size);
+NITRO_EXPORT uint8_t* nitro_type_coverage_async_echo_event(void* event);
+NITRO_EXPORT uint8_t* nitro_type_coverage_async_safe_div(double a, double b);
+NITRO_EXPORT uint8_t* nitro_type_coverage_async_validate_label(const char* label);
 
 // Properties
 NITRO_EXPORT int64_t nitro_type_coverage_get_precision(NitroError* _nitro_err);

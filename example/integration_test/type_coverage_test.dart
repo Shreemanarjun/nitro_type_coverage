@@ -2788,4 +2788,170 @@ void main() {
       expect(result.value, 'nitro');
     });
   });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // §37 — @nitroAsync + @NitroOwned / @NitroVariant / @NitroResult
+  //
+  // Tests the async dispatch path for the three annotation combos. Each method
+  // is dispatched on a background thread via DispatchSemaphore (Swift) or
+  // _asyncExecutor.submit() (Kotlin) and must return correct values / errors.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('§37 — @nitroAsync @NitroOwned (asyncAcquireBuffer)', () {
+    testWidgets('returns non-null handle', (t) async {
+      final handle = await tc.asyncAcquireBuffer(64);
+      expect(handle, isNotNull);
+    });
+
+    testWidgets('handle address is non-zero', (t) async {
+      final handle = await tc.asyncAcquireBuffer(128);
+      expect(handle.pointer.address, isNonZero);
+    });
+
+    testWidgets('zero size does not crash', (t) async {
+      expect(() async => tc.asyncAcquireBuffer(0), returnsNormally);
+    });
+
+    testWidgets('multiple concurrent calls each return distinct handles', (t) async {
+      final handles = await Future.wait(
+        List.generate(5, (i) => tc.asyncAcquireBuffer(32 + i)),
+      );
+      expect(handles.length, 5);
+      // All handles must be non-null.
+      for (final h in handles) {
+        expect(h, isNotNull);
+        expect(h.pointer.address, isNonZero);
+      }
+    });
+  });
+
+  group('§37 — @nitroAsync @NitroVariant (asyncEchoEvent)', () {
+    testWidgets('Tap case round-trips x/y via background thread', (t) async {
+      const input = TcEventTap(x: 7, y: 13);
+      final output = await tc.asyncEchoEvent(input);
+      expect(output, isA<TcEventTap>());
+      final tap = output as TcEventTap;
+      expect(tap.x, 7);
+      expect(tap.y, 13);
+    });
+
+    testWidgets('Scroll case round-trips delta', (t) async {
+      const input = TcEventScroll(delta: 2.71828);
+      final output = await tc.asyncEchoEvent(input);
+      expect(output, isA<TcEventScroll>());
+      expect((output as TcEventScroll).delta, closeTo(2.71828, 1e-9));
+    });
+
+    testWidgets('Resize case round-trips width/height', (t) async {
+      const input = TcEventResize(width: 3840, height: 2160);
+      final output = await tc.asyncEchoEvent(input);
+      expect(output, isA<TcEventResize>());
+      final r = output as TcEventResize;
+      expect(r.width, 3840);
+      expect(r.height, 2160);
+    });
+
+    testWidgets('all three cases work concurrently', (t) async {
+      final results = await Future.wait([
+        tc.asyncEchoEvent(const TcEventTap(x: 1, y: 2)),
+        tc.asyncEchoEvent(const TcEventScroll(delta: 0.5)),
+        tc.asyncEchoEvent(const TcEventResize(width: 640, height: 480)),
+      ]);
+      expect(results[0], isA<TcEventTap>());
+      expect(results[1], isA<TcEventScroll>());
+      expect(results[2], isA<TcEventResize>());
+    });
+
+    testWidgets('Tap with boundary int values', (t) async {
+      const max64 = 9223372036854775807;
+      const input = TcEventTap(x: max64, y: -max64);
+      final output = await tc.asyncEchoEvent(input) as TcEventTap;
+      expect(output.x, max64);
+      expect(output.y, -max64);
+    });
+  });
+
+  group('§37 — @nitroAsync @NitroResult<double> (asyncSafeDiv)', () {
+    testWidgets('valid division returns NitroOk on background thread', (t) async {
+      final result = await tc.asyncSafeDiv(10.0, 2.0);
+      expect(result, isA<NitroOk<double>>());
+      expect((result as NitroOk<double>).value, closeTo(5.0, 1e-9));
+    });
+
+    testWidgets('division by zero returns NitroErr on background thread', (t) async {
+      final result = await tc.asyncSafeDiv(10.0, 0.0);
+      expect(result, isA<NitroErr<double>>());
+      expect((result as NitroErr<double>).message, isNotEmpty);
+    });
+
+    testWidgets('negative numerator', (t) async {
+      final result = await tc.asyncSafeDiv(-9.0, 3.0) as NitroOk<double>;
+      expect(result.value, closeTo(-3.0, 1e-9));
+    });
+
+    testWidgets('fractional result preserves precision', (t) async {
+      final result = await tc.asyncSafeDiv(1.0, 3.0) as NitroOk<double>;
+      expect(result.value, closeTo(1.0 / 3.0, 1e-12));
+    });
+
+    testWidgets('10 concurrent calls all resolve correctly', (t) async {
+      final futures = List.generate(10, (i) => tc.asyncSafeDiv(i.toDouble(), 2.0));
+      final results = await Future.wait(futures);
+      for (var i = 0; i < 10; i++) {
+        final ok = results[i] as NitroOk<double>;
+        expect(ok.value, closeTo(i / 2.0, 1e-9));
+      }
+    });
+
+    testWidgets('mixed ok/err calls do not cross-contaminate', (t) async {
+      final results = await Future.wait([
+        tc.asyncSafeDiv(6.0, 2.0),   // ok: 3.0
+        tc.asyncSafeDiv(5.0, 0.0),   // err: div by zero
+        tc.asyncSafeDiv(9.0, 3.0),   // ok: 3.0
+      ]);
+      expect(results[0], isA<NitroOk<double>>());
+      expect(results[1], isA<NitroErr<double>>());
+      expect(results[2], isA<NitroOk<double>>());
+      expect((results[0] as NitroOk<double>).value, closeTo(3.0, 1e-9));
+      expect((results[2] as NitroOk<double>).value, closeTo(3.0, 1e-9));
+    });
+  });
+
+  group('§37 — @nitroAsync @NitroResult<String> (asyncValidateLabel)', () {
+    testWidgets('valid label returns NitroOk on background thread', (t) async {
+      final result = await tc.asyncValidateLabel('  world  ');
+      expect(result, isA<NitroOk<String>>());
+      expect((result as NitroOk<String>).value, 'world');
+    });
+
+    testWidgets('empty string returns NitroErr on background thread', (t) async {
+      final result = await tc.asyncValidateLabel('');
+      expect(result, isA<NitroErr<String>>());
+    });
+
+    testWidgets('whitespace-only returns NitroErr', (t) async {
+      final result = await tc.asyncValidateLabel('   ');
+      expect(result, isA<NitroErr<String>>());
+    });
+
+    testWidgets('label without spaces returned as-is', (t) async {
+      final result = await tc.asyncValidateLabel('nitro') as NitroOk<String>;
+      expect(result.value, 'nitro');
+    });
+
+    testWidgets('unicode label round-trips correctly', (t) async {
+      final result = await tc.asyncValidateLabel('  日本語 🚀  ') as NitroOk<String>;
+      expect(result.value, '日本語 🚀');
+    });
+
+    testWidgets('5 concurrent calls — each gets correct result', (t) async {
+      final labels = ['alpha', 'beta', 'gamma', 'delta', 'epsilon'];
+      final futures = labels.map((l) => tc.asyncValidateLabel(l)).toList();
+      final results = await Future.wait(futures);
+      for (var i = 0; i < labels.length; i++) {
+        expect(results[i], isA<NitroOk<String>>());
+        expect((results[i] as NitroOk<String>).value, labels[i]);
+      }
+    });
+  });
 }

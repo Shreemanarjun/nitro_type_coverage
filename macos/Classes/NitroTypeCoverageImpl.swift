@@ -54,7 +54,6 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
 
     // ── @HybridRecord ─────────────────────────────────────────────────────────
     public func echoConfig(value: TcConfig) -> TcConfig { value }
-    public func echoMeta(value: TcMeta) -> TcMeta { value }
 
     // ── TypedData (zero-copy) ─────────────────────────────────────────────────
     public func echoBytes(value: Data) -> Data { value }
@@ -77,53 +76,121 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     public func asyncBool(value: Bool) async throws -> Bool { value }
     public func asyncString(value: String) async throws -> String { value }
     public func asyncConfig(value: TcConfig) async throws -> TcConfig { value }
-    public func asyncPoint(value: TcPoint) async throws -> TcPoint { value }
-    public func asyncNullableStatus(value: TcStatus?) async throws -> TcStatus? { value }
+
+    // ── Async nullable ────────────────────────────────────────────────────────
+    public func asyncNullableInt(value: Int64?) async throws -> Int64? { value }
+    public func asyncNullableDouble(value: Double?) async throws -> Double? { value }
+    public func asyncNullableBool(value: Bool?) async throws -> Bool? { value }
+    public func asyncNullableString(value: String?) async throws -> String? { value }
+
+    // ── @HybridRecord (TcMeta) ───────────────────────────────────────────────
+    public func echoMeta(value: TcMeta) -> TcMeta { value }
     public func asyncMeta(value: TcMeta) async throws -> TcMeta { value }
+
+    // ── NitroNullable built-in types (from package:nitro) ────────────────────
+    // These types have no sentinel collision — all values including Int64.min,
+    // NaN, and every bool state round-trip correctly on all platforms.
     public func echoNullableIntSafe(value: NitroNullableInt) -> NitroNullableInt { value }
     public func echoNullableDoubleSafe(value: NitroNullableDouble) -> NitroNullableDouble { value }
     public func echoNullableBoolSafe(value: NitroNullableBool) -> NitroNullableBool { value }
+
+    // ── Maps (§24) ────────────────────────────────────────────────────────────
     public func echoIntMap(value: Any) -> Any { value }
     public func echoStringMap(value: Any) -> Any { value }
     public func echoDoubleMap(value: Any) -> Any { value }
     public func echoBoolMap(value: Any) -> Any { value }
+
+    // ── @HybridRecord with TypedData fields (§29) ────────────────────────────
     public func echoDataRecord(value: TcDataRecord) -> TcDataRecord { value }
+
+    // ── §30: 6 new type coverage features ────────────────────────────────────
+
+    // #1 Stream<TcConfig>
+    private let _configStreamSubject = PassthroughSubject<TcConfig, Never>()
+    public var configStream: AnyPublisher<TcConfig, Never> { _configStreamSubject.eraseToAnyPublisher() }
+    public func configureConfigStream(seed: TcConfig, count: Int64) {
+        Task {
+            for i in 0..<count {
+                _configStreamSubject.send(TcConfig(
+                    name: "\(seed.name)-\(i)", count: seed.count + i,
+                    enabled: seed.enabled, threshold: seed.threshold + Double(i) * 0.1))
+            }
+        }
+    }
+
+    // #2 Nullable @HybridRecord
+    public func echoNullableConfig(value: TcConfig?) -> TcConfig? { value }
+
+    // #3 Nested @HybridRecord
+    public func echoNested(value: TcNested) -> TcNested { value }
+
+    // #4 List<TcConfig> sync param
+    public func echoConfigListSync(values: [TcConfig]) async throws -> [TcConfig] { values }
+
+    // #5 NitroNullable inside @HybridRecord
+    public func echoNullableWrapper(value: TcNullableWrapper) -> TcNullableWrapper { value }
+
+    // #6 Bidirectional callback — native calls Dart, receives a value back
+    public func onTransformEvent(transformCb: @escaping (Int64) -> Int64) {
+        // Call the Dart callback with 42 and verify we get a transformed value back
+        let _ = transformCb(42)
+    }
+
+    // ── @HybridRecord with enum field (§25) ───────────────────────────────────
     public func echoPacket(value: TcPacket) -> TcPacket { value }
+
+    // ── Nullable struct (§26) ─────────────────────────────────────────────────
     public func echoNullablePoint(value: TcPoint?) -> TcPoint? { value }
 
-    // ── #5: @HybridStruct in @HybridRecord (§32) ─────────────────────────────
+    // ── #5: @HybridStruct in @HybridRecord (§32) ──────────────────────────────
     public func echoStructHolder(value: TcStructHolder) -> TcStructHolder { value }
 
-    // ── #4: Bidirectional callbacks with non-int returns (§32) ──────────────
+    // ── #4: Bidirectional callbacks with non-int returns (§32) ───────────────
     public func onStringTransform(stringCb: @escaping (Int64) -> String) {
-        _ = stringCb(42)
+        _ = stringCb(42)  // Native calls Dart with 42, gets back a String
     }
     public func onDoubleTransform(doubleCb: @escaping (Int64) -> Double) {
-        _ = doubleCb(7)
+        _ = doubleCb(7)  // Native calls Dart with 7, gets back a Double
     }
 
-    // ── #9: Batch stream (§32) ────────────────────────────────────────────────
+    // ── #9: Batch stream (§32) ─────────────────────────────────────────────────
     private var _batchIntSubject = PassthroughSubject<Int64, Never>()
-    public var batchIntStream: AnyPublisher<Int64, Never> { _batchIntSubject.eraseToAnyPublisher() }
+    public var batchIntStream: AnyPublisher<Int64, Never> {
+        _batchIntSubject.eraseToAnyPublisher()
+    }
     public func configureBatchStream(from: Int64, count: Int64) {
-        Task { for i in 0..<count { _batchIntSubject.send(from + i) } }
+        DispatchQueue.global().async { [weak self] in
+            for i in 0..<count { self?._batchIntSubject.send(from + i) }
+        }
     }
 
     private var _batchDoubleSubject = PassthroughSubject<Double, Never>()
-    public var batchDoubleStream: AnyPublisher<Double, Never> { _batchDoubleSubject.eraseToAnyPublisher() }
+    public var batchDoubleStream: AnyPublisher<Double, Never> {
+        _batchDoubleSubject.eraseToAnyPublisher()
+    }
     public func configureBatchDoubleStream(values: [Double]) {
-        Task { for v in values { _batchDoubleSubject.send(v) } }
+        DispatchQueue.global().async { [weak self] in
+            for v in values { self?._batchDoubleSubject.send(v) }
+        }
     }
 
     private var _batchBoolSubject = PassthroughSubject<Bool, Never>()
-    public var batchBoolStream: AnyPublisher<Bool, Never> { _batchBoolSubject.eraseToAnyPublisher() }
+    public var batchBoolStream: AnyPublisher<Bool, Never> {
+        _batchBoolSubject.eraseToAnyPublisher()
+    }
     public func configureBatchBoolStream(values: [Bool]) {
-        Task { for v in values { _batchBoolSubject.send(v) } }
+        DispatchQueue.global().async { [weak self] in
+            for v in values { self?._batchBoolSubject.send(v) }
+        }
     }
 
     // ── §35: Bool/enum bidirectional callbacks ────────────────────────────────
-    public func onBoolTransform(boolCb: @escaping (Int64) -> Bool) { _ = boolCb(42) }
-    public func onStatusTransform(statusCb: @escaping (Int64) -> TcStatus) { _ = statusCb(42) }
+    public func onBoolTransform(boolCb: @escaping (Int64) -> Bool) {
+        _ = boolCb(42)  // Dart returns true when value == 42
+    }
+    public func onStatusTransform(statusCb: @escaping (Int64) -> TcStatus) {
+        _ = statusCb(42)  // Dart returns .ok for 42
+    }
 
     // ── §35: List<bool> and List<TcPoint> ────────────────────────────────────
     public func echoListBool(value: [Bool]) async throws -> [Bool] { value }
@@ -139,45 +206,37 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     private let _stringStreamSubject = PassthroughSubject<String, Never>()
     public var stringStream: AnyPublisher<String, Never> { _stringStreamSubject.eraseToAnyPublisher() }
     public func configureStringStream(values: [String]) {
-        Task { for v in values { _stringStreamSubject.send(v) } }
+        DispatchQueue.global().async { [weak self] in
+            for v in values { self?._stringStreamSubject.send(v) }
+        }
     }
 
     // ── §35: Backpressure.block stream ────────────────────────────────────────
     private let _blockIntSubject = PassthroughSubject<Int64, Never>()
     public var blockIntStream: AnyPublisher<Int64, Never> { _blockIntSubject.eraseToAnyPublisher() }
     public func configureBlockIntStream(from: Int64, count: Int64) {
-        Task { for i in 0..<count { _blockIntSubject.send(from + i) } }
-    }
-
-    public func onPointEvent(pointCb: @escaping (TcPoint) -> Void) { pointCb(TcPoint(x: 1.0, y: 2.0, z: 3.0)) }
-    public func onDetailEvent(detailCb: @escaping (Int64, Double) -> Void) { detailCb(42, 9.81) }
-
-    // ── §30: 6 new type coverage features ────────────────────────────────────
-    private let _configStreamSubject = PassthroughSubject<TcConfig, Never>()
-    public var configStream: AnyPublisher<TcConfig, Never> { _configStreamSubject.eraseToAnyPublisher() }
-    public func configureConfigStream(seed: TcConfig, count: Int64) {
-        Task {
-            for i in 0..<count {
-                _configStreamSubject.send(TcConfig(
-                    name: "\(seed.name)-\(i)", count: seed.count + i,
-                    enabled: seed.enabled, threshold: seed.threshold + Double(i) * 0.1))
-            }
+        DispatchQueue.global().async { [weak self] in
+            for i in 0..<count { self?._blockIntSubject.send(from + i) }
         }
     }
-    public func echoNullableConfig(value: TcConfig?) -> TcConfig? { value }
-    public func echoNested(value: TcNested) -> TcNested { value }
-    public func echoConfigListSync(values: [TcConfig]) async throws -> [TcConfig] { values }
-    public func echoNullableWrapper(value: TcNullableWrapper) -> TcNullableWrapper { value }
-    public func onTransformEvent(transformCb: @escaping (Int64) -> Int64) { let _ = transformCb(42) }
 
-    // ── Async nullable ────────────────────────────────────────────────────────
-    public func asyncNullableInt(value: Int64?) async throws -> Int64? { value }
-    public func asyncNullableDouble(value: Double?) async throws -> Double? { value }
-    public func asyncNullableBool(value: Bool?) async throws -> Bool? { value }
-    public func asyncNullableString(value: String?) async throws -> String? { value }
+    // ── Callbacks with struct and multi-params (§27) ──────────────────────────
+    public func onPointEvent(pointCb: @escaping (TcPoint) -> Void) {
+        pointCb(TcPoint(x: 1.0, y: 2.0, z: 3.0))
+    }
+    public func onDetailEvent(detailCb: @escaping (Int64, Double) -> Void) {
+        detailCb(42, 9.81)
+    }
 
-    // ── Callbacks ─────────────────────────────────────────────────────────────
-    public func onIntEvent(callback: @escaping (Int64) -> Void) { callback(42) }
+    // ── Async additions ───────────────────────────────────────────────────────
+    public func asyncPoint(value: TcPoint) async throws -> TcPoint { value }
+    public func asyncNullableStatus(value: TcStatus?) async throws -> TcStatus? { value }
+
+    // ── Callback ──────────────────────────────────────────────────────────────
+    public func onIntEvent(callback: @escaping (Int64) -> Void) {
+        // Fire immediately with a test value so Dart can verify the callback fires
+        callback(42)
+    }
     public func onBoolEvent(boolCb: @escaping (Bool) -> Void) { boolCb(true) }
     public func onDoubleEvent(doubleCb: @escaping (Double) -> Void) { doubleCb(2.71828) }
 
@@ -208,12 +267,14 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     public func throwNative(message: String) {
         NSException(name: NSExceptionName("NativeTestError"), reason: message, userInfo: nil).raise()
     }
+
     public func throwNativeAsync(message: String) async throws {
         throw NSError(domain: "NativeTestError", code: 1, userInfo: [NSLocalizedDescriptionKey: message])
     }
 
     // ── §36: @NitroOwned ─────────────────────────────────────────────────────
     public func acquireBuffer(size: Int64) -> UnsafeMutableRawPointer? {
+        // Allocate a raw buffer of `size` bytes; Dart side wraps it in NativeHandle + finalizer.
         return UnsafeMutableRawPointer.allocate(byteCount: Int(size), alignment: 16)
     }
 
@@ -227,6 +288,24 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     }
 
     public func validateLabel(label: String) throws -> String {
+        let trimmed = label.trimmingCharacters(in: .whitespaces)
+        if trimmed.isEmpty { throw NSError(domain: "NitroTypeCoverage", code: 2, userInfo: [NSLocalizedDescriptionKey: "empty label"]) }
+        return trimmed
+    }
+
+    // ── §37: @nitroAsync + @NitroOwned/@NitroVariant/@NitroResult ────────────
+    public func asyncAcquireBuffer(size: Int64) async throws -> UnsafeMutableRawPointer? {
+        return UnsafeMutableRawPointer.allocate(byteCount: Int(size), alignment: 16)
+    }
+
+    public func asyncEchoEvent(event: TcEvent) async throws -> TcEvent { return event }
+
+    public func asyncSafeDiv(a: Double, b: Double) async throws -> Double {
+        if b == 0.0 { throw NSError(domain: "NitroTypeCoverage", code: 1, userInfo: [NSLocalizedDescriptionKey: "division by zero"]) }
+        return a / b
+    }
+
+    public func asyncValidateLabel(label: String) async throws -> String {
         let trimmed = label.trimmingCharacters(in: .whitespaces)
         if trimmed.isEmpty { throw NSError(domain: "NitroTypeCoverage", code: 2, userInfo: [NSLocalizedDescriptionKey: "empty label"]) }
         return trimmed

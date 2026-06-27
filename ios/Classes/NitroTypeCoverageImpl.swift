@@ -292,4 +292,22 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
         if trimmed.isEmpty { throw NSError(domain: "NitroTypeCoverage", code: 2, userInfo: [NSLocalizedDescriptionKey: "empty label"]) }
         return trimmed
     }
+
+    // ── §37: @nitroAsync + @NitroOwned/@NitroVariant/@NitroResult ────────────
+    public func asyncAcquireBuffer(size: Int64) async throws -> UnsafeMutableRawPointer? {
+        return UnsafeMutableRawPointer.allocate(byteCount: Int(size), alignment: 16)
+    }
+
+    public func asyncEchoEvent(event: TcEvent) async throws -> TcEvent { return event }
+
+    public func asyncSafeDiv(a: Double, b: Double) async throws -> Double {
+        if b == 0.0 { throw NSError(domain: "NitroTypeCoverage", code: 1, userInfo: [NSLocalizedDescriptionKey: "division by zero"]) }
+        return a / b
+    }
+
+    public func asyncValidateLabel(label: String) async throws -> String {
+        let trimmed = label.trimmingCharacters(in: .whitespaces)
+        if trimmed.isEmpty { throw NSError(domain: "NitroTypeCoverage", code: 2, userInfo: [NSLocalizedDescriptionKey: "empty label"]) }
+        return trimmed
+    }
 }

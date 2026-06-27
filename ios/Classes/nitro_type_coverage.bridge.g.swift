@@ -953,6 +953,14 @@ public protocol HybridNitroTypeCoverageProtocol: AnyObject {
     func safeDiv(a: Double, b: Double) throws -> Double
     // source: nitro_type_coverage.native.dart:308
     func validateLabel(label: String) throws -> String
+    // source: nitro_type_coverage.native.dart:314
+    func asyncAcquireBuffer(size: Int64) async throws -> UnsafeMutableRawPointer?
+    // source: nitro_type_coverage.native.dart:318
+    func asyncEchoEvent(event: TcEvent) async throws -> TcEvent
+    // source: nitro_type_coverage.native.dart:323
+    func asyncSafeDiv(a: Double, b: Double) async throws -> Double
+    // source: nitro_type_coverage.native.dart:328
+    func asyncValidateLabel(label: String) async throws -> String
     var precision: Int64 { get set }
     var tag: String { get set }
     var nullableRate: Double? { get set }
@@ -1863,6 +1871,74 @@ public func _nitro_type_coverage_call_validateLabel(_ label: UnsafePointer<CChar
     } catch {
         return _nitroEncodeResultError(error)
     }
+}
+
+// source: nitro_type_coverage.native.dart:314
+@_cdecl("_nitro_type_coverage_call_asyncAcquireBuffer")
+public func _nitro_type_coverage_call_asyncAcquireBuffer(_ size: Int64) -> UnsafeMutableRawPointer? {
+    guard let impl = NitroTypeCoverageRegistry.impl else { return nil }
+    let sema = DispatchSemaphore(value: 0)
+    var _ownedPtr: UnsafeMutableRawPointer? = nil
+    Task.detached {
+        _ownedPtr = try? await impl.asyncAcquireBuffer(size: size)
+        sema.signal()
+    }
+    sema.wait()
+    return _ownedPtr
+}
+
+// source: nitro_type_coverage.native.dart:318
+@_cdecl("_nitro_type_coverage_call_asyncEchoEvent")
+public func _nitro_type_coverage_call_asyncEchoEvent(_ event: UnsafeMutableRawPointer?) -> UnsafeMutablePointer<UInt8>? {
+    guard let impl = NitroTypeCoverageRegistry.impl else { return nil }
+    let sema = DispatchSemaphore(value: 0)
+    var _vResult: TcEvent? = nil
+    Task.detached {
+        _vResult = try? await impl.asyncEchoEvent(event: TcEvent.fromReader(NitroRecordReader(ptr: event!.assumingMemoryBound(to: UInt8.self))))
+        sema.signal()
+    }
+    sema.wait()
+    guard let _vr = _vResult else { return nil }
+    let _vw = NitroRecordWriter()
+    _vr.writeFields(to: _vw)
+    return _vw.toNative().map { UnsafeMutableRawPointer($0) }
+}
+
+// source: nitro_type_coverage.native.dart:323
+@_cdecl("_nitro_type_coverage_call_asyncSafeDiv")
+public func _nitro_type_coverage_call_asyncSafeDiv(_ a: Double, _ b: Double) -> UnsafeMutablePointer<UInt8>? {
+    guard let impl = NitroTypeCoverageRegistry.impl else { return nil }
+    let sema = DispatchSemaphore(value: 0)
+    var _nitroOk: Double? = nil
+    var _nitroErr: Error? = nil
+    Task.detached {
+        do { _nitroOk = try await impl.asyncSafeDiv(a: a, b: b) }
+        catch { _nitroErr = error }
+        sema.signal()
+    }
+    sema.wait()
+    if let _e = _nitroErr { return _nitroEncodeResultError(_e) }
+    guard let _ok = _nitroOk else { return nil }
+    return _nitroEncodeResultFloat64(_ok)
+}
+
+// source: nitro_type_coverage.native.dart:328
+@_cdecl("_nitro_type_coverage_call_asyncValidateLabel")
+public func _nitro_type_coverage_call_asyncValidateLabel(_ label: UnsafePointer<CChar>?) -> UnsafeMutablePointer<UInt8>? {
+    let labelStr = label != nil ? String(cString: label!) : ""
+    guard let impl = NitroTypeCoverageRegistry.impl else { return nil }
+    let sema = DispatchSemaphore(value: 0)
+    var _nitroOk: String? = nil
+    var _nitroErr: Error? = nil
+    Task.detached {
+        do { _nitroOk = try await impl.asyncValidateLabel(label: labelStr) }
+        catch { _nitroErr = error }
+        sema.signal()
+    }
+    sema.wait()
+    if let _e = _nitroErr { return _nitroEncodeResultError(_e) }
+    guard let _ok = _nitroOk else { return nil }
+    return _nitroEncodeResultString(_ok)
 }
 
 @_cdecl("_nitro_type_coverage_call_get_precision")

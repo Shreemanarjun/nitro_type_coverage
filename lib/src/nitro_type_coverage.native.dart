@@ -306,6 +306,26 @@ abstract class NitroTypeCoverage extends HybridObject {
   // validateLabel returns NitroResultValue<String>: NitroOk(trimmed) or NitroErr("empty label").
   @NitroResult()
   NitroResultValue<String> validateLabel(String label);
+
+  // ── §37: @nitroAsync + @NitroOwned/@NitroVariant/@NitroResult combos ─────
+  // asyncAcquireBuffer: same allocation as acquireBuffer but dispatched async.
+  @nitroAsync
+  @NitroOwned()
+  Future<NativeHandle<Void>> asyncAcquireBuffer(int size);
+
+  // asyncEchoEvent: variant round-trip on a background thread.
+  @nitroAsync
+  Future<TcEvent> asyncEchoEvent(TcEvent event);
+
+  // asyncSafeDiv: division with error result, dispatched async.
+  @nitroAsync
+  @NitroResult()
+  Future<NitroResultValue<double>> asyncSafeDiv(double a, double b);
+
+  // asyncValidateLabel: label validation with error result, dispatched async.
+  @nitroAsync
+  @NitroResult()
+  Future<NitroResultValue<String>> asyncValidateLabel(String label);
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────

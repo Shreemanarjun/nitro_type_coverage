@@ -883,6 +883,14 @@ interface HybridNitroTypeCoverageSpec {
     fun safeDiv(a: Double, b: Double): Double
     // source: nitro_type_coverage.native.dart:308
     fun validateLabel(label: String): String
+    // source: nitro_type_coverage.native.dart:314
+    suspend fun asyncAcquireBuffer(size: Long): Long
+    // source: nitro_type_coverage.native.dart:318
+    suspend fun asyncEchoEvent(event: TcEvent): TcEvent
+    // source: nitro_type_coverage.native.dart:323
+    suspend fun asyncSafeDiv(a: Double, b: Double): Double
+    // source: nitro_type_coverage.native.dart:328
+    suspend fun asyncValidateLabel(label: String): String
     var precision: Long
     var tag: String
     var nullableRate: Double?
@@ -1821,6 +1829,48 @@ object NitroTypeCoverageJniBridge {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return try {
             val _result = impl.validateLabel(label)
+            nitroEncodeResultString(_result)
+        } catch (_e: Throwable) {
+            nitroEncodeResultError(_e.message ?: "Unknown error")
+        }
+    }
+    // source: nitro_type_coverage.native.dart:314
+    @JvmStatic fun asyncAcquireBuffer_call(size: Long): Long {
+        val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
+        return _asyncExecutor.submit(java.util.concurrent.Callable {
+            runBlocking { impl.asyncAcquireBuffer(size) }
+        }).get()
+    }
+    // source: nitro_type_coverage.native.dart:318
+    @JvmStatic fun asyncEchoEvent_call(event: ByteArray): ByteArray {
+        val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
+        val eventBuf = java.nio.ByteBuffer.wrap(event).order(java.nio.ByteOrder.LITTLE_ENDIAN)
+        eventBuf.getInt() // skip 4-byte length prefix
+        val eventDecoded = TcEvent.fromReader(RecordReader(eventBuf))
+        val _vResult = _asyncExecutor.submit(java.util.concurrent.Callable { runBlocking { impl.asyncEchoEvent(eventDecoded) } }).get()
+        val _vw = RecordWriter()
+        _vResult.writeFields(_vw)
+        val _vPayload = _vw.toByteArray()
+        val _vBuf = java.nio.ByteBuffer.allocate(4 + _vPayload.size).order(java.nio.ByteOrder.LITTLE_ENDIAN)
+        _vBuf.putInt(_vPayload.size)
+        _vBuf.put(_vPayload)
+        return _vBuf.array()
+    }
+    // source: nitro_type_coverage.native.dart:323
+    @JvmStatic fun asyncSafeDiv_call(a: Double, b: Double): ByteArray {
+        val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
+        return try {
+            val _result = _asyncExecutor.submit(java.util.concurrent.Callable { runBlocking { impl.asyncSafeDiv(a, b) } }).get()
+            nitroEncodeResultFloat64(_result)
+        } catch (_e: Throwable) {
+            nitroEncodeResultError(_e.message ?: "Unknown error")
+        }
+    }
+    // source: nitro_type_coverage.native.dart:328
+    @JvmStatic fun asyncValidateLabel_call(label: String): ByteArray {
+        val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
+        return try {
+            val _result = _asyncExecutor.submit(java.util.concurrent.Callable { runBlocking { impl.asyncValidateLabel(label) } }).get()
             nitroEncodeResultString(_result)
         } catch (_e: Throwable) {
             nitroEncodeResultError(_e.message ?: "Unknown error")
