@@ -714,183 +714,183 @@ interface HybridNitroTypeCoverageSpec {
     fun onActivityAttached(activity: Activity) {}
     fun onActivityDetached() {}
 
-    // source: nitro_type_coverage.native.dart:16
+    // source: nitro_type_coverage.native.dart:14
     fun echoInt(value: Long): Long
-    // source: nitro_type_coverage.native.dart:17
+    // source: nitro_type_coverage.native.dart:15
     fun echoDouble(value: Double): Double
-    // source: nitro_type_coverage.native.dart:18
+    // source: nitro_type_coverage.native.dart:16
     fun echoBool(value: Boolean): Boolean
-    // source: nitro_type_coverage.native.dart:19
+    // source: nitro_type_coverage.native.dart:17
     fun echoString(value: String): String
-    // source: nitro_type_coverage.native.dart:22
+    // source: nitro_type_coverage.native.dart:20
     fun addInts(a: Long, b: Long, c: Long): Long
-    // source: nitro_type_coverage.native.dart:23
+    // source: nitro_type_coverage.native.dart:21
     fun mulDoubles(a: Double, b: Double): Double
-    // source: nitro_type_coverage.native.dart:24
+    // source: nitro_type_coverage.native.dart:22
     fun joinStrings(a: String, b: String, separator: String): String
-    // source: nitro_type_coverage.native.dart:27
+    // source: nitro_type_coverage.native.dart:25
     fun echoNullableInt(value: Long?): Long?
-    // source: nitro_type_coverage.native.dart:28
+    // source: nitro_type_coverage.native.dart:26
     fun echoNullableDouble(value: Double?): Double?
-    // source: nitro_type_coverage.native.dart:29
+    // source: nitro_type_coverage.native.dart:27
     fun echoNullableBool(value: Boolean?): Boolean?
-    // source: nitro_type_coverage.native.dart:30
+    // source: nitro_type_coverage.native.dart:28
     fun echoNullableString(value: String?): String?
-    // source: nitro_type_coverage.native.dart:33
+    // source: nitro_type_coverage.native.dart:31
     fun echoStatus(value: TcStatus): TcStatus
-    // source: nitro_type_coverage.native.dart:34
+    // source: nitro_type_coverage.native.dart:32
     fun echoNullableStatus(value: TcStatus?): TcStatus?
-    // source: nitro_type_coverage.native.dart:37
+    // source: nitro_type_coverage.native.dart:35
     fun echoPoint(value: TcPoint): TcPoint
-    // source: nitro_type_coverage.native.dart:40
+    // source: nitro_type_coverage.native.dart:38
     fun echoConfig(value: TcConfig): TcConfig
-    // source: nitro_type_coverage.native.dart:44
+    // source: nitro_type_coverage.native.dart:42
     fun echoBytes(value: ByteArray): java.nio.ByteBuffer
-    // source: nitro_type_coverage.native.dart:47
+    // source: nitro_type_coverage.native.dart:45
     fun echoFloats(value: FloatArray): java.nio.ByteBuffer
-    // source: nitro_type_coverage.native.dart:50
+    // source: nitro_type_coverage.native.dart:48
     fun echoFloat64s(value: DoubleArray): java.nio.ByteBuffer
-    // source: nitro_type_coverage.native.dart:53
+    // source: nitro_type_coverage.native.dart:51
     fun echoInt32s(value: IntArray): java.nio.ByteBuffer
-    // source: nitro_type_coverage.native.dart:57
+    // source: nitro_type_coverage.native.dart:55
     fun echoInt8s(value: ByteArray): java.nio.ByteBuffer
-    // source: nitro_type_coverage.native.dart:60
+    // source: nitro_type_coverage.native.dart:58
     fun echoInt16s(value: ShortArray): java.nio.ByteBuffer
-    // source: nitro_type_coverage.native.dart:63
+    // source: nitro_type_coverage.native.dart:61
     fun echoInt64s(value: LongArray): java.nio.ByteBuffer
-    // source: nitro_type_coverage.native.dart:67
+    // source: nitro_type_coverage.native.dart:65
     suspend fun echoIntList(value: Any?): List<Long>
-    // source: nitro_type_coverage.native.dart:70
+    // source: nitro_type_coverage.native.dart:68
     suspend fun echoDoubleList(value: Any?): List<Double>
-    // source: nitro_type_coverage.native.dart:73
+    // source: nitro_type_coverage.native.dart:71
     suspend fun echoStringList(value: Any?): List<String>
-    // source: nitro_type_coverage.native.dart:76
+    // source: nitro_type_coverage.native.dart:74
     suspend fun echoConfigList(values: Any?): List<TcConfig>
-    // source: nitro_type_coverage.native.dart:80
+    // source: nitro_type_coverage.native.dart:78
     suspend fun asyncInt(value: Long): Long
-    // source: nitro_type_coverage.native.dart:83
+    // source: nitro_type_coverage.native.dart:81
     suspend fun asyncDouble(value: Double): Double
-    // source: nitro_type_coverage.native.dart:86
+    // source: nitro_type_coverage.native.dart:84
     suspend fun asyncBool(value: Boolean): Boolean
-    // source: nitro_type_coverage.native.dart:89
+    // source: nitro_type_coverage.native.dart:87
     suspend fun asyncString(value: String): String
-    // source: nitro_type_coverage.native.dart:92
+    // source: nitro_type_coverage.native.dart:90
     suspend fun asyncConfig(value: TcConfig): TcConfig
-    // source: nitro_type_coverage.native.dart:96
+    // source: nitro_type_coverage.native.dart:94
     suspend fun asyncNullableInt(value: Long?): Long?
-    // source: nitro_type_coverage.native.dart:99
+    // source: nitro_type_coverage.native.dart:97
     suspend fun asyncNullableDouble(value: Double?): Double?
-    // source: nitro_type_coverage.native.dart:102
+    // source: nitro_type_coverage.native.dart:100
     suspend fun asyncNullableBool(value: Boolean?): Boolean?
-    // source: nitro_type_coverage.native.dart:105
+    // source: nitro_type_coverage.native.dart:103
     suspend fun asyncNullableString(value: String?): String?
-    // source: nitro_type_coverage.native.dart:109
+    // source: nitro_type_coverage.native.dart:107
     suspend fun asyncPoint(value: TcPoint): TcPoint
-    // source: nitro_type_coverage.native.dart:112
+    // source: nitro_type_coverage.native.dart:110
     suspend fun asyncNullableStatus(value: TcStatus?): TcStatus?
-    // source: nitro_type_coverage.native.dart:115
+    // source: nitro_type_coverage.native.dart:113
     suspend fun asyncMeta(value: TcMeta): TcMeta
-    // source: nitro_type_coverage.native.dart:118
+    // source: nitro_type_coverage.native.dart:116
     fun echoMeta(value: TcMeta): TcMeta
-    // source: nitro_type_coverage.native.dart:121
+    // source: nitro_type_coverage.native.dart:119
     fun echoNullableIntSafe(value: NitroNullableInt): NitroNullableInt
-    // source: nitro_type_coverage.native.dart:122
+    // source: nitro_type_coverage.native.dart:120
     fun echoNullableDoubleSafe(value: NitroNullableDouble): NitroNullableDouble
-    // source: nitro_type_coverage.native.dart:123
+    // source: nitro_type_coverage.native.dart:121
     fun echoNullableBoolSafe(value: NitroNullableBool): NitroNullableBool
-    // source: nitro_type_coverage.native.dart:127
+    // source: nitro_type_coverage.native.dart:125
     fun echoDataRecord(value: TcDataRecord): TcDataRecord
-    // source: nitro_type_coverage.native.dart:133
+    // source: nitro_type_coverage.native.dart:131
     fun echoIntMap(value: Any?): Any?
-    // source: nitro_type_coverage.native.dart:134
+    // source: nitro_type_coverage.native.dart:132
     fun echoStringMap(value: Any?): Any?
-    // source: nitro_type_coverage.native.dart:135
+    // source: nitro_type_coverage.native.dart:133
     fun echoDoubleMap(value: Any?): Any?
-    // source: nitro_type_coverage.native.dart:136
+    // source: nitro_type_coverage.native.dart:134
     fun echoBoolMap(value: Any?): Any?
-    // source: nitro_type_coverage.native.dart:142
+    // source: nitro_type_coverage.native.dart:140
     fun echoPacket(value: TcPacket): TcPacket
-    // source: nitro_type_coverage.native.dart:146
+    // source: nitro_type_coverage.native.dart:144
     fun echoNullablePoint(value: TcPoint?): TcPoint?
-    // source: nitro_type_coverage.native.dart:152
+    // source: nitro_type_coverage.native.dart:150
     fun configureConfigStream(seed: TcConfig, count: Long): Unit
-    // source: nitro_type_coverage.native.dart:156
+    // source: nitro_type_coverage.native.dart:154
     fun echoNullableConfig(value: TcConfig?): TcConfig?
-    // source: nitro_type_coverage.native.dart:159
+    // source: nitro_type_coverage.native.dart:157
     fun echoNested(value: TcNested): TcNested
-    // source: nitro_type_coverage.native.dart:164
+    // source: nitro_type_coverage.native.dart:162
     suspend fun echoConfigListSync(values: Any?): List<TcConfig>
-    // source: nitro_type_coverage.native.dart:167
+    // source: nitro_type_coverage.native.dart:165
     fun echoNullableWrapper(value: TcNullableWrapper): TcNullableWrapper
-    // source: nitro_type_coverage.native.dart:171
+    // source: nitro_type_coverage.native.dart:169
     fun onTransformEvent(transformCb: (p0: Long) -> Long): Unit
-    // source: nitro_type_coverage.native.dart:174
+    // source: nitro_type_coverage.native.dart:172
     fun echoStructHolder(value: TcStructHolder): TcStructHolder
-    // source: nitro_type_coverage.native.dart:177
+    // source: nitro_type_coverage.native.dart:175
     fun onStringTransform(stringCb: (p0: Long) -> String): Unit
-    // source: nitro_type_coverage.native.dart:178
+    // source: nitro_type_coverage.native.dart:176
     fun onDoubleTransform(doubleCb: (p0: Long) -> Double): Unit
-    // source: nitro_type_coverage.native.dart:183
+    // source: nitro_type_coverage.native.dart:181
     fun configureBatchStream(from: Long, count: Long): Unit
-    // source: nitro_type_coverage.native.dart:187
+    // source: nitro_type_coverage.native.dart:185
     fun configureBatchDoubleStream(values: Any?): Unit
-    // source: nitro_type_coverage.native.dart:191
+    // source: nitro_type_coverage.native.dart:189
     fun configureBatchBoolStream(values: Any?): Unit
-    // source: nitro_type_coverage.native.dart:194
+    // source: nitro_type_coverage.native.dart:192
     fun onBoolTransform(boolCb: (p0: Long) -> Boolean): Unit
-    // source: nitro_type_coverage.native.dart:195
+    // source: nitro_type_coverage.native.dart:193
     fun onStatusTransform(statusCb: (p0: Long) -> TcStatus): Unit
-    // source: nitro_type_coverage.native.dart:199
+    // source: nitro_type_coverage.native.dart:197
     suspend fun echoListBool(value: Any?): List<Boolean>
-    // source: nitro_type_coverage.native.dart:202
+    // source: nitro_type_coverage.native.dart:200
     suspend fun echoPointList(values: Any?): List<TcPoint>
-    // source: nitro_type_coverage.native.dart:206
+    // source: nitro_type_coverage.native.dart:204
     suspend fun nativeAsyncInt(value: Long): Long
-    // source: nitro_type_coverage.native.dart:209
+    // source: nitro_type_coverage.native.dart:207
     suspend fun nativeAsyncDouble(value: Double): Double
-    // source: nitro_type_coverage.native.dart:212
+    // source: nitro_type_coverage.native.dart:210
     suspend fun nativeAsyncBool(value: Boolean): Boolean
-    // source: nitro_type_coverage.native.dart:215
+    // source: nitro_type_coverage.native.dart:213
     suspend fun nativeAsyncString(value: String): String
-    // source: nitro_type_coverage.native.dart:220
+    // source: nitro_type_coverage.native.dart:218
     fun configureStringStream(values: Any?): Unit
-    // source: nitro_type_coverage.native.dart:225
+    // source: nitro_type_coverage.native.dart:223
     fun configureBlockIntStream(from: Long, count: Long): Unit
-    // source: nitro_type_coverage.native.dart:228
+    // source: nitro_type_coverage.native.dart:226
     fun onPointEvent(pointCb: (p0: TcPoint) -> Unit): Unit
-    // source: nitro_type_coverage.native.dart:229
+    // source: nitro_type_coverage.native.dart:227
     fun onDetailEvent(detailCb: (p0: Long, p1: Double) -> Unit): Unit
-    // source: nitro_type_coverage.native.dart:232
+    // source: nitro_type_coverage.native.dart:230
     fun onIntEvent(callback: (p0: Long) -> Unit): Unit
-    // source: nitro_type_coverage.native.dart:238
+    // source: nitro_type_coverage.native.dart:236
     fun onBoolEvent(boolCb: (p0: Boolean) -> Unit): Unit
-    // source: nitro_type_coverage.native.dart:239
+    // source: nitro_type_coverage.native.dart:237
     fun onDoubleEvent(doubleCb: (p0: Double) -> Unit): Unit
-    // source: nitro_type_coverage.native.dart:281
+    // source: nitro_type_coverage.native.dart:279
     fun configureStream(from: Long, count: Long): Unit
-    // source: nitro_type_coverage.native.dart:282
+    // source: nitro_type_coverage.native.dart:280
     fun configureDoubleStream(start: Double, count: Long): Unit
-    // source: nitro_type_coverage.native.dart:283
+    // source: nitro_type_coverage.native.dart:281
     fun configureStatusStream(count: Long): Unit
-    // source: nitro_type_coverage.native.dart:286
+    // source: nitro_type_coverage.native.dart:284
     fun throwNative(message: String): Unit
-    // source: nitro_type_coverage.native.dart:289
+    // source: nitro_type_coverage.native.dart:287
     suspend fun throwNativeAsync(message: String): Unit
-    // source: nitro_type_coverage.native.dart:294
+    // source: nitro_type_coverage.native.dart:292
     fun acquireBuffer(size: Long): Long
-    // source: nitro_type_coverage.native.dart:298
+    // source: nitro_type_coverage.native.dart:296
     fun echoEvent(event: TcEvent): TcEvent
-    // source: nitro_type_coverage.native.dart:303
+    // source: nitro_type_coverage.native.dart:301
     fun safeDiv(a: Double, b: Double): Double
-    // source: nitro_type_coverage.native.dart:308
+    // source: nitro_type_coverage.native.dart:306
     fun validateLabel(label: String): String
-    // source: nitro_type_coverage.native.dart:314
+    // source: nitro_type_coverage.native.dart:312
     suspend fun asyncAcquireBuffer(size: Long): Long
-    // source: nitro_type_coverage.native.dart:318
+    // source: nitro_type_coverage.native.dart:316
     suspend fun asyncEchoEvent(event: TcEvent): TcEvent
-    // source: nitro_type_coverage.native.dart:323
+    // source: nitro_type_coverage.native.dart:321
     suspend fun asyncSafeDiv(a: Double, b: Double): Double
-    // source: nitro_type_coverage.native.dart:328
+    // source: nitro_type_coverage.native.dart:326
     suspend fun asyncValidateLabel(label: String): String
     var precision: Long
     var tag: String
@@ -955,42 +955,42 @@ object NitroTypeCoverageJniBridge {
     @JvmStatic external fun postBoolToPort(dartPort: Long, value: Boolean)
     @JvmStatic external fun postStringToPort(dartPort: Long, value: String)
 
-    // source: nitro_type_coverage.native.dart:16
+    // source: nitro_type_coverage.native.dart:14
     @JvmStatic fun echoInt_call(value: Long): Long {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return impl.echoInt(value)
     }
-    // source: nitro_type_coverage.native.dart:17
+    // source: nitro_type_coverage.native.dart:15
     @JvmStatic fun echoDouble_call(value: Double): Double {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return impl.echoDouble(value)
     }
-    // source: nitro_type_coverage.native.dart:18
+    // source: nitro_type_coverage.native.dart:16
     @JvmStatic fun echoBool_call(value: Boolean): Boolean {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return impl.echoBool(value)
     }
-    // source: nitro_type_coverage.native.dart:19
+    // source: nitro_type_coverage.native.dart:17
     @JvmStatic fun echoString_call(value: String): String {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return impl.echoString(value)
     }
-    // source: nitro_type_coverage.native.dart:22
+    // source: nitro_type_coverage.native.dart:20
     @JvmStatic fun addInts_call(a: Long, b: Long, c: Long): Long {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return impl.addInts(a, b, c)
     }
-    // source: nitro_type_coverage.native.dart:23
+    // source: nitro_type_coverage.native.dart:21
     @JvmStatic fun mulDoubles_call(a: Double, b: Double): Double {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return impl.mulDoubles(a, b)
     }
-    // source: nitro_type_coverage.native.dart:24
+    // source: nitro_type_coverage.native.dart:22
     @JvmStatic fun joinStrings_call(a: String, b: String, separator: String): String {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return impl.joinStrings(a, b, separator)
     }
-    // source: nitro_type_coverage.native.dart:27
+    // source: nitro_type_coverage.native.dart:25
     @JvmStatic fun echoNullableInt_call(value: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         // Dart layer sends NitroNullableInt (ByteArray) for value.
@@ -998,7 +998,7 @@ object NitroTypeCoverageJniBridge {
         val _intResult = impl.echoNullableInt(valueArg)
         return NitroNullableInt(_intResult).encode()
     }
-    // source: nitro_type_coverage.native.dart:28
+    // source: nitro_type_coverage.native.dart:26
     @JvmStatic fun echoNullableDouble_call(value: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         // Dart layer sends NitroNullableDouble (ByteArray) for value.
@@ -1006,7 +1006,7 @@ object NitroTypeCoverageJniBridge {
         val _doubleResult = impl.echoNullableDouble(valueArg)
         return NitroNullableDouble(_doubleResult).encode()
     }
-    // source: nitro_type_coverage.native.dart:29
+    // source: nitro_type_coverage.native.dart:27
     @JvmStatic fun echoNullableBool_call(value: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         // Dart layer sends NitroNullableBool (ByteArray) for value.
@@ -1014,17 +1014,17 @@ object NitroTypeCoverageJniBridge {
         val _boolResult = impl.echoNullableBool(valueArg)
         return NitroNullableBool(_boolResult).encode()
     }
-    // source: nitro_type_coverage.native.dart:30
+    // source: nitro_type_coverage.native.dart:28
     @JvmStatic fun echoNullableString_call(value: String?): String? {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return impl.echoNullableString(value)
     }
-    // source: nitro_type_coverage.native.dart:33
+    // source: nitro_type_coverage.native.dart:31
     @JvmStatic fun echoStatus_call(value: Long): Long {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return impl.echoStatus(TcStatus.fromNative(value)).nativeValue
     }
-    // source: nitro_type_coverage.native.dart:34
+    // source: nitro_type_coverage.native.dart:32
     @JvmStatic fun echoNullableStatus_call(value: Long): Long {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         // Dart layer sends -1L as sentinel when caller passes null for value.
@@ -1032,12 +1032,12 @@ object NitroTypeCoverageJniBridge {
         val _enumResult = impl.echoNullableStatus(valueArg)
         return if (_enumResult == null) -1L else _enumResult.nativeValue
     }
-    // source: nitro_type_coverage.native.dart:37
+    // source: nitro_type_coverage.native.dart:35
     @JvmStatic fun echoPoint_call(value: TcPoint): TcPoint {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return impl.echoPoint(value)
     }
-    // source: nitro_type_coverage.native.dart:40
+    // source: nitro_type_coverage.native.dart:38
     @JvmStatic fun echoConfig_call(value: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         val valueBuf = java.nio.ByteBuffer.wrap(value).order(java.nio.ByteOrder.LITTLE_ENDIAN)
@@ -1046,42 +1046,42 @@ object NitroTypeCoverageJniBridge {
         val result = impl.echoConfig(valueDecoded)
         return result.encode()
     }
-    // source: nitro_type_coverage.native.dart:44
+    // source: nitro_type_coverage.native.dart:42
     @JvmStatic fun echoBytes_call(value: ByteArray): java.nio.ByteBuffer {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return impl.echoBytes(value)
     }
-    // source: nitro_type_coverage.native.dart:47
+    // source: nitro_type_coverage.native.dart:45
     @JvmStatic fun echoFloats_call(value: FloatArray): java.nio.ByteBuffer {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return impl.echoFloats(value)
     }
-    // source: nitro_type_coverage.native.dart:50
+    // source: nitro_type_coverage.native.dart:48
     @JvmStatic fun echoFloat64s_call(value: DoubleArray): java.nio.ByteBuffer {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return impl.echoFloat64s(value)
     }
-    // source: nitro_type_coverage.native.dart:53
+    // source: nitro_type_coverage.native.dart:51
     @JvmStatic fun echoInt32s_call(value: IntArray): java.nio.ByteBuffer {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return impl.echoInt32s(value)
     }
-    // source: nitro_type_coverage.native.dart:57
+    // source: nitro_type_coverage.native.dart:55
     @JvmStatic fun echoInt8s_call(value: ByteArray): java.nio.ByteBuffer {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return impl.echoInt8s(value)
     }
-    // source: nitro_type_coverage.native.dart:60
+    // source: nitro_type_coverage.native.dart:58
     @JvmStatic fun echoInt16s_call(value: ShortArray): java.nio.ByteBuffer {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return impl.echoInt16s(value)
     }
-    // source: nitro_type_coverage.native.dart:63
+    // source: nitro_type_coverage.native.dart:61
     @JvmStatic fun echoInt64s_call(value: LongArray): java.nio.ByteBuffer {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return impl.echoInt64s(value)
     }
-    // source: nitro_type_coverage.native.dart:67
+    // source: nitro_type_coverage.native.dart:65
     @JvmStatic fun echoIntList_call(value: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         val valueBuf = java.nio.ByteBuffer.wrap(value).order(java.nio.ByteOrder.LITTLE_ENDIAN)
@@ -1102,7 +1102,7 @@ object NitroTypeCoverageJniBridge {
         result.forEach { buf.putLong(it) }
         return buf.array()
     }
-    // source: nitro_type_coverage.native.dart:70
+    // source: nitro_type_coverage.native.dart:68
     @JvmStatic fun echoDoubleList_call(value: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         val valueBuf = java.nio.ByteBuffer.wrap(value).order(java.nio.ByteOrder.LITTLE_ENDIAN)
@@ -1123,7 +1123,7 @@ object NitroTypeCoverageJniBridge {
         result.forEach { buf.putDouble(it) }
         return buf.array()
     }
-    // source: nitro_type_coverage.native.dart:73
+    // source: nitro_type_coverage.native.dart:71
     @JvmStatic fun echoStringList_call(value: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         val valueBuf = java.nio.ByteBuffer.wrap(value).order(java.nio.ByteOrder.LITTLE_ENDIAN)
@@ -1151,7 +1151,7 @@ object NitroTypeCoverageJniBridge {
         for (item in items) { strLenBuf.clear(); strLenBuf.putInt(item.size); strLenBuf.flip(); baos.write(strLenBuf.array()); baos.write(item) }
         return baos.toByteArray()
     }
-    // source: nitro_type_coverage.native.dart:76
+    // source: nitro_type_coverage.native.dart:74
     @JvmStatic fun echoConfigList_call(values: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         val valuesBuf = java.nio.ByteBuffer.wrap(values).order(java.nio.ByteOrder.LITTLE_ENDIAN)
@@ -1184,35 +1184,35 @@ object NitroTypeCoverageJniBridge {
         lenBuf.putInt(payload.size)
         return lenBuf.array() + payload
     }
-    // source: nitro_type_coverage.native.dart:80
+    // source: nitro_type_coverage.native.dart:78
     @JvmStatic fun asyncInt_call(value: Long): Long {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return _asyncExecutor.submit(java.util.concurrent.Callable {
             runBlocking { impl.asyncInt(value) }
         }).get()
     }
-    // source: nitro_type_coverage.native.dart:83
+    // source: nitro_type_coverage.native.dart:81
     @JvmStatic fun asyncDouble_call(value: Double): Double {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return _asyncExecutor.submit(java.util.concurrent.Callable {
             runBlocking { impl.asyncDouble(value) }
         }).get()
     }
-    // source: nitro_type_coverage.native.dart:86
+    // source: nitro_type_coverage.native.dart:84
     @JvmStatic fun asyncBool_call(value: Boolean): Boolean {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return _asyncExecutor.submit(java.util.concurrent.Callable {
             runBlocking { impl.asyncBool(value) }
         }).get()
     }
-    // source: nitro_type_coverage.native.dart:89
+    // source: nitro_type_coverage.native.dart:87
     @JvmStatic fun asyncString_call(value: String): String {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return _asyncExecutor.submit(java.util.concurrent.Callable {
             runBlocking { impl.asyncString(value) }
         }).get()
     }
-    // source: nitro_type_coverage.native.dart:92
+    // source: nitro_type_coverage.native.dart:90
     @JvmStatic fun asyncConfig_call(value: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         val valueBuf = java.nio.ByteBuffer.wrap(value).order(java.nio.ByteOrder.LITTLE_ENDIAN)
@@ -1221,7 +1221,7 @@ object NitroTypeCoverageJniBridge {
         val result = _asyncExecutor.submit(java.util.concurrent.Callable { runBlocking { impl.asyncConfig(valueDecoded) } }).get()
         return result.encode()
     }
-    // source: nitro_type_coverage.native.dart:96
+    // source: nitro_type_coverage.native.dart:94
     @JvmStatic fun asyncNullableInt_call(value: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         // Dart layer sends NitroNullableInt (ByteArray) for value.
@@ -1229,7 +1229,7 @@ object NitroTypeCoverageJniBridge {
         val _intResult = _asyncExecutor.submit(java.util.concurrent.Callable { runBlocking { impl.asyncNullableInt(valueArg) } }).get()
         return NitroNullableInt(_intResult).encode()
     }
-    // source: nitro_type_coverage.native.dart:99
+    // source: nitro_type_coverage.native.dart:97
     @JvmStatic fun asyncNullableDouble_call(value: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         // Dart layer sends NitroNullableDouble (ByteArray) for value.
@@ -1237,7 +1237,7 @@ object NitroTypeCoverageJniBridge {
         val _doubleResult = _asyncExecutor.submit(java.util.concurrent.Callable { runBlocking { impl.asyncNullableDouble(valueArg) } }).get()
         return NitroNullableDouble(_doubleResult).encode()
     }
-    // source: nitro_type_coverage.native.dart:102
+    // source: nitro_type_coverage.native.dart:100
     @JvmStatic fun asyncNullableBool_call(value: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         // Dart layer sends NitroNullableBool (ByteArray) for value.
@@ -1247,21 +1247,21 @@ object NitroTypeCoverageJniBridge {
         }).get()
         return NitroNullableBool(_boolResult).encode()
     }
-    // source: nitro_type_coverage.native.dart:105
+    // source: nitro_type_coverage.native.dart:103
     @JvmStatic fun asyncNullableString_call(value: String?): String? {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return _asyncExecutor.submit(java.util.concurrent.Callable {
             runBlocking { impl.asyncNullableString(value) }
         }).get()
     }
-    // source: nitro_type_coverage.native.dart:109
+    // source: nitro_type_coverage.native.dart:107
     @JvmStatic fun asyncPoint_call(value: TcPoint): TcPoint {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return _asyncExecutor.submit(java.util.concurrent.Callable {
             runBlocking { impl.asyncPoint(value) }
         }).get()
     }
-    // source: nitro_type_coverage.native.dart:112
+    // source: nitro_type_coverage.native.dart:110
     @JvmStatic fun asyncNullableStatus_call(value: Long): Long {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         // Dart layer sends -1L as sentinel when caller passes null for value.
@@ -1269,7 +1269,7 @@ object NitroTypeCoverageJniBridge {
         val _enumResult = _asyncExecutor.submit(java.util.concurrent.Callable { runBlocking { impl.asyncNullableStatus(valueArg) } }).get()
         return if (_enumResult == null) -1L else _enumResult.nativeValue
     }
-    // source: nitro_type_coverage.native.dart:115
+    // source: nitro_type_coverage.native.dart:113
     @JvmStatic fun asyncMeta_call(value: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         val valueBuf = java.nio.ByteBuffer.wrap(value).order(java.nio.ByteOrder.LITTLE_ENDIAN)
@@ -1278,7 +1278,7 @@ object NitroTypeCoverageJniBridge {
         val result = _asyncExecutor.submit(java.util.concurrent.Callable { runBlocking { impl.asyncMeta(valueDecoded) } }).get()
         return result.encode()
     }
-    // source: nitro_type_coverage.native.dart:118
+    // source: nitro_type_coverage.native.dart:116
     @JvmStatic fun echoMeta_call(value: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         val valueBuf = java.nio.ByteBuffer.wrap(value).order(java.nio.ByteOrder.LITTLE_ENDIAN)
@@ -1287,7 +1287,7 @@ object NitroTypeCoverageJniBridge {
         val result = impl.echoMeta(valueDecoded)
         return result.encode()
     }
-    // source: nitro_type_coverage.native.dart:121
+    // source: nitro_type_coverage.native.dart:119
     @JvmStatic fun echoNullableIntSafe_call(value: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         val valueBuf = java.nio.ByteBuffer.wrap(value).order(java.nio.ByteOrder.LITTLE_ENDIAN)
@@ -1296,7 +1296,7 @@ object NitroTypeCoverageJniBridge {
         val result = impl.echoNullableIntSafe(valueDecoded)
         return result.encode()
     }
-    // source: nitro_type_coverage.native.dart:122
+    // source: nitro_type_coverage.native.dart:120
     @JvmStatic fun echoNullableDoubleSafe_call(value: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         val valueBuf = java.nio.ByteBuffer.wrap(value).order(java.nio.ByteOrder.LITTLE_ENDIAN)
@@ -1305,7 +1305,7 @@ object NitroTypeCoverageJniBridge {
         val result = impl.echoNullableDoubleSafe(valueDecoded)
         return result.encode()
     }
-    // source: nitro_type_coverage.native.dart:123
+    // source: nitro_type_coverage.native.dart:121
     @JvmStatic fun echoNullableBoolSafe_call(value: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         val valueBuf = java.nio.ByteBuffer.wrap(value).order(java.nio.ByteOrder.LITTLE_ENDIAN)
@@ -1314,7 +1314,7 @@ object NitroTypeCoverageJniBridge {
         val result = impl.echoNullableBoolSafe(valueDecoded)
         return result.encode()
     }
-    // source: nitro_type_coverage.native.dart:127
+    // source: nitro_type_coverage.native.dart:125
     @JvmStatic fun echoDataRecord_call(value: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         val valueBuf = java.nio.ByteBuffer.wrap(value).order(java.nio.ByteOrder.LITTLE_ENDIAN)
@@ -1323,7 +1323,7 @@ object NitroTypeCoverageJniBridge {
         val result = impl.echoDataRecord(valueDecoded)
         return result.encode()
     }
-    // source: nitro_type_coverage.native.dart:133
+    // source: nitro_type_coverage.native.dart:131
     @JvmStatic fun echoIntMap_call(value: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         @Suppress("UNCHECKED_CAST")
@@ -1356,7 +1356,7 @@ object NitroTypeCoverageJniBridge {
         _lenBuf.putInt(_payload.size)
         return _lenBuf.array() + _payload
     }
-    // source: nitro_type_coverage.native.dart:134
+    // source: nitro_type_coverage.native.dart:132
     @JvmStatic fun echoStringMap_call(value: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         @Suppress("UNCHECKED_CAST")
@@ -1390,7 +1390,7 @@ object NitroTypeCoverageJniBridge {
         _lenBuf.putInt(_payload.size)
         return _lenBuf.array() + _payload
     }
-    // source: nitro_type_coverage.native.dart:135
+    // source: nitro_type_coverage.native.dart:133
     @JvmStatic fun echoDoubleMap_call(value: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         @Suppress("UNCHECKED_CAST")
@@ -1423,7 +1423,7 @@ object NitroTypeCoverageJniBridge {
         _lenBuf.putInt(_payload.size)
         return _lenBuf.array() + _payload
     }
-    // source: nitro_type_coverage.native.dart:136
+    // source: nitro_type_coverage.native.dart:134
     @JvmStatic fun echoBoolMap_call(value: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         @Suppress("UNCHECKED_CAST")
@@ -1456,7 +1456,7 @@ object NitroTypeCoverageJniBridge {
         _lenBuf.putInt(_payload.size)
         return _lenBuf.array() + _payload
     }
-    // source: nitro_type_coverage.native.dart:142
+    // source: nitro_type_coverage.native.dart:140
     @JvmStatic fun echoPacket_call(value: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         val valueBuf = java.nio.ByteBuffer.wrap(value).order(java.nio.ByteOrder.LITTLE_ENDIAN)
@@ -1465,12 +1465,12 @@ object NitroTypeCoverageJniBridge {
         val result = impl.echoPacket(valueDecoded)
         return result.encode()
     }
-    // source: nitro_type_coverage.native.dart:146
+    // source: nitro_type_coverage.native.dart:144
     @JvmStatic fun echoNullablePoint_call(value: TcPoint?): TcPoint? {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return impl.echoNullablePoint(value)
     }
-    // source: nitro_type_coverage.native.dart:152
+    // source: nitro_type_coverage.native.dart:150
     @JvmStatic fun configureConfigStream_call(seed: ByteArray, count: Long): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         val seedBuf = java.nio.ByteBuffer.wrap(seed).order(java.nio.ByteOrder.LITTLE_ENDIAN)
@@ -1478,7 +1478,7 @@ object NitroTypeCoverageJniBridge {
         val seedDecoded = TcConfig.decodeFrom(seedBuf)
         impl.configureConfigStream(seedDecoded, count)
     }
-    // source: nitro_type_coverage.native.dart:156
+    // source: nitro_type_coverage.native.dart:154
     @JvmStatic fun echoNullableConfig_call(value: ByteArray?): ByteArray? {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         val valueDecoded: TcConfig? = if (value == null) null else {
@@ -1489,7 +1489,7 @@ object NitroTypeCoverageJniBridge {
         val result = impl.echoNullableConfig(valueDecoded)
         return result?.encode()
     }
-    // source: nitro_type_coverage.native.dart:159
+    // source: nitro_type_coverage.native.dart:157
     @JvmStatic fun echoNested_call(value: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         val valueBuf = java.nio.ByteBuffer.wrap(value).order(java.nio.ByteOrder.LITTLE_ENDIAN)
@@ -1498,7 +1498,7 @@ object NitroTypeCoverageJniBridge {
         val result = impl.echoNested(valueDecoded)
         return result.encode()
     }
-    // source: nitro_type_coverage.native.dart:164
+    // source: nitro_type_coverage.native.dart:162
     @JvmStatic fun echoConfigListSync_call(values: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         val valuesBuf = java.nio.ByteBuffer.wrap(values).order(java.nio.ByteOrder.LITTLE_ENDIAN)
@@ -1531,7 +1531,7 @@ object NitroTypeCoverageJniBridge {
         lenBuf.putInt(payload.size)
         return lenBuf.array() + payload
     }
-    // source: nitro_type_coverage.native.dart:167
+    // source: nitro_type_coverage.native.dart:165
     @JvmStatic fun echoNullableWrapper_call(value: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         val valueBuf = java.nio.ByteBuffer.wrap(value).order(java.nio.ByteOrder.LITTLE_ENDIAN)
@@ -1540,12 +1540,12 @@ object NitroTypeCoverageJniBridge {
         val result = impl.echoNullableWrapper(valueDecoded)
         return result.encode()
     }
-    // source: nitro_type_coverage.native.dart:171
+    // source: nitro_type_coverage.native.dart:169
     @JvmStatic fun onTransformEvent_call(transformCb: Long): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         impl.onTransformEvent({ p0: Long -> _invoke_transformCb(transformCb, p0) })
     }
-    // source: nitro_type_coverage.native.dart:174
+    // source: nitro_type_coverage.native.dart:172
     @JvmStatic fun echoStructHolder_call(value: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         val valueBuf = java.nio.ByteBuffer.wrap(value).order(java.nio.ByteOrder.LITTLE_ENDIAN)
@@ -1554,22 +1554,22 @@ object NitroTypeCoverageJniBridge {
         val result = impl.echoStructHolder(valueDecoded)
         return result.encode()
     }
-    // source: nitro_type_coverage.native.dart:177
+    // source: nitro_type_coverage.native.dart:175
     @JvmStatic fun onStringTransform_call(stringCb: Long): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         impl.onStringTransform({ p0: Long -> _invoke_stringCb(stringCb, p0) })
     }
-    // source: nitro_type_coverage.native.dart:178
+    // source: nitro_type_coverage.native.dart:176
     @JvmStatic fun onDoubleTransform_call(doubleCb: Long): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         impl.onDoubleTransform({ p0: Long -> java.lang.Double.longBitsToDouble(_invoke_doubleCb(doubleCb, p0)) })
     }
-    // source: nitro_type_coverage.native.dart:183
+    // source: nitro_type_coverage.native.dart:181
     @JvmStatic fun configureBatchStream_call(from: Long, count: Long): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         impl.configureBatchStream(from, count)
     }
-    // source: nitro_type_coverage.native.dart:187
+    // source: nitro_type_coverage.native.dart:185
     @JvmStatic fun configureBatchDoubleStream_call(values: ByteArray): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         val valuesBuf = java.nio.ByteBuffer.wrap(values).order(java.nio.ByteOrder.LITTLE_ENDIAN)
@@ -1583,7 +1583,7 @@ object NitroTypeCoverageJniBridge {
         }
         impl.configureBatchDoubleStream(valuesDecoded)
     }
-    // source: nitro_type_coverage.native.dart:191
+    // source: nitro_type_coverage.native.dart:189
     @JvmStatic fun configureBatchBoolStream_call(values: ByteArray): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         val valuesBuf = java.nio.ByteBuffer.wrap(values).order(java.nio.ByteOrder.LITTLE_ENDIAN)
@@ -1597,17 +1597,17 @@ object NitroTypeCoverageJniBridge {
         }
         impl.configureBatchBoolStream(valuesDecoded)
     }
-    // source: nitro_type_coverage.native.dart:194
+    // source: nitro_type_coverage.native.dart:192
     @JvmStatic fun onBoolTransform_call(boolCb: Long): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         impl.onBoolTransform({ p0: Long -> _invoke_boolCb(boolCb, p0) != 0L })
     }
-    // source: nitro_type_coverage.native.dart:195
+    // source: nitro_type_coverage.native.dart:193
     @JvmStatic fun onStatusTransform_call(statusCb: Long): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         impl.onStatusTransform({ p0: Long -> TcStatus.fromNative(_invoke_statusCb(statusCb, p0)) })
     }
-    // source: nitro_type_coverage.native.dart:199
+    // source: nitro_type_coverage.native.dart:197
     @JvmStatic fun echoListBool_call(value: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         val valueBuf = java.nio.ByteBuffer.wrap(value).order(java.nio.ByteOrder.LITTLE_ENDIAN)
@@ -1628,7 +1628,7 @@ object NitroTypeCoverageJniBridge {
         result.forEach { buf.put((if (it) 1 else 0).toByte()) }
         return buf.array()
     }
-    // source: nitro_type_coverage.native.dart:202
+    // source: nitro_type_coverage.native.dart:200
     @JvmStatic fun echoPointList_call(values: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         val valuesBuf = java.nio.ByteBuffer.wrap(values).order(java.nio.ByteOrder.LITTLE_ENDIAN)
@@ -1661,7 +1661,7 @@ object NitroTypeCoverageJniBridge {
         lenBuf.putInt(payload.size)
         return lenBuf.array() + payload
     }
-    // source: nitro_type_coverage.native.dart:206
+    // source: nitro_type_coverage.native.dart:204
     @JvmStatic fun nativeAsyncInt_call(value: Long, dartPort: Long) {
         val impl = implementation ?: run {
             postNullToPort(dartPort)
@@ -1676,7 +1676,7 @@ object NitroTypeCoverageJniBridge {
             }
         }
     }
-    // source: nitro_type_coverage.native.dart:209
+    // source: nitro_type_coverage.native.dart:207
     @JvmStatic fun nativeAsyncDouble_call(value: Double, dartPort: Long) {
         val impl = implementation ?: run {
             postNullToPort(dartPort)
@@ -1691,7 +1691,7 @@ object NitroTypeCoverageJniBridge {
             }
         }
     }
-    // source: nitro_type_coverage.native.dart:212
+    // source: nitro_type_coverage.native.dart:210
     @JvmStatic fun nativeAsyncBool_call(value: Boolean, dartPort: Long) {
         val impl = implementation ?: run {
             postNullToPort(dartPort)
@@ -1706,7 +1706,7 @@ object NitroTypeCoverageJniBridge {
             }
         }
     }
-    // source: nitro_type_coverage.native.dart:215
+    // source: nitro_type_coverage.native.dart:213
     @JvmStatic fun nativeAsyncString_call(value: String, dartPort: Long) {
         val impl = implementation ?: run {
             postNullToPort(dartPort)
@@ -1721,7 +1721,7 @@ object NitroTypeCoverageJniBridge {
             }
         }
     }
-    // source: nitro_type_coverage.native.dart:220
+    // source: nitro_type_coverage.native.dart:218
     @JvmStatic fun configureStringStream_call(values: ByteArray): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         val valuesBuf = java.nio.ByteBuffer.wrap(values).order(java.nio.ByteOrder.LITTLE_ENDIAN)
@@ -1738,69 +1738,69 @@ object NitroTypeCoverageJniBridge {
         }
         impl.configureStringStream(valuesDecoded)
     }
-    // source: nitro_type_coverage.native.dart:225
+    // source: nitro_type_coverage.native.dart:223
     @JvmStatic fun configureBlockIntStream_call(from: Long, count: Long): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         impl.configureBlockIntStream(from, count)
     }
-    // source: nitro_type_coverage.native.dart:228
+    // source: nitro_type_coverage.native.dart:226
     @JvmStatic fun onPointEvent_call(pointCb: Long): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         impl.onPointEvent({ p0: TcPoint -> _invoke_pointCb(pointCb, java.lang.Double.doubleToRawLongBits(p0.x), java.lang.Double.doubleToRawLongBits(p0.y), java.lang.Double.doubleToRawLongBits(p0.z)) })
     }
-    // source: nitro_type_coverage.native.dart:229
+    // source: nitro_type_coverage.native.dart:227
     @JvmStatic fun onDetailEvent_call(detailCb: Long): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         impl.onDetailEvent({ p0: Long, p1: Double -> _invoke_detailCb(detailCb, p0, java.lang.Double.doubleToRawLongBits(p1)) })
     }
-    // source: nitro_type_coverage.native.dart:232
+    // source: nitro_type_coverage.native.dart:230
     @JvmStatic fun onIntEvent_call(callback: Long): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         impl.onIntEvent({ p0: Long -> _invoke_callback(callback, p0) })
     }
-    // source: nitro_type_coverage.native.dart:238
+    // source: nitro_type_coverage.native.dart:236
     @JvmStatic fun onBoolEvent_call(boolCb: Long): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         impl.onBoolEvent({ p0: Boolean -> _invoke_boolCb(boolCb, if (p0) 1L else 0L) })
     }
-    // source: nitro_type_coverage.native.dart:239
+    // source: nitro_type_coverage.native.dart:237
     @JvmStatic fun onDoubleEvent_call(doubleCb: Long): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         impl.onDoubleEvent({ p0: Double -> _invoke_doubleCb(doubleCb, java.lang.Double.doubleToRawLongBits(p0)) })
     }
-    // source: nitro_type_coverage.native.dart:281
+    // source: nitro_type_coverage.native.dart:279
     @JvmStatic fun configureStream_call(from: Long, count: Long): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         impl.configureStream(from, count)
     }
-    // source: nitro_type_coverage.native.dart:282
+    // source: nitro_type_coverage.native.dart:280
     @JvmStatic fun configureDoubleStream_call(start: Double, count: Long): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         impl.configureDoubleStream(start, count)
     }
-    // source: nitro_type_coverage.native.dart:283
+    // source: nitro_type_coverage.native.dart:281
     @JvmStatic fun configureStatusStream_call(count: Long): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         impl.configureStatusStream(count)
     }
-    // source: nitro_type_coverage.native.dart:286
+    // source: nitro_type_coverage.native.dart:284
     @JvmStatic fun throwNative_call(message: String): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         impl.throwNative(message)
     }
-    // source: nitro_type_coverage.native.dart:289
+    // source: nitro_type_coverage.native.dart:287
     @JvmStatic fun throwNativeAsync_call(message: String): Unit {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return _asyncExecutor.submit(java.util.concurrent.Callable {
             runBlocking { impl.throwNativeAsync(message) }
         }).get()
     }
-    // source: nitro_type_coverage.native.dart:294
+    // source: nitro_type_coverage.native.dart:292
     @JvmStatic fun acquireBuffer_call(size: Long): Long {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return impl.acquireBuffer(size)
     }
-    // source: nitro_type_coverage.native.dart:298
+    // source: nitro_type_coverage.native.dart:296
     @JvmStatic fun echoEvent_call(event: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         val eventBuf = java.nio.ByteBuffer.wrap(event).order(java.nio.ByteOrder.LITTLE_ENDIAN)
@@ -1815,7 +1815,7 @@ object NitroTypeCoverageJniBridge {
         _vBuf.put(_vPayload)
         return _vBuf.array()
     }
-    // source: nitro_type_coverage.native.dart:303
+    // source: nitro_type_coverage.native.dart:301
     @JvmStatic fun safeDiv_call(a: Double, b: Double): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return try {
@@ -1825,7 +1825,7 @@ object NitroTypeCoverageJniBridge {
             nitroEncodeResultError(_e.message ?: "Unknown error")
         }
     }
-    // source: nitro_type_coverage.native.dart:308
+    // source: nitro_type_coverage.native.dart:306
     @JvmStatic fun validateLabel_call(label: String): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return try {
@@ -1835,14 +1835,14 @@ object NitroTypeCoverageJniBridge {
             nitroEncodeResultError(_e.message ?: "Unknown error")
         }
     }
-    // source: nitro_type_coverage.native.dart:314
+    // source: nitro_type_coverage.native.dart:312
     @JvmStatic fun asyncAcquireBuffer_call(size: Long): Long {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return _asyncExecutor.submit(java.util.concurrent.Callable {
             runBlocking { impl.asyncAcquireBuffer(size) }
         }).get()
     }
-    // source: nitro_type_coverage.native.dart:318
+    // source: nitro_type_coverage.native.dart:316
     @JvmStatic fun asyncEchoEvent_call(event: ByteArray): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         val eventBuf = java.nio.ByteBuffer.wrap(event).order(java.nio.ByteOrder.LITTLE_ENDIAN)
@@ -1857,7 +1857,7 @@ object NitroTypeCoverageJniBridge {
         _vBuf.put(_vPayload)
         return _vBuf.array()
     }
-    // source: nitro_type_coverage.native.dart:323
+    // source: nitro_type_coverage.native.dart:321
     @JvmStatic fun asyncSafeDiv_call(a: Double, b: Double): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return try {
@@ -1867,7 +1867,7 @@ object NitroTypeCoverageJniBridge {
             nitroEncodeResultError(_e.message ?: "Unknown error")
         }
     }
-    // source: nitro_type_coverage.native.dart:328
+    // source: nitro_type_coverage.native.dart:326
     @JvmStatic fun asyncValidateLabel_call(label: String): ByteArray {
         val impl = implementation ?: throw IllegalStateException("NitroTypeCoverage not registered")
         return try {

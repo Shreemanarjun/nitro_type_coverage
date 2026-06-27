@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:nitro/nitro.dart';
 
 part 'nitro_type_coverage.g.dart';
@@ -347,7 +345,12 @@ class TcConfig {
   final int count;
   final bool enabled;
   final double threshold;
-  TcConfig({required this.name, required this.count, required this.enabled, required this.threshold});
+  TcConfig({
+    required this.name,
+    required this.count,
+    required this.enabled,
+    required this.threshold,
+  });
 }
 
 /// A more complex @HybridRecord covering all 4 primitive types with different
@@ -358,7 +361,12 @@ class TcMeta {
   final double weight;
   final bool active;
   final String label;
-  TcMeta({required this.version, required this.weight, required this.active, required this.label});
+  TcMeta({
+    required this.version,
+    required this.weight,
+    required this.active,
+    required this.label,
+  });
 }
 
 /// @HybridRecord with a @HybridEnum field — tests binary codec enum encoding.
@@ -369,7 +377,12 @@ class TcPacket {
   final int sequence;
   final TcStatus status;
   final bool valid;
-  TcPacket({required this.name, required this.sequence, required this.status, required this.valid});
+  TcPacket({
+    required this.name,
+    required this.sequence,
+    required this.status,
+    required this.valid,
+  });
 }
 
 // NitroNullableInt, NitroNullableDouble, NitroNullableBool are part of
@@ -381,7 +394,7 @@ class TcPacket {
 @HybridRecord()
 class TcNested {
   final String label;
-  final TcConfig config;   // RecordFieldKind.recordObject
+  final TcConfig config; // RecordFieldKind.recordObject
   final int version;
   TcNested({required this.label, required this.config, required this.version});
 }
@@ -406,10 +419,10 @@ class TcNullableWrapper {
 /// as [4B element_count][element_bytes] inside a record.
 @HybridRecord()
 class TcDataRecord {
-  final Uint8List bytes;      // raw binary — [4B len][bytes]
-  final Int32List values;     // int32 array — [4B count][int32 * count]
-  final Float64List scores;   // float64 array — [4B count][f64 * count]
-  final String label;         // string field alongside TypedData
+  final Uint8List bytes; // raw binary — [4B len][bytes]
+  final Int32List values; // int32 array — [4B count][int32 * count]
+  final Float64List scores; // float64 array — [4B count][f64 * count]
+  final String label; // string field alongside TypedData
   TcDataRecord({
     required this.bytes,
     required this.values,
@@ -424,7 +437,7 @@ class TcDataRecord {
 @HybridRecord()
 class TcStructHolder {
   final String label;
-  final TcPoint origin;   // RecordFieldKind.struct — embedded inline
+  final TcPoint origin; // RecordFieldKind.struct — embedded inline
   final double radius;
   TcStructHolder({
     required this.label,

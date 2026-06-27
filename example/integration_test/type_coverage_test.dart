@@ -7,10 +7,7 @@
 // Run:
 //   flutter test integration_test/type_coverage_test.dart -d <device-id>
 
-
 import 'dart:async';
-import 'dart:typed_data';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -39,27 +36,44 @@ void main() {
     });
 
     test('double: 0.0', () => expect(tc.echoDouble(0.0), 0.0));
-    test('double: 3.14159265358979', () =>
-        expect(tc.echoDouble(3.14159265358979), closeTo(3.14159265358979, 1e-12)));
-    test('double: infinity', () =>
-        expect(tc.echoDouble(double.infinity), double.infinity));
-    test('double: -infinity', () =>
-        expect(tc.echoDouble(double.negativeInfinity), double.negativeInfinity));
+    test(
+      'double: 3.14159265358979',
+      () => expect(
+        tc.echoDouble(3.14159265358979),
+        closeTo(3.14159265358979, 1e-12),
+      ),
+    );
+    test(
+      'double: infinity',
+      () => expect(tc.echoDouble(double.infinity), double.infinity),
+    );
+    test(
+      'double: -infinity',
+      () => expect(
+        tc.echoDouble(double.negativeInfinity),
+        double.negativeInfinity,
+      ),
+    );
     test('double: NaN', () => expect(tc.echoDouble(double.nan).isNaN, isTrue));
-    test('double: maxFinite', () =>
-        expect(tc.echoDouble(double.maxFinite), double.maxFinite));
-    test('double: minPositive', () =>
-        expect(tc.echoDouble(double.minPositive), greaterThan(0)));
+    test(
+      'double: maxFinite',
+      () => expect(tc.echoDouble(double.maxFinite), double.maxFinite),
+    );
+    test(
+      'double: minPositive',
+      () => expect(tc.echoDouble(double.minPositive), greaterThan(0)),
+    );
 
     test('bool: true', () => expect(tc.echoBool(true), isTrue));
     test('bool: false', () => expect(tc.echoBool(false), isFalse));
 
     test('String: empty', () => expect(tc.echoString(''), ''));
     test('String: ascii', () => expect(tc.echoString('hello'), 'hello'));
-    test('String: unicode', () =>
-        expect(tc.echoString('日本語 🎉'), '日本語 🎉'));
-    test('String: emoji cluster', () =>
-        expect(tc.echoString('👨‍👩‍👧‍👦'), '👨‍👩‍👧‍👦'));
+    test('String: unicode', () => expect(tc.echoString('日本語 🎉'), '日本語 🎉'));
+    test(
+      'String: emoji cluster',
+      () => expect(tc.echoString('👨‍👩‍👧‍👦'), '👨‍👩‍👧‍👦'),
+    );
     test('String: 1 KB', () {
       final s = 'a' * 1024;
       expect(tc.echoString(s), s);
@@ -85,17 +99,27 @@ void main() {
       expect(() => tc.addInts(max, 1, 0), returnsNormally);
     });
 
-    test('mulDoubles: 2.5 * 4.0 = 10.0', () =>
-        expect(tc.mulDoubles(2.5, 4.0), closeTo(10.0, 1e-12)));
-    test('mulDoubles: 0 * inf = NaN', () =>
-        expect(tc.mulDoubles(0, double.infinity).isNaN, isTrue));
+    test(
+      'mulDoubles: 2.5 * 4.0 = 10.0',
+      () => expect(tc.mulDoubles(2.5, 4.0), closeTo(10.0, 1e-12)),
+    );
+    test(
+      'mulDoubles: 0 * inf = NaN',
+      () => expect(tc.mulDoubles(0, double.infinity).isNaN, isTrue),
+    );
 
-    test('joinStrings: "a" + "b" with "-"', () =>
-        expect(tc.joinStrings('a', 'b', '-'), 'a-b'));
-    test('joinStrings: empty separator', () =>
-        expect(tc.joinStrings('foo', 'bar', ''), 'foobar'));
-    test('joinStrings: unicode separator', () =>
-        expect(tc.joinStrings('a', 'b', '→'), 'a→b'));
+    test(
+      'joinStrings: "a" + "b" with "-"',
+      () => expect(tc.joinStrings('a', 'b', '-'), 'a-b'),
+    );
+    test(
+      'joinStrings: empty separator',
+      () => expect(tc.joinStrings('foo', 'bar', ''), 'foobar'),
+    );
+    test(
+      'joinStrings: unicode separator',
+      () => expect(tc.joinStrings('a', 'b', '→'), 'a→b'),
+    );
   });
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -105,47 +129,71 @@ void main() {
   group('§3 Nullable primitives — sync (non-null paths)', () {
     test('int?: 42 → 42', () => expect(tc.echoNullableInt(42), 42));
     test('int?: 0 → 0', () => expect(tc.echoNullableInt(0), 0));
-    test('int?: large positive', () =>
-        expect(tc.echoNullableInt(1000000), 1000000));
+    test(
+      'int?: large positive',
+      () => expect(tc.echoNullableInt(1000000), 1000000),
+    );
     // Auto-NitroNullable: zero sentinel collision — ALL values work.
-    test('int?: -1 → -1 (auto-NitroNullable, no sentinel)', () =>
-        expect(tc.echoNullableInt(-1), -1));
+    test(
+      'int?: -1 → -1 (auto-NitroNullable, no sentinel)',
+      () => expect(tc.echoNullableInt(-1), -1),
+    );
     test('int?: -9999 → -9999', () => expect(tc.echoNullableInt(-9999), -9999));
-    test('int?: Int64.min → Int64.min (was null sentinel — now safe)', () =>
-        expect(tc.echoNullableInt(-9223372036854775808), equals(-9223372036854775808)));
+    test(
+      'int?: Int64.min → Int64.min (was null sentinel — now safe)',
+      () => expect(
+        tc.echoNullableInt(-9223372036854775808),
+        equals(-9223372036854775808),
+      ),
+    );
 
-    test('double?: 1.5 → 1.5', () =>
-        expect(tc.echoNullableDouble(1.5), closeTo(1.5, 1e-12)));
-    test('double?: 0.0 → 0.0', () =>
-        expect(tc.echoNullableDouble(0.0), 0.0));
-    test('double?: maxFinite', () =>
-        expect(tc.echoNullableDouble(double.maxFinite), double.maxFinite));
-    test('double?: infinity', () =>
-        expect(tc.echoNullableDouble(double.infinity), double.infinity));
-    test('double?: -infinity', () =>
-        expect(tc.echoNullableDouble(double.negativeInfinity), double.negativeInfinity));
+    test(
+      'double?: 1.5 → 1.5',
+      () => expect(tc.echoNullableDouble(1.5), closeTo(1.5, 1e-12)),
+    );
+    test('double?: 0.0 → 0.0', () => expect(tc.echoNullableDouble(0.0), 0.0));
+    test(
+      'double?: maxFinite',
+      () => expect(tc.echoNullableDouble(double.maxFinite), double.maxFinite),
+    );
+    test(
+      'double?: infinity',
+      () => expect(tc.echoNullableDouble(double.infinity), double.infinity),
+    );
+    test(
+      'double?: -infinity',
+      () => expect(
+        tc.echoNullableDouble(double.negativeInfinity),
+        double.negativeInfinity,
+      ),
+    );
 
-    test('bool?: true → true', () =>
-        expect(tc.echoNullableBool(true), isTrue));
-    test('bool?: false → false', () =>
-        expect(tc.echoNullableBool(false), isFalse));
+    test('bool?: true → true', () => expect(tc.echoNullableBool(true), isTrue));
+    test(
+      'bool?: false → false',
+      () => expect(tc.echoNullableBool(false), isFalse),
+    );
 
-    test('String?: "hi" → "hi"', () =>
-        expect(tc.echoNullableString('hi'), 'hi'));
-    test('String?: empty → empty', () =>
-        expect(tc.echoNullableString(''), ''));
-    test('String?: unicode', () =>
-        expect(tc.echoNullableString('日本語'), '日本語'));
+    test(
+      'String?: "hi" → "hi"',
+      () => expect(tc.echoNullableString('hi'), 'hi'),
+    );
+    test('String?: empty → empty', () => expect(tc.echoNullableString(''), ''));
+    test('String?: unicode', () => expect(tc.echoNullableString('日本語'), '日本語'));
   });
 
   group('§3 Nullable primitives — null paths', () {
-    test('int?: null → null', () =>
-        expect(tc.echoNullableInt(null), isNull));
-    test('double?: null → null', () =>
-        expect(tc.echoNullableDouble(null), isNull));
-    test('bool?: null → null (fixed: Int3-state encoding carries null on all platforms)', () {
-      expect(tc.echoNullableBool(null), isNull);
-    });
+    test('int?: null → null', () => expect(tc.echoNullableInt(null), isNull));
+    test(
+      'double?: null → null',
+      () => expect(tc.echoNullableDouble(null), isNull),
+    );
+    test(
+      'bool?: null → null (fixed: Int3-state encoding carries null on all platforms)',
+      () {
+        expect(tc.echoNullableBool(null), isNull);
+      },
+    );
     test('String?: null → null or empty', () {
       final v = tc.echoNullableString(null);
       expect(v, anyOf(isNull, isEmpty));
@@ -159,14 +207,23 @@ void main() {
   group('§4 Enum', () {
     test('ok', () => expect(tc.echoStatus(TcStatus.ok), TcStatus.ok));
     test('error', () => expect(tc.echoStatus(TcStatus.error), TcStatus.error));
-    test('pending', () => expect(tc.echoStatus(TcStatus.pending), TcStatus.pending));
+    test(
+      'pending',
+      () => expect(tc.echoStatus(TcStatus.pending), TcStatus.pending),
+    );
 
-    test('nullable enum: ok → ok', () =>
-        expect(tc.echoNullableStatus(TcStatus.ok), TcStatus.ok));
-    test('nullable enum: error → error', () =>
-        expect(tc.echoNullableStatus(TcStatus.error), TcStatus.error));
-    test('nullable enum: null → null', () =>
-        expect(tc.echoNullableStatus(null), isNull));
+    test(
+      'nullable enum: ok → ok',
+      () => expect(tc.echoNullableStatus(TcStatus.ok), TcStatus.ok),
+    );
+    test(
+      'nullable enum: error → error',
+      () => expect(tc.echoNullableStatus(TcStatus.error), TcStatus.error),
+    );
+    test(
+      'nullable enum: null → null',
+      () => expect(tc.echoNullableStatus(null), isNull),
+    );
   });
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -176,7 +233,9 @@ void main() {
   group('§5 @HybridStruct', () {
     test('origin (0,0,0)', () {
       final p = tc.echoPoint(TcPoint(x: 0, y: 0, z: 0));
-      expect(p.x, 0.0); expect(p.y, 0.0); expect(p.z, 0.0);
+      expect(p.x, 0.0);
+      expect(p.y, 0.0);
+      expect(p.z, 0.0);
     });
     test('(1.5, -2.5, 3.0)', () {
       final p = tc.echoPoint(TcPoint(x: 1.5, y: -2.5, z: 3.0));
@@ -204,23 +263,40 @@ void main() {
 
   group('§6 @HybridRecord', () {
     test('basic round-trip', () {
-      final cfg = TcConfig(name: 'test', count: 7, enabled: true, threshold: 0.5);
+      final cfg = TcConfig(
+        name: 'test',
+        count: 7,
+        enabled: true,
+        threshold: 0.5,
+      );
       final r = tc.echoConfig(cfg);
-      expect(r.name, 'test'); expect(r.count, 7);
-      expect(r.enabled, isTrue); expect(r.threshold, closeTo(0.5, 1e-12));
+      expect(r.name, 'test');
+      expect(r.count, 7);
+      expect(r.enabled, isTrue);
+      expect(r.threshold, closeTo(0.5, 1e-12));
     });
     test('empty name, zero count', () {
-      final r = tc.echoConfig(TcConfig(name: '', count: 0, enabled: false, threshold: 0));
-      expect(r.name, ''); expect(r.count, 0); expect(r.enabled, isFalse);
+      final r = tc.echoConfig(
+        TcConfig(name: '', count: 0, enabled: false, threshold: 0),
+      );
+      expect(r.name, '');
+      expect(r.count, 0);
+      expect(r.enabled, isFalse);
     });
     test('unicode name', () {
-      final r = tc.echoConfig(TcConfig(name: '設定 🔧', count: 1000000, enabled: true, threshold: 99.9));
-      expect(r.name, '設定 🔧'); expect(r.count, 1000000);
+      final r = tc.echoConfig(
+        TcConfig(name: '設定 🔧', count: 1000000, enabled: true, threshold: 99.9),
+      );
+      expect(r.name, '設定 🔧');
+      expect(r.count, 1000000);
       expect(r.threshold, closeTo(99.9, 1e-10));
     });
     test('negative threshold', () {
-      final r = tc.echoConfig(TcConfig(name: 'neg', count: -5, enabled: false, threshold: -3.14));
-      expect(r.count, -5); expect(r.threshold, closeTo(-3.14, 1e-12));
+      final r = tc.echoConfig(
+        TcConfig(name: 'neg', count: -5, enabled: false, threshold: -3.14),
+      );
+      expect(r.count, -5);
+      expect(r.threshold, closeTo(-3.14, 1e-12));
     });
   });
 
@@ -230,10 +306,19 @@ void main() {
 
   group('§7 TypedData — zero-copy', () {
     // Uint8List
-    test('echoBytes: empty', () =>
-        expect(tc.echoBytes(Uint8List(0)).length, 0));
-    test('echoBytes: [0,1,2,255]', () =>
-        expect(tc.echoBytes(Uint8List.fromList([0, 1, 2, 255])), [0, 1, 2, 255]));
+    test(
+      'echoBytes: empty',
+      () => expect(tc.echoBytes(Uint8List(0)).length, 0),
+    );
+    test(
+      'echoBytes: [0,1,2,255]',
+      () => expect(tc.echoBytes(Uint8List.fromList([0, 1, 2, 255])), [
+        0,
+        1,
+        2,
+        255,
+      ]),
+    );
     test('echoBytes: 1 KB all-zeros', () {
       final r = tc.echoBytes(Uint8List(1024));
       expect(r.length, 1024);
@@ -243,7 +328,9 @@ void main() {
       final src = Uint8List.fromList(List.generate(262144, (i) => i & 0xFF));
       final r = tc.echoBytes(src);
       expect(r.length, src.length);
-      expect(r[0], 0); expect(r[255], 255); expect(r[256], 0);
+      expect(r[0], 0);
+      expect(r[255], 255);
+      expect(r[256], 0);
     });
 
     // Float32List
@@ -252,10 +339,14 @@ void main() {
       expect(r[0], closeTo(1.0, 1e-6));
       expect(r[2], closeTo(3.0, 1e-6));
     });
-    test('echoFloats: empty', () =>
-        expect(tc.echoFloats(Float32List(0)).length, 0));
+    test(
+      'echoFloats: empty',
+      () => expect(tc.echoFloats(Float32List(0)).length, 0),
+    );
     test('echoFloats: 10k elements', () {
-      final src = Float32List.fromList(List.generate(10000, (i) => i.toDouble()));
+      final src = Float32List.fromList(
+        List.generate(10000, (i) => i.toDouble()),
+      );
       expect(tc.echoFloats(src).length, 10000);
     });
 
@@ -274,10 +365,14 @@ void main() {
     // Int32List
     test('echoInt32s: [0, -1, 2147483647]', () {
       final r = tc.echoInt32s(Int32List.fromList([0, -1, 2147483647]));
-      expect(r[0], 0); expect(r[1], -1); expect(r[2], 2147483647);
+      expect(r[0], 0);
+      expect(r[1], -1);
+      expect(r[2], 2147483647);
     });
-    test('echoInt32s: empty', () =>
-        expect(tc.echoInt32s(Int32List(0)).length, 0));
+    test(
+      'echoInt32s: empty',
+      () => expect(tc.echoInt32s(Int32List(0)).length, 0),
+    );
   });
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -285,15 +380,20 @@ void main() {
   // ══════════════════════════════════════════════════════════════════════════
 
   group('§8 Lists — async', () {
-    testWidgets('echoIntList: [1,2,3]', (t) async =>
-        expect(await tc.echoIntList([1, 2, 3]), [1, 2, 3]));
-    testWidgets('echoIntList: empty', (t) async =>
-        expect(await tc.echoIntList([]), isEmpty));
+    testWidgets(
+      'echoIntList: [1,2,3]',
+      (t) async => expect(await tc.echoIntList([1, 2, 3]), [1, 2, 3]),
+    );
+    testWidgets(
+      'echoIntList: empty',
+      (t) async => expect(await tc.echoIntList([]), isEmpty),
+    );
     testWidgets('echoIntList: 1000 items', (t) async {
       final src = List.generate(1000, (i) => i);
       final r = await tc.echoIntList(src);
       expect(r.length, 1000);
-      expect(r.first, 0); expect(r.last, 999);
+      expect(r.first, 0);
+      expect(r.last, 999);
     });
 
     testWidgets('echoDoubleList: [1.1, 2.2]', (t) async {
@@ -315,10 +415,14 @@ void main() {
       ];
       final r = await tc.echoConfigList(cfgs);
       expect(r.length, 3);
-      expect(r[0].name, 'a'); expect(r[1].count, 2); expect(r[2].enabled, isTrue);
+      expect(r[0].name, 'a');
+      expect(r[1].count, 2);
+      expect(r[2].enabled, isTrue);
     });
-    testWidgets('echoConfigList: empty', (t) async =>
-        expect(await tc.echoConfigList([]), isEmpty));
+    testWidgets(
+      'echoConfigList: empty',
+      (t) async => expect(await tc.echoConfigList([]), isEmpty),
+    );
   });
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -326,20 +430,34 @@ void main() {
   // ══════════════════════════════════════════════════════════════════════════
 
   group('§9 Async — @nitroAsync', () {
-    testWidgets('asyncInt: 99', (t) async =>
-        expect(await tc.asyncInt(99), 99));
-    testWidgets('asyncDouble: pi', (t) async =>
-        expect(await tc.asyncDouble(3.14159), closeTo(3.14159, 1e-12)));
-    testWidgets('asyncBool: true', (t) async =>
-        expect(await tc.asyncBool(true), isTrue));
-    testWidgets('asyncBool: false', (t) async =>
-        expect(await tc.asyncBool(false), isFalse));
-    testWidgets('asyncString: unicode', (t) async =>
-        expect(await tc.asyncString('日本語 🎉'), '日本語 🎉'));
+    testWidgets('asyncInt: 99', (t) async => expect(await tc.asyncInt(99), 99));
+    testWidgets(
+      'asyncDouble: pi',
+      (t) async =>
+          expect(await tc.asyncDouble(3.14159), closeTo(3.14159, 1e-12)),
+    );
+    testWidgets(
+      'asyncBool: true',
+      (t) async => expect(await tc.asyncBool(true), isTrue),
+    );
+    testWidgets(
+      'asyncBool: false',
+      (t) async => expect(await tc.asyncBool(false), isFalse),
+    );
+    testWidgets(
+      'asyncString: unicode',
+      (t) async => expect(await tc.asyncString('日本語 🎉'), '日本語 🎉'),
+    );
     testWidgets('asyncConfig round-trip', (t) async {
-      final cfg = TcConfig(name: 'async', count: 99, enabled: true, threshold: 3.14);
+      final cfg = TcConfig(
+        name: 'async',
+        count: 99,
+        enabled: true,
+        threshold: 3.14,
+      );
       final r = await tc.asyncConfig(cfg);
-      expect(r.name, 'async'); expect(r.count, 99);
+      expect(r.name, 'async');
+      expect(r.count, 99);
     });
 
     testWidgets('100 concurrent asyncInt — all resolve correctly', (t) async {
@@ -364,21 +482,36 @@ void main() {
   // ══════════════════════════════════════════════════════════════════════════
 
   group('§10 Async nullable — @nitroAsync', () {
-    testWidgets('asyncNullableInt: 42 → 42', (t) async =>
-        expect(await tc.asyncNullableInt(42), 42));
-    testWidgets('asyncNullableInt: null → null', (t) async =>
-        expect(await tc.asyncNullableInt(null), isNull));
-    testWidgets('asyncNullableDouble: 1.5 → 1.5', (t) async =>
-        expect(await tc.asyncNullableDouble(1.5), closeTo(1.5, 1e-12)));
-    testWidgets('asyncNullableDouble: null → null', (t) async =>
-        expect(await tc.asyncNullableDouble(null), isNull));
-    testWidgets('asyncNullableBool: true → true', (t) async =>
-        expect(await tc.asyncNullableBool(true), isTrue));
-    testWidgets('asyncNullableBool: null → null (fixed on all platforms)', (t) async {
+    testWidgets(
+      'asyncNullableInt: 42 → 42',
+      (t) async => expect(await tc.asyncNullableInt(42), 42),
+    );
+    testWidgets(
+      'asyncNullableInt: null → null',
+      (t) async => expect(await tc.asyncNullableInt(null), isNull),
+    );
+    testWidgets(
+      'asyncNullableDouble: 1.5 → 1.5',
+      (t) async =>
+          expect(await tc.asyncNullableDouble(1.5), closeTo(1.5, 1e-12)),
+    );
+    testWidgets(
+      'asyncNullableDouble: null → null',
+      (t) async => expect(await tc.asyncNullableDouble(null), isNull),
+    );
+    testWidgets(
+      'asyncNullableBool: true → true',
+      (t) async => expect(await tc.asyncNullableBool(true), isTrue),
+    );
+    testWidgets('asyncNullableBool: null → null (fixed on all platforms)', (
+      t,
+    ) async {
       expect(await tc.asyncNullableBool(null), isNull);
     });
-    testWidgets('asyncNullableString: "hi" → "hi"', (t) async =>
-        expect(await tc.asyncNullableString('hi'), 'hi'));
+    testWidgets(
+      'asyncNullableString: "hi" → "hi"',
+      (t) async => expect(await tc.asyncNullableString('hi'), 'hi'),
+    );
     testWidgets('asyncNullableString: null → null or empty', (t) async {
       final r = await tc.asyncNullableString(null);
       expect(r, anyOf(isNull, isEmpty));
@@ -391,14 +524,20 @@ void main() {
 
   group('§11 Properties', () {
     test('precision: set/get int', () {
-      tc.precision = 7; expect(tc.precision, 7);
-      tc.precision = 0; expect(tc.precision, 0);
-      tc.precision = -1; expect(tc.precision, -1);
+      tc.precision = 7;
+      expect(tc.precision, 7);
+      tc.precision = 0;
+      expect(tc.precision, 0);
+      tc.precision = -1;
+      expect(tc.precision, -1);
     });
     test('tag: set/get String', () {
-      tc.tag = 'hello'; expect(tc.tag, 'hello');
-      tc.tag = ''; expect(tc.tag, '');
-      tc.tag = '日本語 🔧'; expect(tc.tag, '日本語 🔧');
+      tc.tag = 'hello';
+      expect(tc.tag, 'hello');
+      tc.tag = '';
+      expect(tc.tag, '');
+      tc.tag = '日本語 🔧';
+      expect(tc.tag, '日本語 🔧');
     });
     test('nullableRate: null', () {
       tc.nullableRate = null;
@@ -417,9 +556,12 @@ void main() {
       expect(tc.nullableRate, double.infinity);
     });
     test('enabled: false → true → false', () {
-      tc.enabled = false; expect(tc.enabled, isFalse);
-      tc.enabled = true; expect(tc.enabled, isTrue);
-      tc.enabled = false; expect(tc.enabled, isFalse);
+      tc.enabled = false;
+      expect(tc.enabled, isFalse);
+      tc.enabled = true;
+      expect(tc.enabled, isTrue);
+      tc.enabled = false;
+      expect(tc.enabled, isFalse);
     });
     test('currentStatus: all values', () {
       tc.currentStatus = TcStatus.ok;
@@ -440,14 +582,21 @@ void main() {
     // asynchronously. Use a Completer to wait for the first emission.
     testWidgets('onIntEvent fires with value 42', (t) async {
       final completer = Completer<int>();
-      tc.onIntEvent((v) { if (!completer.isCompleted) completer.complete(v); });
-      final received = await completer.future.timeout(const Duration(seconds: 2));
+      tc.onIntEvent((v) {
+        if (!completer.isCompleted) completer.complete(v);
+      });
+      final received = await completer.future.timeout(
+        const Duration(seconds: 2),
+      );
       expect(received, 42);
     });
     testWidgets('callback closure captures outer state', (t) async {
       final values = <int>[];
       final completer = Completer<void>();
-      tc.onIntEvent((v) { values.add(v); if (!completer.isCompleted) completer.complete(); });
+      tc.onIntEvent((v) {
+        values.add(v);
+        if (!completer.isCompleted) completer.complete();
+      });
       await completer.future.timeout(const Duration(seconds: 2));
       expect(values, isNotEmpty);
       expect(values.first, 42);
@@ -501,7 +650,9 @@ void main() {
       final sub = tc.pointStream().listen((p) {
         if (!firstPoint.isCompleted) firstPoint.complete(p);
       });
-      await Future.delayed(const Duration(milliseconds: 50)); // Kotlin collector startup
+      await Future.delayed(
+        const Duration(milliseconds: 50),
+      ); // Kotlin collector startup
       tc.configureStream(5, 3);
       final p = await firstPoint.future;
       await sub.cancel();
@@ -514,7 +665,9 @@ void main() {
       final sub = tc.boolStream().listen((b) {
         if (!firstBool.isCompleted) firstBool.complete(b);
       });
-      await Future.delayed(const Duration(milliseconds: 50)); // Kotlin collector startup
+      await Future.delayed(
+        const Duration(milliseconds: 50),
+      ); // Kotlin collector startup
       tc.configureStream(0, 4); // 0,1,2,3 → even=true, odd=false
       await expectLater(firstBool.future, completion(isA<bool>()));
       await sub.cancel();
@@ -537,10 +690,7 @@ void main() {
 
   group('§14 Error handling', () {
     test('throwNative: throws HybridException', () {
-      expect(
-        () => tc.throwNative('boom'),
-        throwsA(isA<HybridException>()),
-      );
+      expect(() => tc.throwNative('boom'), throwsA(isA<HybridException>()));
     });
 
     test('throwNative: exception carries message', () {
@@ -561,7 +711,9 @@ void main() {
     });
 
     test('throwNative: subsequent calls succeed after error', () {
-      try { tc.throwNative('x'); } on HybridException catch (_) {}
+      try {
+        tc.throwNative('x');
+      } on HybridException catch (_) {}
       // Bridge should be in a clean state
       expect(tc.echoInt(42), 42);
     });
@@ -585,8 +737,12 @@ void main() {
     test('FIXED: int? carries Int64.min (was null sentinel — now safe)', () {
       const int64Min = -9223372036854775808;
       // Auto-NitroNullable: no collision, Int64.min is a real value.
-      expect(tc.echoNullableInt(int64Min), equals(int64Min),
-          reason: 'NitroNullable binary encoding — Int64.min no longer a sentinel');
+      expect(
+        tc.echoNullableInt(int64Min),
+        equals(int64Min),
+        reason:
+            'NitroNullable binary encoding — Int64.min no longer a sentinel',
+      );
     });
 
     test('FIXED: int? carries -1 and all negatives (zero collision)', () {
@@ -598,8 +754,12 @@ void main() {
     test('FIXED: double? carries NaN as a real value (was null sentinel)', () {
       // Auto-NitroNullable: NaN is now transportable without treating it as null.
       final result = tc.echoNullableDouble(double.nan);
-      expect(result, isNotNull,
-          reason: 'NitroNullable binary encoding — NaN is now a real value not a sentinel');
+      expect(
+        result,
+        isNotNull,
+        reason:
+            'NitroNullable binary encoding — NaN is now a real value not a sentinel',
+      );
       expect(result!.isNaN, isTrue);
     });
 
@@ -619,47 +779,71 @@ void main() {
     //   Kotlin decodes -1 → null → impl receives null → returns null →
     //   Kotlin encodes null → -1 → C reads Int32(-1) → int8_t(-1) → Dart null. ✓
     // The old jboolean approach (0/1 only) is completely replaced by Int (I) JNI descriptor.
-    test('FIXED (was Android limitation): bool? null correctly round-trips on all platforms', () {
-      // Now passes on Android, iOS, and macOS.
-      expect(tc.echoNullableBool(null), isNull,
-          reason: 'bool? uses Int3-state encoding (-1=null/0=false/1=true) — null round-trips correctly');
-    });
+    test(
+      'FIXED (was Android limitation): bool? null correctly round-trips on all platforms',
+      () {
+        // Now passes on Android, iOS, and macOS.
+        expect(
+          tc.echoNullableBool(null),
+          isNull,
+          reason:
+              'bool? uses Int3-state encoding (-1=null/0=false/1=true) — null round-trips correctly',
+        );
+      },
+    );
 
     // String fields in @HybridStruct are heap-copied on every call.
     // This is correct but different from @HybridRecord (which JSON-encodes once).
     // The test verifies behaviour is correct — the note documents the cost.
-    test('LIMITATION: @HybridStruct String fields heap-copy on each bridge call', () {
-      // TcConfig IS a @HybridRecord (binary-encoded), but TcPoint is a struct.
-      // Structs with String fields get strdup/free per call.
-      // This test just verifies correctness; the limitation is PERFORMANCE, not correctness.
-      final cfg = TcConfig(name: 'x' * 1024, count: 1, enabled: true, threshold: 0.0);
-      expect(tc.echoConfig(cfg).name.length, 1024);
-    });
+    test(
+      'LIMITATION: @HybridStruct String fields heap-copy on each bridge call',
+      () {
+        // TcConfig IS a @HybridRecord (binary-encoded), but TcPoint is a struct.
+        // Structs with String fields get strdup/free per call.
+        // This test just verifies correctness; the limitation is PERFORMANCE, not correctness.
+        final cfg = TcConfig(
+          name: 'x' * 1024,
+          count: 1,
+          enabled: true,
+          threshold: 0.0,
+        );
+        expect(tc.echoConfig(cfg).name.length, 1024);
+      },
+    );
 
     // echoNullableStatus(TcStatus.ok) where ok.rawValue == 0 is safe.
     // But if a native impl returned -1 rawValue as "no sentinel" → enum decodes ok=0.
     // Test that rawValue 0 (TcStatus.ok) is NOT confused with null.
     test('LIMITATION: nullable enum ok(rawValue=0) correctly round-trips', () {
       // ok has rawValue 0. null uses -1. These are distinct.
-      expect(tc.echoNullableStatus(TcStatus.ok), TcStatus.ok,
-          reason: 'rawValue 0 must not be confused with null sentinel -1');
+      expect(
+        tc.echoNullableStatus(TcStatus.ok),
+        TcStatus.ok,
+        reason: 'rawValue 0 must not be confused with null sentinel -1',
+      );
     });
 
     // @nitroAsync runs on a dedicated background isolate. Concurrent calls
     // may complete out of order if the implementation doesn't preserve order.
     // The echo impl is stateless so this is safe, but heavy implementations
     // with shared state must use synchronisation.
-    test('LIMITATION: @nitroAsync order not guaranteed (stateless echo is safe)', () async {
-      // 10 rapid calls — results should all match, but order across Futures
-      // depends on isolate scheduling.
-      final futures = List.generate(10, (i) => tc.asyncInt(i));
-      final results = await Future.wait(futures);
-      // All echo the correct value regardless of completion order:
-      for (var i = 0; i < 10; i++) {
-        expect(results[i], i,
-            reason: 'Each asyncInt echoes its input regardless of call order');
-      }
-    });
+    test(
+      'LIMITATION: @nitroAsync order not guaranteed (stateless echo is safe)',
+      () async {
+        // 10 rapid calls — results should all match, but order across Futures
+        // depends on isolate scheduling.
+        final futures = List.generate(10, (i) => tc.asyncInt(i));
+        final results = await Future.wait(futures);
+        // All echo the correct value regardless of completion order:
+        for (var i = 0; i < 10; i++) {
+          expect(
+            results[i],
+            i,
+            reason: 'Each asyncInt echoes its input regardless of call order',
+          );
+        }
+      },
+    );
 
     // NativeCallable.listener (used by Nitro callback bridges) fires via the
     // Dart event queue.  On iOS the implementation delivers the event
@@ -686,13 +870,16 @@ void main() {
     //
     // Both strategies work on iOS and Android.  Avoid using plain test()
     // without an await for callback assertions — it is unreliable on Android.
-    testWidgets('LIMITATION: Nitro callbacks may fire asynchronously on Android', (t) async {
-      // This test documents the pattern, not a bug.
-      // Strategy A — expectLater() + Completer:
-      final completer = Completer<int>();
-      tc.onIntEvent(completer.complete);
-      await expectLater(completer.future, completion(equals(42)));
-    });
+    testWidgets(
+      'LIMITATION: Nitro callbacks may fire asynchronously on Android',
+      (t) async {
+        // This test documents the pattern, not a bug.
+        // Strategy A — expectLater() + Completer:
+        final completer = Completer<int>();
+        tc.onIntEvent(completer.complete);
+        await expectLater(completer.future, completion(equals(42)));
+      },
+    );
   });
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -726,7 +913,8 @@ void main() {
         final buf = Uint8List.fromList(List.generate(1024, (j) => j & 0xFF));
         final r = tc.echoBytes(buf);
         expect(r.length, 1024);
-        expect(r[0], 0); expect(r[255], 255);
+        expect(r[0], 0);
+        expect(r[255], 255);
       }
     });
 
@@ -756,24 +944,31 @@ void main() {
 
   group('§17 Additional TypedData types', () {
     group('Int8List (signed bytes)', () {
-      test('empty Int8List', () =>
-          expect(tc.echoInt8s(Int8List(0)).length, 0));
+      test('empty Int8List', () => expect(tc.echoInt8s(Int8List(0)).length, 0));
       test('signed bytes: [-128, 0, 127]', () {
         final r = tc.echoInt8s(Int8List.fromList([-128, 0, 127]));
-        expect(r[0], -128); expect(r[1], 0); expect(r[2], 127);
+        expect(r[0], -128);
+        expect(r[1], 0);
+        expect(r[2], 127);
       });
       test('1 KB Int8List round-trip', () {
-        final src = Int8List.fromList(List.generate(1024, (i) => (i % 256) - 128));
+        final src = Int8List.fromList(
+          List.generate(1024, (i) => (i % 256) - 128),
+        );
         expect(tc.echoInt8s(src).length, 1024);
       });
     });
 
     group('Int16List (16-bit integers)', () {
-      test('empty Int16List', () =>
-          expect(tc.echoInt16s(Int16List(0)).length, 0));
+      test(
+        'empty Int16List',
+        () => expect(tc.echoInt16s(Int16List(0)).length, 0),
+      );
       test('Int16 values: [-32768, 0, 32767]', () {
         final r = tc.echoInt16s(Int16List.fromList([-32768, 0, 32767]));
-        expect(r[0], -32768); expect(r[1], 0); expect(r[2], 32767);
+        expect(r[0], -32768);
+        expect(r[1], 0);
+        expect(r[2], 32767);
       });
       test('500-element Int16List', () {
         final src = Int16List.fromList(List.generate(500, (i) => i * 65));
@@ -783,16 +978,22 @@ void main() {
     });
 
     group('Int64List (64-bit integers)', () {
-      test('empty Int64List', () =>
-          expect(tc.echoInt64s(Int64List(0)).length, 0));
+      test(
+        'empty Int64List',
+        () => expect(tc.echoInt64s(Int64List(0)).length, 0),
+      );
       test('Int64 boundary values', () {
         const max64 = 9223372036854775807;
         const min64 = -9223372036854775808;
         final r = tc.echoInt64s(Int64List.fromList([min64, 0, max64]));
-        expect(r[0], min64); expect(r[1], 0); expect(r[2], max64);
+        expect(r[0], min64);
+        expect(r[1], 0);
+        expect(r[2], max64);
       });
       test('100-element Int64List with varying signs', () {
-        final src = Int64List.fromList(List.generate(100, (i) => i.isEven ? i : -i));
+        final src = Int64List.fromList(
+          List.generate(100, (i) => i.isEven ? i : -i),
+        );
         final r = tc.echoInt64s(src);
         expect(r.length, 100);
         for (var i = 0; i < 100; i++) {
@@ -809,8 +1010,10 @@ void main() {
 
   group('§18 Nullable primitive properties', () {
     group('nullableCounter (int?)', () {
-      testWidgets('initial value is null', (t) async =>
-          expect(tc.nullableCounter, isNull));
+      testWidgets(
+        'initial value is null',
+        (t) async => expect(tc.nullableCounter, isNull),
+      );
       testWidgets('set/get 0', (t) async {
         tc.nullableCounter = 0;
         expect(tc.nullableCounter, 0);
@@ -849,12 +1052,15 @@ void main() {
         tc.optionalFlag = false;
         expect(tc.optionalFlag, isFalse);
       });
-      testWidgets('set null → returns null (fixed: Int3-state encoding on all platforms)', (t) async {
-        tc.optionalFlag = false;
-        tc.optionalFlag = null;
-        // Fixed: setter sends Int32(-1) to Kotlin (I param), getter returns Int(-1)=null.
-        expect(tc.optionalFlag, isNull);
-      });
+      testWidgets(
+        'set null → returns null (fixed: Int3-state encoding on all platforms)',
+        (t) async {
+          tc.optionalFlag = false;
+          tc.optionalFlag = null;
+          // Fixed: setter sends Int32(-1) to Kotlin (I param), getter returns Int(-1)=null.
+          expect(tc.optionalFlag, isNull);
+        },
+      );
     });
   });
 
@@ -903,7 +1109,9 @@ void main() {
     testWidgets('onBoolEvent: closure captures outer state', (t) async {
       final log = <bool>[];
       tc.onBoolEvent(log.add);
-      await Future.delayed(Duration.zero); // yield → event queue processes callback
+      await Future.delayed(
+        Duration.zero,
+      ); // yield → event queue processes callback
       expect(log, isNotEmpty);
     });
 
@@ -926,7 +1134,9 @@ void main() {
       final sub = tc.doubleStream().listen((v) {
         if (!firstDouble.isCompleted) firstDouble.complete(v);
       });
-      await Future.delayed(const Duration(milliseconds: 50)); // collector startup
+      await Future.delayed(
+        const Duration(milliseconds: 50),
+      ); // collector startup
       tc.configureDoubleStream(1.5, 5);
       final first = await firstDouble.future;
       await sub.cancel();
@@ -985,17 +1195,27 @@ void main() {
 
     testWidgets('asyncPoint: origin round-trip', (t) async {
       final p = await tc.asyncPoint(TcPoint(x: 0, y: 0, z: 0));
-      expect(p.x, 0.0); expect(p.y, 0.0); expect(p.z, 0.0);
+      expect(p.x, 0.0);
+      expect(p.y, 0.0);
+      expect(p.z, 0.0);
     });
 
-    testWidgets('asyncNullableStatus: ok → ok', (t) async =>
-        expect(await tc.asyncNullableStatus(TcStatus.ok), TcStatus.ok));
+    testWidgets(
+      'asyncNullableStatus: ok → ok',
+      (t) async =>
+          expect(await tc.asyncNullableStatus(TcStatus.ok), TcStatus.ok),
+    );
 
-    testWidgets('asyncNullableStatus: error → error', (t) async =>
-        expect(await tc.asyncNullableStatus(TcStatus.error), TcStatus.error));
+    testWidgets(
+      'asyncNullableStatus: error → error',
+      (t) async =>
+          expect(await tc.asyncNullableStatus(TcStatus.error), TcStatus.error),
+    );
 
-    testWidgets('asyncNullableStatus: null → null', (t) async =>
-        expect(await tc.asyncNullableStatus(null), isNull));
+    testWidgets(
+      'asyncNullableStatus: null → null',
+      (t) async => expect(await tc.asyncNullableStatus(null), isNull),
+    );
 
     testWidgets('asyncPoint: large coordinate values', (t) async {
       final p = await tc.asyncPoint(TcPoint(x: 1e15, y: -1e15, z: 0.0));
@@ -1014,39 +1234,59 @@ void main() {
     test('echoMeta: basic round-trip', () {
       final m = TcMeta(version: 3, weight: 1.5, active: true, label: 'v3');
       final r = tc.echoMeta(m);
-      expect(r.version, 3); expect(r.weight, closeTo(1.5, 1e-12));
-      expect(r.active, isTrue); expect(r.label, 'v3');
+      expect(r.version, 3);
+      expect(r.weight, closeTo(1.5, 1e-12));
+      expect(r.active, isTrue);
+      expect(r.label, 'v3');
     });
 
     test('echoMeta: zero/empty values', () {
-      final r = tc.echoMeta(TcMeta(version: 0, weight: 0.0, active: false, label: ''));
-      expect(r.version, 0); expect(r.weight, 0.0);
-      expect(r.active, isFalse); expect(r.label, '');
+      final r = tc.echoMeta(
+        TcMeta(version: 0, weight: 0.0, active: false, label: ''),
+      );
+      expect(r.version, 0);
+      expect(r.weight, 0.0);
+      expect(r.active, isFalse);
+      expect(r.label, '');
     });
 
     test('echoMeta: unicode label', () {
-      final r = tc.echoMeta(TcMeta(version: 99, weight: -3.14, active: true, label: '🌍 世界'));
+      final r = tc.echoMeta(
+        TcMeta(version: 99, weight: -3.14, active: true, label: '🌍 世界'),
+      );
       expect(r.label, '🌍 世界');
       expect(r.weight, closeTo(-3.14, 1e-12));
     });
 
     test('echoMeta: large version number', () {
       const big = 9223372036854775807;
-      final r = tc.echoMeta(TcMeta(version: big, weight: 0.0, active: false, label: 'max'));
+      final r = tc.echoMeta(
+        TcMeta(version: big, weight: 0.0, active: false, label: 'max'),
+      );
       expect(r.version, big);
     });
 
     testWidgets('asyncMeta: round-trip via @nitroAsync', (t) async {
       final m = TcMeta(version: 7, weight: 2.718, active: true, label: 'async');
       final r = await tc.asyncMeta(m);
-      expect(r.version, 7); expect(r.weight, closeTo(2.718, 1e-12));
-      expect(r.active, isTrue); expect(r.label, 'async');
+      expect(r.version, 7);
+      expect(r.weight, closeTo(2.718, 1e-12));
+      expect(r.active, isTrue);
+      expect(r.label, 'async');
     });
 
     testWidgets('asyncMeta: 20 concurrent calls — no corruption', (t) async {
-      final futures = List.generate(20, (i) => tc.asyncMeta(
-        TcMeta(version: i, weight: i.toDouble(), active: i.isEven, label: 'meta-$i'),
-      ));
+      final futures = List.generate(
+        20,
+        (i) => tc.asyncMeta(
+          TcMeta(
+            version: i,
+            weight: i.toDouble(),
+            active: i.isEven,
+            label: 'meta-$i',
+          ),
+        ),
+      );
       final results = await Future.wait(futures);
       for (var i = 0; i < 20; i++) {
         expect(results[i].version, i);
@@ -1071,26 +1311,34 @@ void main() {
   group('§23 NitroNullable — collision-free library types', () {
     group('NitroNullableInt (no sentinel collision for any int64)', () {
       test('round-trips non-null positive', () {
-        final r = tc.echoNullableIntSafe(NitroNullableInt(hasValue: true, value: 42));
+        final r = tc.echoNullableIntSafe(
+          NitroNullableInt(hasValue: true, value: 42),
+        );
         expect(r.nullable, 42);
         expect(r.hasValue, isTrue);
       });
 
       test('round-trips null (hasValue=false)', () {
-        final r = tc.echoNullableIntSafe(NitroNullableInt(hasValue: false, value: 0));
+        final r = tc.echoNullableIntSafe(
+          NitroNullableInt(hasValue: false, value: 0),
+        );
         expect(r.nullable, isNull);
         expect(r.hasValue, isFalse);
       });
 
       // These WOULD collide with old int? sentinel (-1 / Int64.min):
       test('round-trips -1 safely (was sentinel — now safe)', () {
-        final r = tc.echoNullableIntSafe(NitroNullableInt(hasValue: true, value: -1));
+        final r = tc.echoNullableIntSafe(
+          NitroNullableInt(hasValue: true, value: -1),
+        );
         expect(r.nullable, -1); // -1 is a real value, not null
       });
 
       test('round-trips Int64.min safely (was last sentinel — now safe)', () {
         const int64Min = -9223372036854775808;
-        final r = tc.echoNullableIntSafe(NitroNullableInt(hasValue: true, value: int64Min));
+        final r = tc.echoNullableIntSafe(
+          NitroNullableInt(hasValue: true, value: int64Min),
+        );
         expect(r.nullable, int64Min);
       });
 
@@ -1107,49 +1355,70 @@ void main() {
 
     group('NitroNullableDouble (no sentinel collision for any double)', () {
       test('round-trips non-null value', () {
-        final r = tc.echoNullableDoubleSafe(NitroNullableDouble(hasValue: true, value: 3.14));
+        final r = tc.echoNullableDoubleSafe(
+          NitroNullableDouble(hasValue: true, value: 3.14),
+        );
         expect(r.nullable, closeTo(3.14, 1e-12));
       });
 
       test('round-trips null', () {
-        final r = tc.echoNullableDoubleSafe(NitroNullableDouble(hasValue: false, value: 0));
+        final r = tc.echoNullableDoubleSafe(
+          NitroNullableDouble(hasValue: false, value: 0),
+        );
         expect(r.nullable, isNull);
       });
 
       // These WOULD collide with old double? NaN sentinel:
       test('round-trips NaN safely (was sentinel — now safe)', () {
         final r = tc.echoNullableDoubleSafe(
-            NitroNullableDouble(hasValue: true, value: double.nan));
+          NitroNullableDouble(hasValue: true, value: double.nan),
+        );
         expect(r.nullable!.isNaN, isTrue); // NaN is a real value, not null
       });
 
       test('round-trips infinity safely', () {
         final r = tc.echoNullableDoubleSafe(
-            NitroNullableDouble(hasValue: true, value: double.infinity));
+          NitroNullableDouble(hasValue: true, value: double.infinity),
+        );
         expect(r.nullable, double.infinity);
       });
 
       test('Dart extension: fromNullable', () {
-        expect(NitroNullableDouble.fromNullable(2.71).nullable, closeTo(2.71, 1e-12));
+        expect(
+          NitroNullableDouble.fromNullable(2.71).nullable,
+          closeTo(2.71, 1e-12),
+        );
         expect(NitroNullableDouble.fromNullable(null).nullable, isNull);
       });
     });
 
     group('NitroNullableBool (identical behavior on all platforms)', () {
       test('round-trips true', () {
-        final r = tc.echoNullableBoolSafe(NitroNullableBool(hasValue: true, value: true));
+        final r = tc.echoNullableBoolSafe(
+          NitroNullableBool(hasValue: true, value: true),
+        );
         expect(r.nullable, isTrue);
       });
 
       test('round-trips false', () {
-        final r = tc.echoNullableBoolSafe(NitroNullableBool(hasValue: true, value: false));
+        final r = tc.echoNullableBoolSafe(
+          NitroNullableBool(hasValue: true, value: false),
+        );
         expect(r.nullable, isFalse);
       });
 
-      test('round-trips null — works on ALL platforms without jboolean workaround', () {
-        final r = tc.echoNullableBoolSafe(NitroNullableBool(hasValue: false, value: false));
-        expect(r.nullable, isNull); // null is always null, iOS + Android + macOS
-      });
+      test(
+        'round-trips null — works on ALL platforms without jboolean workaround',
+        () {
+          final r = tc.echoNullableBoolSafe(
+            NitroNullableBool(hasValue: false, value: false),
+          );
+          expect(
+            r.nullable,
+            isNull,
+          ); // null is always null, iOS + Android + macOS
+        },
+      );
 
       test('Dart extension: fromNullable', () {
         expect(NitroNullableBool.fromNullable(true).nullable, isTrue);
@@ -1180,7 +1449,12 @@ void main() {
 
   group('§24 Map types', () {
     test('Map<String, int>: round-trips with all values', () {
-      final m = tc.echoIntMap({'a': 1, 'b': -1, 'zero': 0, 'big': 9007199254740991});
+      final m = tc.echoIntMap({
+        'a': 1,
+        'b': -1,
+        'zero': 0,
+        'big': 9007199254740991,
+      });
       expect(m['a'], 1);
       expect(m['b'], -1);
       expect(m['zero'], 0);
@@ -1188,7 +1462,11 @@ void main() {
     });
 
     test('Map<String, String>: preserves keys and values', () {
-      final m = tc.echoStringMap({'hello': 'world', 'emoji': '🚀', 'empty': ''});
+      final m = tc.echoStringMap({
+        'hello': 'world',
+        'emoji': '🚀',
+        'empty': '',
+      });
       expect(m['hello'], 'world');
       expect(m['emoji'], '🚀');
       expect(m['empty'], '');
@@ -1201,21 +1479,32 @@ void main() {
       expect(m['neg'], closeTo(-2.5, 1e-12));
     });
 
-    test('FIXED: Map<String, double> now carries NaN and Infinity via sentinel encoding', () {
-      // #3: Generator emits _nitroEncodeDoubleMap/_nitroDecodeDoubleMap helpers that
-      // convert NaN ↔ "__NaN__", +Infinity ↔ "__Inf__", -Infinity ↔ "__NInf__".
-      // These values now round-trip correctly without throwing.
-      final m = tc.echoDoubleMap({
-        'nan': double.nan,
-        'inf': double.infinity,
-        'ninf': double.negativeInfinity,
-        'zero': 0.0,
-      });
-      expect(m['nan']!.isNaN, isTrue,    reason: 'NaN should round-trip');
-      expect(m['inf'],  double.infinity,  reason: '+Infinity should round-trip');
-      expect(m['ninf'], double.negativeInfinity, reason: '-Infinity should round-trip');
-      expect(m['zero'], 0.0,              reason: 'normal doubles still work');
-    });
+    test(
+      'FIXED: Map<String, double> now carries NaN and Infinity via sentinel encoding',
+      () {
+        // #3: Generator emits _nitroEncodeDoubleMap/_nitroDecodeDoubleMap helpers that
+        // convert NaN ↔ "__NaN__", +Infinity ↔ "__Inf__", -Infinity ↔ "__NInf__".
+        // These values now round-trip correctly without throwing.
+        final m = tc.echoDoubleMap({
+          'nan': double.nan,
+          'inf': double.infinity,
+          'ninf': double.negativeInfinity,
+          'zero': 0.0,
+        });
+        expect(m['nan']!.isNaN, isTrue, reason: 'NaN should round-trip');
+        expect(
+          m['inf'],
+          double.infinity,
+          reason: '+Infinity should round-trip',
+        );
+        expect(
+          m['ninf'],
+          double.negativeInfinity,
+          reason: '-Infinity should round-trip',
+        );
+        expect(m['zero'], 0.0, reason: 'normal doubles still work');
+      },
+    );
 
     test('Map<String, bool>: true and false values', () {
       final m = tc.echoBoolMap({'yes': true, 'no': false, 'maybe': true});
@@ -1233,7 +1522,11 @@ void main() {
       // echoConfigMap uses Any? — type info is erased on the Kotlin bridge.
       // Use List<TcConfig> or Map<String, String> as workaround.
       // This test documents the limitation without asserting correctness.
-      expect(true, isTrue, reason: 'Map<String, @HybridRecord> is a known limitation');
+      expect(
+        true,
+        isTrue,
+        reason: 'Map<String, @HybridRecord> is a known limitation',
+      );
     });
   });
 
@@ -1244,12 +1537,9 @@ void main() {
 
   group('§25 @HybridRecord with enum field', () {
     test('echoPacket: round-trips all fields including enum', () {
-      final p = tc.echoPacket(TcPacket(
-        name: 'ping',
-        sequence: 42,
-        status: TcStatus.ok,
-        valid: true,
-      ));
+      final p = tc.echoPacket(
+        TcPacket(name: 'ping', sequence: 42, status: TcStatus.ok, valid: true),
+      );
       expect(p.name, 'ping');
       expect(p.sequence, 42);
       expect(p.status, TcStatus.ok);
@@ -1257,12 +1547,14 @@ void main() {
     });
 
     test('echoPacket: error status', () {
-      final p = tc.echoPacket(TcPacket(
-        name: 'fail',
-        sequence: -1,
-        status: TcStatus.error,
-        valid: false,
-      ));
+      final p = tc.echoPacket(
+        TcPacket(
+          name: 'fail',
+          sequence: -1,
+          status: TcStatus.error,
+          valid: false,
+        ),
+      );
       expect(p.status, TcStatus.error);
       expect(p.sequence, -1);
       expect(p.valid, isFalse);
@@ -1270,13 +1562,27 @@ void main() {
 
     test('echoPacket: all enum variants', () {
       for (final s in TcStatus.values) {
-        final p = tc.echoPacket(TcPacket(name: s.name, sequence: s.nativeValue, status: s, valid: true));
+        final p = tc.echoPacket(
+          TcPacket(
+            name: s.name,
+            sequence: s.nativeValue,
+            status: s,
+            valid: true,
+          ),
+        );
         expect(p.status, s, reason: 'enum ${s.name} should round-trip');
       }
     });
 
     test('echoPacket: unicode name', () {
-      final p = tc.echoPacket(TcPacket(name: 'paquète_🎉', sequence: 99, status: TcStatus.pending, valid: true));
+      final p = tc.echoPacket(
+        TcPacket(
+          name: 'paquète_🎉',
+          sequence: 99,
+          status: TcStatus.pending,
+          valid: true,
+        ),
+      );
       expect(p.name, 'paquète_🎉');
       expect(p.status, TcStatus.pending);
     });
@@ -1319,22 +1625,31 @@ void main() {
     // LIMITATION (Android): NativeCallable.listener doesn't fire synchronously
     // for Pointer<Void> (struct pointer) params — only Int64 has the fast-path.
     // Struct callbacks work correctly on iOS/macOS where the callback is synchronous.
-    testWidgets('onPointEvent: fires with TcPoint struct (iOS/macOS: correct, Android: may be async)', (t) async {
-      final completer = Completer<TcPoint>();
-      tc.onPointEvent((p) { if (!completer.isCompleted) completer.complete(p); });
-      // Add a small delay on Android to let the async callback fire.
-      await Future.delayed(const Duration(milliseconds: 50));
-      if (completer.isCompleted) {
-        final p = await completer.future;
-        // On iOS/macOS values are exactly correct; on Android struct pointer
-        // may not reconstruct correctly — accept any TcPoint (non-crash is the test).
-        expect(p, isNotNull);
-      } else {
-        // Android: callback didn't fire synchronously with struct param (known limitation).
-        // Document rather than fail — struct callbacks via NativeCallable need workaround.
-        expect(true, isTrue, reason: 'KNOWN LIMITATION: struct callback may not fire on Android');
-      }
-    });
+    testWidgets(
+      'onPointEvent: fires with TcPoint struct (iOS/macOS: correct, Android: may be async)',
+      (t) async {
+        final completer = Completer<TcPoint>();
+        tc.onPointEvent((p) {
+          if (!completer.isCompleted) completer.complete(p);
+        });
+        // Add a small delay on Android to let the async callback fire.
+        await Future.delayed(const Duration(milliseconds: 50));
+        if (completer.isCompleted) {
+          final p = await completer.future;
+          // On iOS/macOS values are exactly correct; on Android struct pointer
+          // may not reconstruct correctly — accept any TcPoint (non-crash is the test).
+          expect(p, isNotNull);
+        } else {
+          // Android: callback didn't fire synchronously with struct param (known limitation).
+          // Document rather than fail — struct callbacks via NativeCallable need workaround.
+          expect(
+            true,
+            isTrue,
+            reason: 'KNOWN LIMITATION: struct callback may not fire on Android',
+          );
+        }
+      },
+    );
 
     testWidgets('onDetailEvent: fires with (int, double) params', (t) async {
       final idCompleter = Completer<int>();
@@ -1347,7 +1662,9 @@ void main() {
       await expectLater(scoreCompleter.future, completion(closeTo(9.81, 1e-9)));
     });
 
-    testWidgets('onPointEvent: callback registration does not crash', (t) async {
+    testWidgets('onPointEvent: callback registration does not crash', (
+      t,
+    ) async {
       // Verifies that struct param callbacks can be registered without crashing.
       // Value correctness depends on platform (see limitation above).
       tc.onPointEvent((_) {});
@@ -1364,7 +1681,12 @@ void main() {
   // ── #1 Stream<@HybridRecord> ─────────────────────────────────────────────
   group('§30.1 Stream<TcConfig> — @HybridRecord stream', () {
     testWidgets('configStream: emits TcConfig records', (t) async {
-      final seed = TcConfig(name: 'printer', count: 1, enabled: true, threshold: 0.5);
+      final seed = TcConfig(
+        name: 'printer',
+        count: 1,
+        enabled: true,
+        threshold: 0.5,
+      );
       final first = Completer<TcConfig>();
       final sub = tc.configStream().listen((c) {
         if (!first.isCompleted) first.complete(c);
@@ -1378,7 +1700,12 @@ void main() {
     });
 
     testWidgets('configStream: emits multiple records', (t) async {
-      final seed = TcConfig(name: 'scan', count: 10, enabled: false, threshold: 0.1);
+      final seed = TcConfig(
+        name: 'scan',
+        count: 10,
+        enabled: false,
+        threshold: 0.1,
+      );
       final done = Completer<void>();
       final received = <TcConfig>[];
       final sub = tc.configStream().listen((c) {
@@ -1397,7 +1724,12 @@ void main() {
   // ── #2 Nullable @HybridRecord param/return ────────────────────────────────
   group('§30.2 Nullable @HybridRecord (TcConfig?)', () {
     test('echoNullableConfig: non-null round-trips', () {
-      final cfg = TcConfig(name: 'test', count: 5, enabled: true, threshold: 1.5);
+      final cfg = TcConfig(
+        name: 'test',
+        count: 5,
+        enabled: true,
+        threshold: 1.5,
+      );
       final r = tc.echoNullableConfig(cfg);
       expect(r, isNotNull);
       expect(r!.name, 'test');
@@ -1414,7 +1746,12 @@ void main() {
   // ── #3 Nested @HybridRecord ───────────────────────────────────────────────
   group('§30.3 Nested @HybridRecord (TcNested)', () {
     test('echoNested: all fields including nested TcConfig', () {
-      final inner = TcConfig(name: 'inner', count: 7, enabled: false, threshold: 3.14);
+      final inner = TcConfig(
+        name: 'inner',
+        count: 7,
+        enabled: false,
+        threshold: 3.14,
+      );
       final nested = TcNested(label: 'outer', config: inner, version: 42);
       final r = tc.echoNested(nested);
       expect(r.label, 'outer');
@@ -1426,8 +1763,15 @@ void main() {
     });
 
     test('echoNested: unicode label and large version', () {
-      final inner = TcConfig(name: 'x', count: 0, enabled: true, threshold: 0.0);
-      final r = tc.echoNested(TcNested(label: '日本語 🎉', config: inner, version: 9223372036854775807));
+      final inner = TcConfig(
+        name: 'x',
+        count: 0,
+        enabled: true,
+        threshold: 0.0,
+      );
+      final r = tc.echoNested(
+        TcNested(label: '日本語 🎉', config: inner, version: 9223372036854775807),
+      );
       expect(r.label, '日本語 🎉');
       expect(r.version, 9223372036854775807);
     });
@@ -1479,22 +1823,30 @@ void main() {
       expect(r.rate.nullable, isNull);
     });
 
-    test('echoNullableWrapper: sentinel values (Int64.min, NaN) work correctly', () {
-      // NitroNullable carries these without treating them as null.
-      final w = TcNullableWrapper(
-        count: NitroNullableInt(hasValue: true, value: -9223372036854775808),  // Int64.min
-        rate: NitroNullableDouble(hasValue: true, value: double.nan),           // NaN
-        name: 'sentinel',
-      );
-      final r = tc.echoNullableWrapper(w);
-      expect(r.count.nullable, equals(-9223372036854775808));  // NOT null ✓
-      expect(r.rate.nullable!.isNaN, isTrue);                  // NOT null ✓
-    });
+    test(
+      'echoNullableWrapper: sentinel values (Int64.min, NaN) work correctly',
+      () {
+        // NitroNullable carries these without treating them as null.
+        final w = TcNullableWrapper(
+          count: NitroNullableInt(
+            hasValue: true,
+            value: -9223372036854775808,
+          ), // Int64.min
+          rate: NitroNullableDouble(hasValue: true, value: double.nan), // NaN
+          name: 'sentinel',
+        );
+        final r = tc.echoNullableWrapper(w);
+        expect(r.count.nullable, equals(-9223372036854775808)); // NOT null ✓
+        expect(r.rate.nullable!.isNaN, isTrue); // NOT null ✓
+      },
+    );
   });
 
   // ── #6 Bidirectional callback — callback returns a value ──────────────────
   group('§30.6 Bidirectional callback (int Function(int))', () {
-    testWidgets('onTransformEvent: native calls Dart, Dart returns value', (t) async {
+    testWidgets('onTransformEvent: native calls Dart, Dart returns value', (
+      t,
+    ) async {
       // The native side calls transformCb(42) and expects to get a value back.
       // We register a Dart closure that doubles the input.
       final calls = <int>[];
@@ -1502,7 +1854,7 @@ void main() {
       tc.onTransformEvent((value) {
         calls.add(value);
         if (!done.isCompleted) done.complete();
-        return value * 2;  // bidirectional: return a value to native
+        return value * 2; // bidirectional: return a value to native
       });
       await Future.delayed(const Duration(milliseconds: 50));
       // Native fired it with 42.
@@ -1511,11 +1863,17 @@ void main() {
         expect(calls.first, 42); // native passes 42
       } else {
         // Async on Android — acceptable (same NativeCallable limitation).
-        expect(true, isTrue, reason: 'bidirectional callback may fire async on Android');
+        expect(
+          true,
+          isTrue,
+          reason: 'bidirectional callback may fire async on Android',
+        );
       }
     });
 
-    testWidgets('onTransformEvent: Dart closure can capture and return state', (t) async {
+    testWidgets('onTransformEvent: Dart closure can capture and return state', (
+      t,
+    ) async {
       var multiplier = 3;
       tc.onTransformEvent((value) {
         return value * multiplier;
@@ -1536,25 +1894,40 @@ void main() {
   group('§29 @HybridRecord with TypedData fields', () {
     test('echoDataRecord: Uint8List round-trips', () {
       final bytes = Uint8List.fromList([0, 1, 2, 127, 255]);
-      final r = tc.echoDataRecord(TcDataRecord(
-        bytes: bytes, values: Int32List(0), scores: Float64List(0), label: '',
-      ));
+      final r = tc.echoDataRecord(
+        TcDataRecord(
+          bytes: bytes,
+          values: Int32List(0),
+          scores: Float64List(0),
+          label: '',
+        ),
+      );
       expect(r.bytes, equals(bytes));
     });
 
     test('echoDataRecord: Int32List round-trips', () {
       final values = Int32List.fromList([-2147483648, -1, 0, 1, 2147483647]);
-      final r = tc.echoDataRecord(TcDataRecord(
-        bytes: Uint8List(0), values: values, scores: Float64List(0), label: '',
-      ));
+      final r = tc.echoDataRecord(
+        TcDataRecord(
+          bytes: Uint8List(0),
+          values: values,
+          scores: Float64List(0),
+          label: '',
+        ),
+      );
       expect(r.values, equals(values));
     });
 
     test('echoDataRecord: Float64List round-trips', () {
       final scores = Float64List.fromList([0.0, 1.5, -2.718, double.maxFinite]);
-      final r = tc.echoDataRecord(TcDataRecord(
-        bytes: Uint8List(0), values: Int32List(0), scores: scores, label: '',
-      ));
+      final r = tc.echoDataRecord(
+        TcDataRecord(
+          bytes: Uint8List(0),
+          values: Int32List(0),
+          scores: scores,
+          label: '',
+        ),
+      );
       expect(r.scores[0], closeTo(0.0, 1e-12));
       expect(r.scores[1], closeTo(1.5, 1e-12));
       expect(r.scores[2], closeTo(-2.718, 1e-12));
@@ -1565,9 +1938,14 @@ void main() {
       final bytes = Uint8List.fromList(List.generate(100, (i) => i % 256));
       final values = Int32List.fromList(List.generate(50, (i) => i * -1));
       final scores = Float64List.fromList([1.1, 2.2, 3.3]);
-      final r = tc.echoDataRecord(TcDataRecord(
-        bytes: bytes, values: values, scores: scores, label: 'hello-§29',
-      ));
+      final r = tc.echoDataRecord(
+        TcDataRecord(
+          bytes: bytes,
+          values: values,
+          scores: scores,
+          label: 'hello-§29',
+        ),
+      );
       expect(r.bytes, equals(bytes));
       expect(r.values, equals(values));
       expect(r.scores.length, 3);
@@ -1575,9 +1953,14 @@ void main() {
     });
 
     test('echoDataRecord: empty arrays round-trip', () {
-      final r = tc.echoDataRecord(TcDataRecord(
-        bytes: Uint8List(0), values: Int32List(0), scores: Float64List(0), label: 'empty',
-      ));
+      final r = tc.echoDataRecord(
+        TcDataRecord(
+          bytes: Uint8List(0),
+          values: Int32List(0),
+          scores: Float64List(0),
+          label: 'empty',
+        ),
+      );
       expect(r.bytes, isEmpty);
       expect(r.values, isEmpty);
       expect(r.scores, isEmpty);
@@ -1586,9 +1969,14 @@ void main() {
     test('echoDataRecord: large payload (1 KB bytes + 1K int32 elements)', () {
       final bytes = Uint8List.fromList(List.generate(1024, (i) => i % 256));
       final values = Int32List.fromList(List.generate(1000, (i) => i));
-      final r = tc.echoDataRecord(TcDataRecord(
-        bytes: bytes, values: values, scores: Float64List(0), label: 'large',
-      ));
+      final r = tc.echoDataRecord(
+        TcDataRecord(
+          bytes: bytes,
+          values: values,
+          scores: Float64List(0),
+          label: 'large',
+        ),
+      );
       expect(r.bytes.length, 1024);
       expect(r.values.length, 1000);
       expect(r.bytes[512], 512 % 256);
@@ -1596,12 +1984,14 @@ void main() {
     });
 
     test('echoDataRecord: label preserves unicode alongside TypedData', () {
-      final r = tc.echoDataRecord(TcDataRecord(
-        bytes: Uint8List.fromList([0xDE, 0xAD, 0xBE, 0xEF]),
-        values: Int32List.fromList([42]),
-        scores: Float64List.fromList([3.14]),
-        label: 'こんにちは 🎉',
-      ));
+      final r = tc.echoDataRecord(
+        TcDataRecord(
+          bytes: Uint8List.fromList([0xDE, 0xAD, 0xBE, 0xEF]),
+          values: Int32List.fromList([42]),
+          scores: Float64List.fromList([3.14]),
+          label: 'こんにちは 🎉',
+        ),
+      );
       expect(r.label, 'こんにちは 🎉');
       expect(r.bytes[0], 0xDE);
       expect(r.values[0], 42);
@@ -1615,7 +2005,9 @@ void main() {
   // ══════════════════════════════════════════════════════════════════════════
 
   group('§28 Stress and concurrent tests', () {
-    testWidgets('100 concurrent asyncInt calls all return correct values', (t) async {
+    testWidgets('100 concurrent asyncInt calls all return correct values', (
+      t,
+    ) async {
       final futures = List.generate(100, (i) => tc.asyncInt(i));
       final results = await Future.wait(futures);
       for (var i = 0; i < 100; i++) {
@@ -1635,7 +2027,9 @@ void main() {
     });
 
     testWidgets('large Int32List (100K elements) round-trips', (t) async {
-      final data = Int32List.fromList(List.generate(100000, (i) => i % 1000000));
+      final data = Int32List.fromList(
+        List.generate(100000, (i) => i % 1000000),
+      );
       final result = tc.echoInt32s(data);
       expect(result.length, data.length);
       expect(result[0], 0);
@@ -1664,7 +2058,9 @@ void main() {
     testWidgets('@HybridRecord stress: 200 echoPacket calls', (t) async {
       for (var i = 0; i < 200; i++) {
         final s = TcStatus.values[i % TcStatus.values.length];
-        final p = tc.echoPacket(TcPacket(name: 'pkt-$i', sequence: i, status: s, valid: i.isEven));
+        final p = tc.echoPacket(
+          TcPacket(name: 'pkt-$i', sequence: i, status: s, valid: i.isEven),
+        );
         expect(p.sequence, i);
         expect(p.status, s);
         expect(p.valid, i.isEven);
@@ -1717,69 +2113,112 @@ void main() {
   });
 
   // ── #2 Map<String, @HybridRecord> toJson/fromJson ────────────────────────
-  group('§31.2 Map<String, @HybridRecord> type safety (#2 — toJson/fromJson)', () {
-    test('TcConfig.toJson() / fromJson() round-trip', () {
-      // The generated Kotlin data class now has toJson/fromJson.
-      // This allows Map<String, TcConfig> to be used in bridges.
-      // Verify via echoStringMap of JSON-encoded records.
-      final cfg = TcConfig(name: 'printer-α', count: 42, enabled: true, threshold: 1.5);
-      final nested = tc.echoNested(TcNested(label: 'wrap', config: cfg, version: 7));
-      expect(nested.config.name, 'printer-α');
-      expect(nested.config.count, 42);
-      expect(nested.config.enabled, isTrue);
-    });
+  group(
+    '§31.2 Map<String, @HybridRecord> type safety (#2 — toJson/fromJson)',
+    () {
+      test('TcConfig.toJson() / fromJson() round-trip', () {
+        // The generated Kotlin data class now has toJson/fromJson.
+        // This allows Map<String, TcConfig> to be used in bridges.
+        // Verify via echoStringMap of JSON-encoded records.
+        final cfg = TcConfig(
+          name: 'printer-α',
+          count: 42,
+          enabled: true,
+          threshold: 1.5,
+        );
+        final nested = tc.echoNested(
+          TcNested(label: 'wrap', config: cfg, version: 7),
+        );
+        expect(nested.config.name, 'printer-α');
+        expect(nested.config.count, 42);
+        expect(nested.config.enabled, isTrue);
+      });
 
-    test('Nested record with edge-case values', () {
-      final cfg = TcConfig(name: '', count: 0, enabled: false, threshold: 0.0);
-      final r = tc.echoNested(TcNested(label: 'empty', config: cfg, version: 0));
-      expect(r.config.name, '');
-      expect(r.config.count, 0);
-    });
-  });
+      test('Nested record with edge-case values', () {
+        final cfg = TcConfig(
+          name: '',
+          count: 0,
+          enabled: false,
+          threshold: 0.0,
+        );
+        final r = tc.echoNested(
+          TcNested(label: 'empty', config: cfg, version: 0),
+        );
+        expect(r.config.name, '');
+        expect(r.config.count, 0);
+      });
+    },
+  );
 
   // ── #5 @HybridStruct as @HybridRecord field ───────────────────────────────
-  group('§31.3 @HybridStruct as @HybridRecord field (#5 — RecordFieldKind.struct)', () {
-    // TcNested.config: TcConfig is a @HybridRecord field — already covers #3.
-    // @HybridStruct (TcPoint) embedded in a @HybridRecord would need a new type.
-    // Testing the nested @HybridRecord path which exercises struct-in-record codec.
-    test('echoNested carries TcConfig (struct-like record) correctly', () {
-      final inner = TcConfig(name: 'test-struct', count: 99, enabled: true, threshold: 2.718);
-      final r = tc.echoNested(TcNested(label: 'struct-in-record', config: inner, version: 100));
-      expect(r.label, 'struct-in-record');
-      expect(r.version, 100);
-      expect(r.config.name, 'test-struct');
-      expect(r.config.count, 99);
-      expect(r.config.threshold, closeTo(2.718, 1e-12));
-    });
+  group(
+    '§31.3 @HybridStruct as @HybridRecord field (#5 — RecordFieldKind.struct)',
+    () {
+      // TcNested.config: TcConfig is a @HybridRecord field — already covers #3.
+      // @HybridStruct (TcPoint) embedded in a @HybridRecord would need a new type.
+      // Testing the nested @HybridRecord path which exercises struct-in-record codec.
+      test('echoNested carries TcConfig (struct-like record) correctly', () {
+        final inner = TcConfig(
+          name: 'test-struct',
+          count: 99,
+          enabled: true,
+          threshold: 2.718,
+        );
+        final r = tc.echoNested(
+          TcNested(label: 'struct-in-record', config: inner, version: 100),
+        );
+        expect(r.label, 'struct-in-record');
+        expect(r.version, 100);
+        expect(r.config.name, 'test-struct');
+        expect(r.config.count, 99);
+        expect(r.config.threshold, closeTo(2.718, 1e-12));
+      });
 
-    test('Nested record round-trips 100 times without corruption', () {
-      for (var i = 0; i < 100; i++) {
-        final cfg = TcConfig(name: 'item-$i', count: i, enabled: i.isEven, threshold: i * 0.01);
-        final r = tc.echoNested(TcNested(label: 'iter-$i', config: cfg, version: i));
-        expect(r.config.count, i);
-        expect(r.config.enabled, i.isEven);
-      }
-    });
-  });
+      test('Nested record round-trips 100 times without corruption', () {
+        for (var i = 0; i < 100; i++) {
+          final cfg = TcConfig(
+            name: 'item-$i',
+            count: i,
+            enabled: i.isEven,
+            threshold: i * 0.01,
+          );
+          final r = tc.echoNested(
+            TcNested(label: 'iter-$i', config: cfg, version: i),
+          );
+          expect(r.config.count, i);
+          expect(r.config.enabled, i.isEven);
+        }
+      });
+    },
+  );
 
   // ── #8 Thread-local @HybridRecord encode buffers ─────────────────────────
   group('§31.4 @HybridRecord thread-local encode optimization (#8)', () {
-    testWidgets('Concurrent record calls use thread-local buffers safely', (t) async {
+    testWidgets('Concurrent record calls use thread-local buffers safely', (
+      t,
+    ) async {
       // 50 concurrent echoNested calls — thread-local buffers must not corrupt.
       final futures = List.generate(50, (i) {
-
-        return tc.asyncMeta(TcMeta(version: i, weight: i * 0.5, active: i.isOdd, label: 'tls-$i'));
+        return tc.asyncMeta(
+          TcMeta(version: i, weight: i * 0.5, active: i.isOdd, label: 'tls-$i'),
+        );
       });
       final results = await Future.wait(futures);
       for (var i = 0; i < 50; i++) {
-        expect(results[i].version, i, reason: 'TLS encode must not corrupt concurrent results');
+        expect(
+          results[i].version,
+          i,
+          reason: 'TLS encode must not corrupt concurrent results',
+        );
         expect(results[i].label, 'tls-$i');
       }
     });
 
     test('echoMeta encode/decode 1000 times — no allocation regression', () {
       for (var i = 0; i < 1000; i++) {
-        final r = tc.echoMeta(TcMeta(version: i, weight: i * 0.01, active: i.isEven, label: 'tls'));
+        final r = tc.echoMeta(
+          TcMeta(version: i, weight: i * 0.01, active: i.isEven, label: 'tls'),
+        );
         expect(r.version, i);
       }
     });
@@ -1789,22 +2228,33 @@ void main() {
   group('§31.5 Bidirectional callback non-int returns (#4)', () {
     // onTransformEvent: int Function(int) — already tested in §30.6
     // Additional coverage for the general bidirectional pattern
-    testWidgets('onTransformEvent: native passes 42, Dart multiplies and returns', (t) async {
-      final received = <int>[];
-      final done = Completer<int>();
-      tc.onTransformEvent((value) {
-        received.add(value);
-        if (!done.isCompleted) done.complete(value * 3);
-        return value * 3;
-      });
-      await Future.delayed(const Duration(milliseconds: 50));
-      if (done.isCompleted) {
-        expect(received.first, 42, reason: 'Native should call with 42');
-        expect(await done.future, 126, reason: '42 * 3 = 126 returned to native');
-      } else {
-        expect(true, isTrue, reason: 'Android may fire async — registration OK');
-      }
-    });
+    testWidgets(
+      'onTransformEvent: native passes 42, Dart multiplies and returns',
+      (t) async {
+        final received = <int>[];
+        final done = Completer<int>();
+        tc.onTransformEvent((value) {
+          received.add(value);
+          if (!done.isCompleted) done.complete(value * 3);
+          return value * 3;
+        });
+        await Future.delayed(const Duration(milliseconds: 50));
+        if (done.isCompleted) {
+          expect(received.first, 42, reason: 'Native should call with 42');
+          expect(
+            await done.future,
+            126,
+            reason: '42 * 3 = 126 returned to native',
+          );
+        } else {
+          expect(
+            true,
+            isTrue,
+            reason: 'Android may fire async — registration OK',
+          );
+        }
+      },
+    );
 
     testWidgets('Multiple onTransformEvent registrations', (t) async {
       // Register twice — last registration wins (per NativeCallable semantics).
@@ -1825,22 +2275,32 @@ void main() {
       expect(await tc.asyncString('hello'), 'hello');
     });
 
-    testWidgets('100 concurrent async calls — all complete before any timeout', (t) async {
-      final futures = List.generate(100, (i) => tc.asyncInt(i));
-      final results = await Future.wait(futures);
-      for (var i = 0; i < 100; i++) {
-        expect(results[i], i);
-      }
-    });
+    testWidgets(
+      '100 concurrent async calls — all complete before any timeout',
+      (t) async {
+        final futures = List.generate(100, (i) => tc.asyncInt(i));
+        final results = await Future.wait(futures);
+        for (var i = 0; i < 100; i++) {
+          expect(results[i], i);
+        }
+      },
+    );
 
     // Note: Timeout functionality is tested at the generator level (spec_extractor_test).
     // Integration test would require a native function that deliberately takes too long.
-    test('Timeout infrastructure: @NitroAsync annotation accepts timeout parameter', () {
-      // This test just documents that the feature exists at the API level.
-      // The @NitroAsync(timeout: 5000) annotation is processed by the spec extractor
-      // and emits withTimeout(5000L) in Kotlin bridge methods.
-      expect(true, isTrue, reason: '@NitroAsync(timeout:) implemented in generator');
-    });
+    test(
+      'Timeout infrastructure: @NitroAsync annotation accepts timeout parameter',
+      () {
+        // This test just documents that the feature exists at the API level.
+        // The @NitroAsync(timeout: 5000) annotation is processed by the spec extractor
+        // and emits withTimeout(5000L) in Kotlin bridge methods.
+        expect(
+          true,
+          isTrue,
+          reason: '@NitroAsync(timeout:) implemented in generator',
+        );
+      },
+    );
   });
 
   // ── #6 Nullable TypedData in streams ─────────────────────────────────────
@@ -1858,9 +2318,16 @@ void main() {
       expect(received.length, greaterThanOrEqualTo(100));
     });
 
-    testWidgets('configStream: TcConfig fields preserved through stream', (t) async {
+    testWidgets('configStream: TcConfig fields preserved through stream', (
+      t,
+    ) async {
       final done = Completer<TcConfig>();
-      final seed = TcConfig(name: 'stream-test', count: 77, enabled: true, threshold: 3.14);
+      final seed = TcConfig(
+        name: 'stream-test',
+        count: 77,
+        enabled: true,
+        threshold: 3.14,
+      );
       final sub = tc.configStream().listen((c) {
         if (!done.isCompleted) done.complete(c);
       });
@@ -1875,45 +2342,81 @@ void main() {
 
   // ── Combined stress test: all new features together ───────────────────────
   group('§31.8 Combined complex feature stress test', () {
-    testWidgets('All new features in sequence: nested records, maps, callbacks', (t) async {
-      // 1. Nested @HybridRecord
-      final nested = tc.echoNested(TcNested(
-        label: 'stress', version: 42,
-        config: TcConfig(name: 'cfg', count: 5, enabled: true, threshold: 1.0),
-      ));
-      expect(nested.version, 42);
+    testWidgets(
+      'All new features in sequence: nested records, maps, callbacks',
+      (t) async {
+        // 1. Nested @HybridRecord
+        final nested = tc.echoNested(
+          TcNested(
+            label: 'stress',
+            version: 42,
+            config: TcConfig(
+              name: 'cfg',
+              count: 5,
+              enabled: true,
+              threshold: 1.0,
+            ),
+          ),
+        );
+        expect(nested.version, 42);
 
-      // 2. NaN/Infinity in double map
-      final dm = tc.echoDoubleMap({'nan': double.nan, 'val': 2.5});
-      expect(dm['nan']!.isNaN, isTrue);
-      expect(dm['val'], closeTo(2.5, 1e-12));
+        // 2. NaN/Infinity in double map
+        final dm = tc.echoDoubleMap({'nan': double.nan, 'val': 2.5});
+        expect(dm['nan']!.isNaN, isTrue);
+        expect(dm['val'], closeTo(2.5, 1e-12));
 
-      // 3. NitroNullable inside @HybridRecord
-      final wrapper = tc.echoNullableWrapper(TcNullableWrapper(
-        count: NitroNullableInt.fromNullable(-9223372036854775808), // was old sentinel
-        rate: NitroNullableDouble.fromNullable(double.nan),          // was old sentinel
-        name: 'sentinel-safe',
-      ));
-      expect(wrapper.count.nullable, equals(-9223372036854775808), reason: 'Int64.min is real value');
-      expect(wrapper.rate.nullable!.isNaN, isTrue, reason: 'NaN is real value in NitroNullable');
+        // 3. NitroNullable inside @HybridRecord
+        final wrapper = tc.echoNullableWrapper(
+          TcNullableWrapper(
+            count: NitroNullableInt.fromNullable(
+              -9223372036854775808,
+            ), // was old sentinel
+            rate: NitroNullableDouble.fromNullable(
+              double.nan,
+            ), // was old sentinel
+            name: 'sentinel-safe',
+          ),
+        );
+        expect(
+          wrapper.count.nullable,
+          equals(-9223372036854775808),
+          reason: 'Int64.min is real value',
+        );
+        expect(
+          wrapper.rate.nullable!.isNaN,
+          isTrue,
+          reason: 'NaN is real value in NitroNullable',
+        );
 
-      // 4. TypedData in @HybridRecord
-      final dataRec = tc.echoDataRecord(TcDataRecord(
-        bytes: Uint8List.fromList([1, 2, 3]),
-        values: Int32List.fromList([-1, 0, 1]),
-        scores: Float64List.fromList([double.nan, 0.0]),
-        label: 'combined-stress',
-      ));
-      expect(dataRec.bytes[0], 1);
-      expect(dataRec.values[0], -1);
-      expect(dataRec.scores[0].isNaN, isTrue);
+        // 4. TypedData in @HybridRecord
+        final dataRec = tc.echoDataRecord(
+          TcDataRecord(
+            bytes: Uint8List.fromList([1, 2, 3]),
+            values: Int32List.fromList([-1, 0, 1]),
+            scores: Float64List.fromList([double.nan, 0.0]),
+            label: 'combined-stress',
+          ),
+        );
+        expect(dataRec.bytes[0], 1);
+        expect(dataRec.values[0], -1);
+        expect(dataRec.scores[0].isNaN, isTrue);
 
-      // 5. Concurrent async calls with @HybridRecord returns
-      final asyncResults = await Future.wait(
-        List.generate(10, (i) => tc.asyncMeta(TcMeta(version: i, weight: 0, active: true, label: 'c')))
-      );
-      expect(asyncResults.map((r) => r.version).toSet().length, 10, reason: 'All unique versions');
-    });
+        // 5. Concurrent async calls with @HybridRecord returns
+        final asyncResults = await Future.wait(
+          List.generate(
+            10,
+            (i) => tc.asyncMeta(
+              TcMeta(version: i, weight: 0, active: true, label: 'c'),
+            ),
+          ),
+        );
+        expect(
+          asyncResults.map((r) => r.version).toSet().length,
+          10,
+          reason: 'All unique versions',
+        );
+      },
+    );
   });
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -1937,43 +2440,55 @@ void main() {
     });
 
     test('echoStructHolder: struct field with NaN/Infinity coords', () {
-      final r = tc.echoStructHolder(TcStructHolder(
-        label: 'inf-origin',
-        origin: TcPoint(x: double.infinity, y: double.nan, z: double.negativeInfinity),
-        radius: 1.0,
-      ));
+      final r = tc.echoStructHolder(
+        TcStructHolder(
+          label: 'inf-origin',
+          origin: TcPoint(
+            x: double.infinity,
+            y: double.nan,
+            z: double.negativeInfinity,
+          ),
+          radius: 1.0,
+        ),
+      );
       expect(r.origin.x, double.infinity);
       expect(r.origin.y.isNaN, isTrue);
       expect(r.origin.z, double.negativeInfinity);
     });
 
     test('echoStructHolder: default-value origin (0,0,0)', () {
-      final r = tc.echoStructHolder(TcStructHolder(
-        label: 'origin',
-        origin: TcPoint(x: 0.0, y: 0.0, z: 0.0),
-        radius: 0.0,
-      ));
+      final r = tc.echoStructHolder(
+        TcStructHolder(
+          label: 'origin',
+          origin: TcPoint(x: 0.0, y: 0.0, z: 0.0),
+          radius: 0.0,
+        ),
+      );
       expect(r.origin.x, 0.0);
       expect(r.radius, 0.0);
     });
 
     test('echoStructHolder: large radius and negative coords', () {
-      final r = tc.echoStructHolder(TcStructHolder(
-        label: 'big',
-        origin: TcPoint(x: -1e9, y: 1e9, z: 0.0),
-        radius: 1e12,
-      ));
+      final r = tc.echoStructHolder(
+        TcStructHolder(
+          label: 'big',
+          origin: TcPoint(x: -1e9, y: 1e9, z: 0.0),
+          radius: 1e12,
+        ),
+      );
       expect(r.origin.x, closeTo(-1e9, 1.0));
       expect(r.radius, closeTo(1e12, 1.0));
     });
 
     test('echoStructHolder: 100 round-trips without corruption', () {
       for (var i = 0; i < 100; i++) {
-        final r = tc.echoStructHolder(TcStructHolder(
-          label: 'item-$i',
-          origin: TcPoint(x: i * 0.1, y: i * 0.2, z: i * 0.3),
-          radius: i.toDouble(),
-        ));
+        final r = tc.echoStructHolder(
+          TcStructHolder(
+            label: 'item-$i',
+            origin: TcPoint(x: i * 0.1, y: i * 0.2, z: i * 0.3),
+            radius: i.toDouble(),
+          ),
+        );
         expect(r.label, 'item-$i');
         expect(r.origin.x, closeTo(i * 0.1, 1e-9));
         expect(r.radius, closeTo(i.toDouble(), 1e-9));
@@ -1983,38 +2498,62 @@ void main() {
 
   // ── #4: Bidirectional callbacks with non-int return types ─────────────────
   group('§32.2 Bidirectional callbacks — non-int returns (#4)', () {
-    testWidgets('onStringTransform: native calls Dart with 42, gets String back', (t) async {
-      final done = Completer<String>();
-      tc.onStringTransform((value) {
-        final result = 'transformed_$value';
-        if (!done.isCompleted) done.complete(result);
-        return result;
-      });
-      await Future.delayed(const Duration(milliseconds: 50));
-      if (done.isCompleted) {
-        final result = await done.future;
-        expect(result, 'transformed_42', reason: 'Native passed 42, Dart appended prefix');
-      } else {
-        expect(true, isTrue, reason: 'Android may fire async — registration OK');
-      }
-    });
+    testWidgets(
+      'onStringTransform: native calls Dart with 42, gets String back',
+      (t) async {
+        final done = Completer<String>();
+        tc.onStringTransform((value) {
+          final result = 'transformed_$value';
+          if (!done.isCompleted) done.complete(result);
+          return result;
+        });
+        await Future.delayed(const Duration(milliseconds: 50));
+        if (done.isCompleted) {
+          final result = await done.future;
+          expect(
+            result,
+            'transformed_42',
+            reason: 'Native passed 42, Dart appended prefix',
+          );
+        } else {
+          expect(
+            true,
+            isTrue,
+            reason: 'Android may fire async — registration OK',
+          );
+        }
+      },
+    );
 
-    testWidgets('onDoubleTransform: native calls Dart with 7, gets Double back', (t) async {
-      final done = Completer<double>();
-      tc.onDoubleTransform((value) {
-        final result = value * 1.5;
-        if (!done.isCompleted) done.complete(result);
-        return result;
-      });
-      await Future.delayed(const Duration(milliseconds: 50));
-      if (done.isCompleted) {
-        expect(await done.future, closeTo(10.5, 1e-9), reason: '7 * 1.5 = 10.5');
-      } else {
-        expect(true, isTrue, reason: 'Android may fire async — registration OK');
-      }
-    });
+    testWidgets(
+      'onDoubleTransform: native calls Dart with 7, gets Double back',
+      (t) async {
+        final done = Completer<double>();
+        tc.onDoubleTransform((value) {
+          final result = value * 1.5;
+          if (!done.isCompleted) done.complete(result);
+          return result;
+        });
+        await Future.delayed(const Duration(milliseconds: 50));
+        if (done.isCompleted) {
+          expect(
+            await done.future,
+            closeTo(10.5, 1e-9),
+            reason: '7 * 1.5 = 10.5',
+          );
+        } else {
+          expect(
+            true,
+            isTrue,
+            reason: 'Android may fire async — registration OK',
+          );
+        }
+      },
+    );
 
-    testWidgets('onStringTransform: callback with empty string result', (t) async {
+    testWidgets('onStringTransform: callback with empty string result', (
+      t,
+    ) async {
       tc.onStringTransform((value) => '');
       await Future.delayed(const Duration(milliseconds: 50));
       expect(true, isTrue, reason: 'Empty string return must not crash');
@@ -2023,13 +2562,19 @@ void main() {
     testWidgets('onDoubleTransform: callback returning NaN', (t) async {
       tc.onDoubleTransform((value) => double.nan);
       await Future.delayed(const Duration(milliseconds: 50));
-      expect(true, isTrue, reason: 'NaN return from double callback must not crash');
+      expect(
+        true,
+        isTrue,
+        reason: 'NaN return from double callback must not crash',
+      );
     });
   });
 
   // ── #9: Batch stream ───────────────────────────────────────────────────────
   group('§32.3 Batch stream — Backpressure.batch (#9)', () {
-    testWidgets('batchIntStream: receives all items despite batching', (t) async {
+    testWidgets('batchIntStream: receives all items despite batching', (
+      t,
+    ) async {
       final received = <int>[];
       final done = Completer<void>();
       final sub = tc.batchIntStream().listen((v) {
@@ -2037,27 +2582,39 @@ void main() {
         if (received.length >= 32 && !done.isCompleted) done.complete();
       });
       tc.configureBatchStream(0, 32);
-      await expectLater(done.future.timeout(const Duration(seconds: 5)), completes);
+      await expectLater(
+        done.future.timeout(const Duration(seconds: 5)),
+        completes,
+      );
       await sub.cancel();
       // Items may arrive in batches but all 32 should be delivered
       expect(received.length, greaterThanOrEqualTo(32));
       // Values should be 0..31
-      expect(received.toSet().containsAll(List.generate(32, (i) => i)), isTrue,
-          reason: 'All 32 items must be received via batch unpacking');
+      expect(
+        received.toSet().containsAll(List.generate(32, (i) => i)),
+        isTrue,
+        reason: 'All 32 items must be received via batch unpacking',
+      );
     });
 
-    testWidgets('batchIntStream: 200 items — all delivered across multiple batches', (t) async {
-      final received = <int>[];
-      final done = Completer<void>();
-      final sub = tc.batchIntStream().listen((v) {
-        received.add(v);
-        if (received.length >= 200 && !done.isCompleted) done.complete();
-      });
-      tc.configureBatchStream(100, 200);
-      await expectLater(done.future.timeout(const Duration(seconds: 10)), completes);
-      await sub.cancel();
-      expect(received.length, greaterThanOrEqualTo(200));
-    });
+    testWidgets(
+      'batchIntStream: 200 items — all delivered across multiple batches',
+      (t) async {
+        final received = <int>[];
+        final done = Completer<void>();
+        final sub = tc.batchIntStream().listen((v) {
+          received.add(v);
+          if (received.length >= 200 && !done.isCompleted) done.complete();
+        });
+        tc.configureBatchStream(100, 200);
+        await expectLater(
+          done.future.timeout(const Duration(seconds: 10)),
+          completes,
+        );
+        await sub.cancel();
+        expect(received.length, greaterThanOrEqualTo(200));
+      },
+    );
 
     testWidgets('batchIntStream: verify ordering is preserved', (t) async {
       final received = <int>[];
@@ -2067,12 +2624,19 @@ void main() {
         if (received.length >= 48 && !done.isCompleted) done.complete();
       });
       tc.configureBatchStream(0, 48);
-      await expectLater(done.future.timeout(const Duration(seconds: 5)), completes);
+      await expectLater(
+        done.future.timeout(const Duration(seconds: 5)),
+        completes,
+      );
       await sub.cancel();
       // Values should be in order 0..47
       final sorted = received.toList()..sort();
       final expected = List.generate(48, (i) => i);
-      expect(sorted, equals(expected), reason: 'Batch stream must preserve all item values');
+      expect(
+        sorted,
+        equals(expected),
+        reason: 'Batch stream must preserve all item values',
+      );
     });
 
     testWidgets('batchIntStream: cancel mid-stream does not crash', (t) async {
@@ -2086,46 +2650,78 @@ void main() {
 
   // ── §32.6 double and bool batch streams ────────────────────────────────────
   group('§32.6 Batch streams — double and bool types', () {
-    testWidgets('batchDoubleStream: all values delivered and round-trip IEEE 754', (t) async {
-      final received = <double>[];
-      final done = Completer<void>();
-      const values = [1.5, 2.75, double.nan, double.infinity, -double.infinity, 0.0, -0.0, 1e308];
-      final sub = tc.batchDoubleStream().listen((v) {
-        received.add(v);
-        if (received.length == values.length) done.complete();
-      });
-      tc.configureBatchDoubleStream(values);
-      await done.future.timeout(const Duration(seconds: 3));
-      await sub.cancel();
-      expect(received.length, values.length, reason: 'All double items must be delivered');
-      // NaN cannot be compared with ==; check by position.
-      expect(received[2].isNaN, isTrue, reason: 'NaN must survive the batch bridge');
-      expect(received[3], double.infinity, reason: '+Inf must survive');
-      expect(received[4], -double.infinity, reason: '-Inf must survive');
-      expect(received[5], 0.0, reason: '0.0 round-trips');
-      expect(received[7], closeTo(1e308, 1e300), reason: 'large double round-trips');
-    });
+    testWidgets(
+      'batchDoubleStream: all values delivered and round-trip IEEE 754',
+      (t) async {
+        final received = <double>[];
+        final done = Completer<void>();
+        const values = [
+          1.5,
+          2.75,
+          double.nan,
+          double.infinity,
+          -double.infinity,
+          0.0,
+          -0.0,
+          1e308,
+        ];
+        final sub = tc.batchDoubleStream().listen((v) {
+          received.add(v);
+          if (received.length == values.length) done.complete();
+        });
+        tc.configureBatchDoubleStream(values);
+        await done.future.timeout(const Duration(seconds: 3));
+        await sub.cancel();
+        expect(
+          received.length,
+          values.length,
+          reason: 'All double items must be delivered',
+        );
+        // NaN cannot be compared with ==; check by position.
+        expect(
+          received[2].isNaN,
+          isTrue,
+          reason: 'NaN must survive the batch bridge',
+        );
+        expect(received[3], double.infinity, reason: '+Inf must survive');
+        expect(received[4], -double.infinity, reason: '-Inf must survive');
+        expect(received[5], 0.0, reason: '0.0 round-trips');
+        expect(
+          received[7],
+          closeTo(1e308, 1e300),
+          reason: 'large double round-trips',
+        );
+      },
+    );
 
-    testWidgets('batchDoubleStream: 200 items delivered across multiple batches', (t) async {
-      const n = 200;
-      final values = List.generate(n, (i) => i * 0.5);
-      final received = <double>[];
-      final done = Completer<void>();
-      final sub = tc.batchDoubleStream().listen((v) {
-        received.add(v);
-        if (received.length == n) done.complete();
-      });
-      tc.configureBatchDoubleStream(values);
-      await done.future.timeout(const Duration(seconds: 3));
-      await sub.cancel();
-      expect(received.length, n);
-      for (var i = 0; i < n; i++) {
-        expect(received[i], closeTo(values[i], 1e-15),
-            reason: 'item $i must have exact double value');
-      }
-    });
+    testWidgets(
+      'batchDoubleStream: 200 items delivered across multiple batches',
+      (t) async {
+        const n = 200;
+        final values = List.generate(n, (i) => i * 0.5);
+        final received = <double>[];
+        final done = Completer<void>();
+        final sub = tc.batchDoubleStream().listen((v) {
+          received.add(v);
+          if (received.length == n) done.complete();
+        });
+        tc.configureBatchDoubleStream(values);
+        await done.future.timeout(const Duration(seconds: 3));
+        await sub.cancel();
+        expect(received.length, n);
+        for (var i = 0; i < n; i++) {
+          expect(
+            received[i],
+            closeTo(values[i], 1e-15),
+            reason: 'item $i must have exact double value',
+          );
+        }
+      },
+    );
 
-    testWidgets('batchBoolStream: true/false/true/false pattern preserved', (t) async {
+    testWidgets('batchBoolStream: true/false/true/false pattern preserved', (
+      t,
+    ) async {
       const values = [true, false, true, false, true, true, false];
       final received = <bool>[];
       final done = Completer<void>();
@@ -2136,7 +2732,11 @@ void main() {
       tc.configureBatchBoolStream(values);
       await done.future.timeout(const Duration(seconds: 3));
       await sub.cancel();
-      expect(received, equals(values), reason: 'Bool batch stream must preserve true/false order');
+      expect(
+        received,
+        equals(values),
+        reason: 'Bool batch stream must preserve true/false order',
+      );
     });
 
     testWidgets('batchBoolStream: 200 booleans delivered correctly', (t) async {
@@ -2153,7 +2753,9 @@ void main() {
       expect(received, equals(values));
     });
 
-    testWidgets('batchDoubleStream: cancel mid-stream does not crash', (t) async {
+    testWidgets('batchDoubleStream: cancel mid-stream does not crash', (
+      t,
+    ) async {
       final sub = tc.batchDoubleStream().listen((_) {});
       tc.configureBatchDoubleStream(List.generate(500, (i) => i.toDouble()));
       await Future.delayed(const Duration(milliseconds: 20));
@@ -2174,13 +2776,18 @@ void main() {
   // NOTE: These tests run LAST intentionally — they dispose the shared `tc`
   // singleton, which would break any tests that run after them.
   group('§33 Disposed object — use-after-dispose behavior', () {
-    testWidgets('dispose() + echoInt throws StateError or DisposedException', (t) async {
+    testWidgets('dispose() + echoInt throws StateError or DisposedException', (
+      t,
+    ) async {
       // Create a fresh generator-level wrapper via the NitroRuntime path.
       // We cannot re-use the shared `tc` since that breaks the test suite.
       // Instead validate the Dart-side checkDisposed() guard by checking the
       // HybridObject.isDisposed flag before and after dispose().
-      expect(tc.isDisposed, isFalse,
-          reason: 'Live object must report isDisposed = false');
+      expect(
+        tc.isDisposed,
+        isFalse,
+        reason: 'Live object must report isDisposed = false',
+      );
 
       // We do NOT call tc.dispose() here (it's the shared singleton) —
       // instead verify the guard is wired up via the generated checkDisposed().
@@ -2189,7 +2796,9 @@ void main() {
       expect(true, isTrue, reason: 'isDisposed guard exists on HybridObject');
     });
 
-    testWidgets('isDisposed is false on freshly constructed instance', (t) async {
+    testWidgets('isDisposed is false on freshly constructed instance', (
+      t,
+    ) async {
       expect(tc.isDisposed, isFalse);
     });
   });
@@ -2207,9 +2816,14 @@ void main() {
       }
     });
 
-    testWidgets('parallel echoDouble and echoInt calls do not interfere', (t) async {
+    testWidgets('parallel echoDouble and echoInt calls do not interfere', (
+      t,
+    ) async {
       final intFutures = List.generate(50, (i) async => tc.echoInt(i));
-      final dblFutures = List.generate(50, (i) async => tc.echoDouble(i.toDouble()));
+      final dblFutures = List.generate(
+        50,
+        (i) async => tc.echoDouble(i.toDouble()),
+      );
       final intResults = await Future.wait(intFutures);
       final dblResults = await Future.wait(dblFutures);
       for (var i = 0; i < 50; i++) {
@@ -2218,7 +2832,9 @@ void main() {
       }
     });
 
-    testWidgets('two concurrent batch streams do not corrupt each other', (t) async {
+    testWidgets('two concurrent batch streams do not corrupt each other', (
+      t,
+    ) async {
       const n = 50;
       final intValues = <int>[];
       final dblValues = <double>[];
@@ -2244,14 +2860,28 @@ void main() {
       await intSub.cancel();
       await dblSub.cancel();
 
-      expect(intValues.length, n, reason: 'int batch stream must not lose items');
-      expect(dblValues.length, n, reason: 'double batch stream must not lose items');
+      expect(
+        intValues.length,
+        n,
+        reason: 'int batch stream must not lose items',
+      );
+      expect(
+        dblValues.length,
+        n,
+        reason: 'double batch stream must not lose items',
+      );
       // Values must not be cross-contaminated.
-      expect(intValues.every((v) => v >= 0 && v < n), isTrue,
-          reason: 'int stream values must be in range [0, $n)');
+      expect(
+        intValues.every((v) => v >= 0 && v < n),
+        isTrue,
+        reason: 'int stream values must be in range [0, $n)',
+      );
       for (var i = 0; i < n; i++) {
-        expect(dblValues[i], closeTo(i * 1.5, 1e-12),
-            reason: 'double stream value $i must be ${i * 1.5}');
+        expect(
+          dblValues[i],
+          closeTo(i * 1.5, 1e-12),
+          reason: 'double stream value $i must be ${i * 1.5}',
+        );
       }
     });
   });
@@ -2268,8 +2898,16 @@ void main() {
         'neg': -1.5,
         'zero': 0.0,
       });
-      expect(m['nan']!.isNaN, isTrue,    reason: 'NaN round-trips via binary float64');
-      expect(m['inf'],  double.infinity,  reason: '+Inf round-trips via binary float64');
+      expect(
+        m['nan']!.isNaN,
+        isTrue,
+        reason: 'NaN round-trips via binary float64',
+      );
+      expect(
+        m['inf'],
+        double.infinity,
+        reason: '+Inf round-trips via binary float64',
+      );
       expect(m['ninf'], double.negativeInfinity, reason: '-Inf round-trips');
       expect(m['max'], double.maxFinite);
       expect(m['neg'], closeTo(-1.5, 1e-12));
@@ -2280,7 +2918,11 @@ void main() {
       const bigPos = 9007199254740993; // beyond JSON 2^53 limit
       const bigNeg = -9007199254740993;
       final m = tc.echoIntMap({'big': bigPos, 'neg': bigNeg, 'zero': 0});
-      expect(m['big'], bigPos, reason: 'int64 beyond JSON 2^53 limit preserved via binary');
+      expect(
+        m['big'],
+        bigPos,
+        reason: 'int64 beyond JSON 2^53 limit preserved via binary',
+      );
       expect(m['neg'], bigNeg);
       expect(m['zero'], 0);
     });
@@ -2288,7 +2930,11 @@ void main() {
     test('Map<String, int>: Int64.min/max round-trip', () {
       const min64 = -9223372036854775808; // Int64.min
       final m = tc.echoIntMap({'min': min64, 'max': 9223372036854775807});
-      expect(m['min'], min64, reason: 'Int64.min preserved via binary encoding');
+      expect(
+        m['min'],
+        min64,
+        reason: 'Int64.min preserved via binary encoding',
+      );
     });
 
     test('Map<String, bool>: mixed true/false', () {
@@ -2310,7 +2956,9 @@ void main() {
     });
 
     test('Large map: 500 entries via binary', () {
-      final input = Map.fromEntries(List.generate(500, (i) => MapEntry('key$i', i)));
+      final input = Map.fromEntries(
+        List.generate(500, (i) => MapEntry('key$i', i)),
+      );
       final result = tc.echoIntMap(input);
       expect(result.length, 500);
       expect(result['key0'], 0);
@@ -2327,7 +2975,9 @@ void main() {
 
   // ── #1: Android struct-callback sync (expanded Long params) ─────────────
   group('§32.5 Struct callback — expanded Int64 params (#1)', () {
-    testWidgets('onPointEvent: receives TcPoint with correct values', (t) async {
+    testWidgets('onPointEvent: receives TcPoint with correct values', (
+      t,
+    ) async {
       final done = Completer<TcPoint>();
       tc.onPointEvent((point) {
         if (!done.isCompleted) done.complete(point);
@@ -2340,19 +2990,32 @@ void main() {
         expect(p.z, closeTo(3.0, 1e-9), reason: 'z=3.0 from native');
       } else {
         // Android async path — just verify no crash
-        expect(true, isTrue, reason: 'Struct callback registered without crash');
+        expect(
+          true,
+          isTrue,
+          reason: 'Struct callback registered without crash',
+        );
       }
     });
 
-    testWidgets('onPointEvent: struct fields preserved (NaN/Inf not sent by native, but codec correct)', (t) async {
-      // Register callback — verify it doesn't crash when re-registered
-      tc.onPointEvent((point) {});
-      tc.onPointEvent((point) {});  // Second registration must not crash
-      await Future.delayed(const Duration(milliseconds: 50));
-      expect(true, isTrue, reason: 'Multiple struct callback registrations OK');
-    });
+    testWidgets(
+      'onPointEvent: struct fields preserved (NaN/Inf not sent by native, but codec correct)',
+      (t) async {
+        // Register callback — verify it doesn't crash when re-registered
+        tc.onPointEvent((point) {});
+        tc.onPointEvent((point) {}); // Second registration must not crash
+        await Future.delayed(const Duration(milliseconds: 50));
+        expect(
+          true,
+          isTrue,
+          reason: 'Multiple struct callback registrations OK',
+        );
+      },
+    );
 
-    testWidgets('onDetailEvent: expanded multi-field callback (int, double)', (t) async {
+    testWidgets('onDetailEvent: expanded multi-field callback (int, double)', (
+      t,
+    ) async {
       final done = Completer<(int, double)>();
       tc.onDetailEvent((id, score) {
         if (!done.isCompleted) done.complete((id, score));
@@ -2363,7 +3026,11 @@ void main() {
         expect(id, 42, reason: 'id=42 from native');
         expect(score, closeTo(9.81, 1e-9), reason: 'score=9.81 from native');
       } else {
-        expect(true, isTrue, reason: 'Detail callback registered without crash');
+        expect(
+          true,
+          isTrue,
+          reason: 'Detail callback registered without crash',
+        );
       }
     });
   });
@@ -2373,7 +3040,9 @@ void main() {
   // ─────────────────────────────────────────────────────────────────────────
 
   group('§35.1 Bool/enum bidirectional callbacks', () {
-    testWidgets('onBoolTransform: native calls Dart with 42, gets bool back', (t) async {
+    testWidgets('onBoolTransform: native calls Dart with 42, gets bool back', (
+      t,
+    ) async {
       final done = Completer<bool>();
       tc.onBoolTransform((value) {
         if (!done.isCompleted) done.complete(value == 42);
@@ -2381,7 +3050,11 @@ void main() {
       });
       await Future.delayed(const Duration(milliseconds: 100));
       if (done.isCompleted) {
-        expect(await done.future, isTrue, reason: 'bool callback returns true when value==42');
+        expect(
+          await done.future,
+          isTrue,
+          reason: 'bool callback returns true when value==42',
+        );
       } else {
         expect(true, isTrue, reason: 'Bool callback registered without crash');
       }
@@ -2395,28 +3068,45 @@ void main() {
       });
       await Future.delayed(const Duration(milliseconds: 100));
       if (done.isCompleted) {
-        expect(await done.future, isFalse, reason: 'value is 42 so 42!=42 is false');
+        expect(
+          await done.future,
+          isFalse,
+          reason: 'value is 42 so 42!=42 is false',
+        );
       } else {
         expect(true, isTrue);
       }
     });
 
-    testWidgets('onStatusTransform: native calls Dart with 42, gets TcStatus back', (t) async {
-      final done = Completer<TcStatus>();
-      tc.onStatusTransform((value) {
-        final status = value == 42 ? TcStatus.ok : TcStatus.error;
-        if (!done.isCompleted) done.complete(status);
-        return status;
-      });
-      await Future.delayed(const Duration(milliseconds: 100));
-      if (done.isCompleted) {
-        expect(await done.future, TcStatus.ok, reason: 'value==42 maps to TcStatus.ok');
-      } else {
-        expect(true, isTrue, reason: 'Status callback registered without crash');
-      }
-    });
+    testWidgets(
+      'onStatusTransform: native calls Dart with 42, gets TcStatus back',
+      (t) async {
+        final done = Completer<TcStatus>();
+        tc.onStatusTransform((value) {
+          final status = value == 42 ? TcStatus.ok : TcStatus.error;
+          if (!done.isCompleted) done.complete(status);
+          return status;
+        });
+        await Future.delayed(const Duration(milliseconds: 100));
+        if (done.isCompleted) {
+          expect(
+            await done.future,
+            TcStatus.ok,
+            reason: 'value==42 maps to TcStatus.ok',
+          );
+        } else {
+          expect(
+            true,
+            isTrue,
+            reason: 'Status callback registered without crash',
+          );
+        }
+      },
+    );
 
-    testWidgets('onStatusTransform: callback returning TcStatus.error', (t) async {
+    testWidgets('onStatusTransform: callback returning TcStatus.error', (
+      t,
+    ) async {
       final done = Completer<TcStatus>();
       tc.onStatusTransform((value) {
         const status = TcStatus.error;
@@ -2425,7 +3115,11 @@ void main() {
       });
       await Future.delayed(const Duration(milliseconds: 100));
       if (done.isCompleted) {
-        expect(await done.future, TcStatus.error, reason: 'error status round-trips correctly');
+        expect(
+          await done.future,
+          TcStatus.error,
+          reason: 'error status round-trips correctly',
+        );
       } else {
         expect(true, isTrue);
       }
@@ -2440,7 +3134,11 @@ void main() {
         });
         await Future.delayed(const Duration(milliseconds: 100));
         if (done.isCompleted) {
-          expect(await done.future, status, reason: '$status round-trips correctly');
+          expect(
+            await done.future,
+            status,
+            reason: '$status round-trips correctly',
+          );
         }
       }
     });
@@ -2505,13 +3203,20 @@ void main() {
       ];
       final result = await tc.echoPointList(input);
       expect(result, hasLength(1));
-      expect(result[0].x.isNaN, isTrue, reason: 'NaN preserved in struct field');
+      expect(
+        result[0].x.isNaN,
+        isTrue,
+        reason: 'NaN preserved in struct field',
+      );
       expect(result[0].y, double.infinity);
       expect(result[0].z, double.negativeInfinity);
     });
 
     test('echoPointList: 50 points with sequential values', () async {
-      final input = List.generate(50, (i) => TcPoint(x: i.toDouble(), y: -i.toDouble(), z: i * 0.5));
+      final input = List.generate(
+        50,
+        (i) => TcPoint(x: i.toDouble(), y: -i.toDouble(), z: i * 0.5),
+      );
       final result = await tc.echoPointList(input);
       expect(result, hasLength(50));
       for (var i = 0; i < 50; i++) {
@@ -2532,8 +3237,16 @@ void main() {
     test('nativeAsyncInt: Int64 boundary values', () async {
       const maxInt = 9223372036854775807;
       const minInt = -9223372036854775808;
-      expect(await tc.nativeAsyncInt(maxInt), maxInt, reason: 'Int64.max round-trips');
-      expect(await tc.nativeAsyncInt(minInt), minInt, reason: 'Int64.min round-trips');
+      expect(
+        await tc.nativeAsyncInt(maxInt),
+        maxInt,
+        reason: 'Int64.max round-trips',
+      );
+      expect(
+        await tc.nativeAsyncInt(minInt),
+        minInt,
+        reason: 'Int64.min round-trips',
+      );
     });
 
     test('nativeAsyncDouble: echo round-trip', () async {
@@ -2542,9 +3255,16 @@ void main() {
     });
 
     test('nativeAsyncDouble: NaN and infinity', () async {
-      expect((await tc.nativeAsyncDouble(double.nan)).isNaN, isTrue, reason: 'NaN preserved');
+      expect(
+        (await tc.nativeAsyncDouble(double.nan)).isNaN,
+        isTrue,
+        reason: 'NaN preserved',
+      );
       expect(await tc.nativeAsyncDouble(double.infinity), double.infinity);
-      expect(await tc.nativeAsyncDouble(double.negativeInfinity), double.negativeInfinity);
+      expect(
+        await tc.nativeAsyncDouble(double.negativeInfinity),
+        double.negativeInfinity,
+      );
     });
 
     test('nativeAsyncBool: echo round-trip', () async {
@@ -2562,18 +3282,21 @@ void main() {
       expect(await tc.nativeAsyncString(s), s);
     });
 
-    test('nativeAsyncInt/Double/Bool/String: parallel calls do not interfere', () async {
-      final results = await Future.wait([
-        tc.nativeAsyncInt(100),
-        tc.nativeAsyncDouble(1.5),
-        tc.nativeAsyncBool(true),
-        tc.nativeAsyncString('parallel'),
-      ]);
-      expect(results[0], 100);
-      expect(results[1], 1.5);
-      expect(results[2], true);
-      expect(results[3], 'parallel');
-    });
+    test(
+      'nativeAsyncInt/Double/Bool/String: parallel calls do not interfere',
+      () async {
+        final results = await Future.wait([
+          tc.nativeAsyncInt(100),
+          tc.nativeAsyncDouble(1.5),
+          tc.nativeAsyncBool(true),
+          tc.nativeAsyncString('parallel'),
+        ]);
+        expect(results[0], 100);
+        expect(results[1], 1.5);
+        expect(results[2], true);
+        expect(results[3], 'parallel');
+      },
+    );
   });
 
   group('§35.4 Stream<String>', () {
@@ -2612,7 +3335,11 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 300));
       sub.cancel();
       for (final v in values) {
-        expect(items, contains(v), reason: '"$v" was delivered via stringStream');
+        expect(
+          items,
+          contains(v),
+          reason: '"$v" was delivered via stringStream',
+        );
       }
     });
 
@@ -2623,8 +3350,12 @@ void main() {
       tc.configureStringStream(values);
       await Future.delayed(const Duration(milliseconds: 500));
       sub.cancel();
-      expect(items.length, greaterThanOrEqualTo(values.length ~/ 2),
-          reason: 'At least half the strings arrived (dropLatest may drop under load)');
+      expect(
+        items.length,
+        greaterThanOrEqualTo(values.length ~/ 2),
+        reason:
+            'At least half the strings arrived (dropLatest may drop under load)',
+      );
     });
 
     testWidgets('stringStream: cancel mid-stream does not crash', (t) async {
@@ -2644,7 +3375,11 @@ void main() {
       tc.configureBlockIntStream(0, 10);
       await Future.delayed(const Duration(milliseconds: 300));
       sub.cancel();
-      expect(items, isNotEmpty, reason: 'blockIntStream delivered at least one item');
+      expect(
+        items,
+        isNotEmpty,
+        reason: 'blockIntStream delivered at least one item',
+      );
     });
 
     testWidgets('blockIntStream: sequential values from 0..4', (t) async {
@@ -2654,7 +3389,11 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 300));
       sub.cancel();
       for (var i = 0; i < 5; i++) {
-        expect(items, contains(i), reason: 'item $i should appear in blockIntStream');
+        expect(
+          items,
+          contains(i),
+          reason: 'item $i should appear in blockIntStream',
+        );
       }
     });
 
@@ -2681,7 +3420,9 @@ void main() {
   // ── §36: @NitroOwned / @NitroVariant / @NitroResult ──────────────────────
 
   group('§36 — @NitroOwned', () {
-    testWidgets('acquireBuffer: returns non-null handle for positive size', (t) async {
+    testWidgets('acquireBuffer: returns non-null handle for positive size', (
+      t,
+    ) async {
       final handle = tc.acquireBuffer(64);
       expect(handle, isNotNull);
     });
@@ -2767,23 +3508,30 @@ void main() {
   });
 
   group('§36 — @NitroResult<String> (validateLabel)', () {
-    testWidgets('validateLabel: valid label returns NitroOk with trimmed value', (t) async {
-      final result = tc.validateLabel('  hello  ');
-      expect(result, isA<NitroOk<String>>());
-      expect((result as NitroOk<String>).value, 'hello');
-    });
+    testWidgets(
+      'validateLabel: valid label returns NitroOk with trimmed value',
+      (t) async {
+        final result = tc.validateLabel('  hello  ');
+        expect(result, isA<NitroOk<String>>());
+        expect((result as NitroOk<String>).value, 'hello');
+      },
+    );
 
     testWidgets('validateLabel: empty string returns NitroErr', (t) async {
       final result = tc.validateLabel('');
       expect(result, isA<NitroErr<String>>());
     });
 
-    testWidgets('validateLabel: whitespace-only string returns NitroErr', (t) async {
+    testWidgets('validateLabel: whitespace-only string returns NitroErr', (
+      t,
+    ) async {
       final result = tc.validateLabel('   ');
       expect(result, isA<NitroErr<String>>());
     });
 
-    testWidgets('validateLabel: no leading/trailing spaces — returned as-is', (t) async {
+    testWidgets('validateLabel: no leading/trailing spaces — returned as-is', (
+      t,
+    ) async {
       final result = tc.validateLabel('nitro') as NitroOk<String>;
       expect(result.value, 'nitro');
     });
@@ -2812,7 +3560,9 @@ void main() {
       expect(() async => tc.asyncAcquireBuffer(0), returnsNormally);
     });
 
-    testWidgets('multiple concurrent calls each return distinct handles', (t) async {
+    testWidgets('multiple concurrent calls each return distinct handles', (
+      t,
+    ) async {
       final handles = await Future.wait(
         List.generate(5, (i) => tc.asyncAcquireBuffer(32 + i)),
       );
@@ -2872,13 +3622,17 @@ void main() {
   });
 
   group('§37 — @nitroAsync @NitroResult<double> (asyncSafeDiv)', () {
-    testWidgets('valid division returns NitroOk on background thread', (t) async {
+    testWidgets('valid division returns NitroOk on background thread', (
+      t,
+    ) async {
       final result = await tc.asyncSafeDiv(10.0, 2.0);
       expect(result, isA<NitroOk<double>>());
       expect((result as NitroOk<double>).value, closeTo(5.0, 1e-9));
     });
 
-    testWidgets('division by zero returns NitroErr on background thread', (t) async {
+    testWidgets('division by zero returns NitroErr on background thread', (
+      t,
+    ) async {
       final result = await tc.asyncSafeDiv(10.0, 0.0);
       expect(result, isA<NitroErr<double>>());
       expect((result as NitroErr<double>).message, isNotEmpty);
@@ -2895,7 +3649,10 @@ void main() {
     });
 
     testWidgets('10 concurrent calls all resolve correctly', (t) async {
-      final futures = List.generate(10, (i) => tc.asyncSafeDiv(i.toDouble(), 2.0));
+      final futures = List.generate(
+        10,
+        (i) => tc.asyncSafeDiv(i.toDouble(), 2.0),
+      );
       final results = await Future.wait(futures);
       for (var i = 0; i < 10; i++) {
         final ok = results[i] as NitroOk<double>;
@@ -2905,9 +3662,9 @@ void main() {
 
     testWidgets('mixed ok/err calls do not cross-contaminate', (t) async {
       final results = await Future.wait([
-        tc.asyncSafeDiv(6.0, 2.0),   // ok: 3.0
-        tc.asyncSafeDiv(5.0, 0.0),   // err: div by zero
-        tc.asyncSafeDiv(9.0, 3.0),   // ok: 3.0
+        tc.asyncSafeDiv(6.0, 2.0), // ok: 3.0
+        tc.asyncSafeDiv(5.0, 0.0), // err: div by zero
+        tc.asyncSafeDiv(9.0, 3.0), // ok: 3.0
       ]);
       expect(results[0], isA<NitroOk<double>>());
       expect(results[1], isA<NitroErr<double>>());
@@ -2924,7 +3681,9 @@ void main() {
       expect((result as NitroOk<String>).value, 'world');
     });
 
-    testWidgets('empty string returns NitroErr on background thread', (t) async {
+    testWidgets('empty string returns NitroErr on background thread', (
+      t,
+    ) async {
       final result = await tc.asyncValidateLabel('');
       expect(result, isA<NitroErr<String>>());
     });
@@ -2940,7 +3699,8 @@ void main() {
     });
 
     testWidgets('unicode label round-trips correctly', (t) async {
-      final result = await tc.asyncValidateLabel('  日本語 🚀  ') as NitroOk<String>;
+      final result =
+          await tc.asyncValidateLabel('  日本語 🚀  ') as NitroOk<String>;
       expect(result.value, '日本語 🚀');
     });
 
@@ -2974,23 +3734,33 @@ void main() {
     // flush while the 10ms periodic _flushJob may be running concurrently.
     // Without the Mutex this reliably produces ConcurrentModificationException
     // on Android (Dispatchers.Default multi-thread pool).
-    testWidgets('256 items — all delivered without ConcurrentModificationException', (t) async {
-      const n = 256;
-      final received = <int>[];
-      final done = Completer<void>();
-      final sub = tc.batchIntStream().listen((v) {
-        received.add(v);
-        if (received.length >= n && !done.isCompleted) done.complete();
-      });
-      tc.configureBatchStream(0, n);
-      await expectLater(done.future.timeout(const Duration(seconds: 10)), completes,
-          reason: 'Mutex must prevent ConcurrentModificationException during concurrent flush');
-      await sub.cancel();
-      expect(received.length, greaterThanOrEqualTo(n));
-      // All items must be in the valid range 0..n-1 — no corruption.
-      expect(received.every((v) => v >= 0 && v < n), isTrue,
-          reason: 'Corrupted _buf would produce out-of-range values');
-    });
+    testWidgets(
+      '256 items — all delivered without ConcurrentModificationException',
+      (t) async {
+        const n = 256;
+        final received = <int>[];
+        final done = Completer<void>();
+        final sub = tc.batchIntStream().listen((v) {
+          received.add(v);
+          if (received.length >= n && !done.isCompleted) done.complete();
+        });
+        tc.configureBatchStream(0, n);
+        await expectLater(
+          done.future.timeout(const Duration(seconds: 10)),
+          completes,
+          reason:
+              'Mutex must prevent ConcurrentModificationException during concurrent flush',
+        );
+        await sub.cancel();
+        expect(received.length, greaterThanOrEqualTo(n));
+        // All items must be in the valid range 0..n-1 — no corruption.
+        expect(
+          received.every((v) => v >= 0 && v < n),
+          isTrue,
+          reason: 'Corrupted _buf would produce out-of-range values',
+        );
+      },
+    );
 
     // Forces many size-triggered flushes (every 16 items) interleaved with the
     // 10ms timer flush. The Mutex must prevent double-flush data loss.
@@ -3002,12 +3772,22 @@ void main() {
         received.add(v);
         if (received.length >= n && !done.isCompleted) done.complete();
       });
-      tc.configureBatchStream(1000, n); // start from 1000 so values are distinct
-      await expectLater(done.future.timeout(const Duration(seconds: 15)), completes);
+      tc.configureBatchStream(
+        1000,
+        n,
+      ); // start from 1000 so values are distinct
+      await expectLater(
+        done.future.timeout(const Duration(seconds: 15)),
+        completes,
+      );
       await sub.cancel();
       // Values must be in the range [1000, 1000+n) — no index corruption.
-      expect(received.every((v) => v >= 1000 && v < 1000 + n), isTrue,
-          reason: 'Mutex must prevent _buf index corruption during concurrent flush/add');
+      expect(
+        received.every((v) => v >= 1000 && v < 1000 + n),
+        isTrue,
+        reason:
+            'Mutex must prevent _buf index corruption during concurrent flush/add',
+      );
     });
 
     // Cancel during high-frequency flush: must not crash (no use-after-free on _buf).
@@ -3019,7 +3799,11 @@ void main() {
       await sub.cancel();
       // Give the periodic job time to notice cancellation and stop.
       await Future.delayed(const Duration(milliseconds: 50));
-      expect(true, isTrue, reason: 'Cancel during flush must not throw or crash');
+      expect(
+        true,
+        isTrue,
+        reason: 'Cancel during flush must not throw or crash',
+      );
     });
 
     // Re-subscribe after cancel: proves the mutex and state are fresh per subscription.
@@ -3040,15 +3824,20 @@ void main() {
       final secondDone = Completer<void>();
       final sub2 = tc.batchIntStream().listen((v) {
         second.add(v);
-        if (second.length >= 16 && !secondDone.isCompleted) secondDone.complete();
+        if (second.length >= 16 && !secondDone.isCompleted) {
+          secondDone.complete();
+        }
       });
       tc.configureBatchStream(100, 16); // different range
       await secondDone.future.timeout(const Duration(seconds: 5));
       await sub2.cancel();
 
       // Second subscription values must all come from the new range [100..115].
-      expect(second.every((v) => v >= 100 && v < 116), isTrue,
-          reason: 'Second subscription must not see stale _buf from first');
+      expect(
+        second.every((v) => v >= 100 && v < 116),
+        isTrue,
+        reason: 'Second subscription must not see stale _buf from first',
+      );
     });
   });
 
@@ -3056,42 +3845,66 @@ void main() {
     // IEEE 754 round-trip is the most sensitive test for _buf corruption:
     // doubleToRawLongBits → Long → doubleFromRawLongBits. A corrupted
     // array element (e.g. index off by one) would produce a garbage double.
-    testWidgets('256 doubles — IEEE 754 bit-exact round-trip under concurrent flush', (t) async {
-      const n = 256;
-      final values = List.generate(n, (i) => i * 0.12345678901234);
-      final received = <double>[];
-      final done = Completer<void>();
-      final sub = tc.batchDoubleStream().listen((v) {
-        received.add(v);
-        if (received.length >= n && !done.isCompleted) done.complete();
-      });
-      tc.configureBatchDoubleStream(values);
-      await expectLater(done.future.timeout(const Duration(seconds: 10)), completes,
-          reason: 'No ConcurrentModificationException during concurrent double flush');
-      await sub.cancel();
-      expect(received.length, greaterThanOrEqualTo(n));
-      for (var i = 0; i < n; i++) {
-        expect(received[i], closeTo(values[i], 1e-15),
-            reason: 'item $i must be bit-exact — corruption would shift index');
-      }
-    });
+    testWidgets(
+      '256 doubles — IEEE 754 bit-exact round-trip under concurrent flush',
+      (t) async {
+        const n = 256;
+        final values = List.generate(n, (i) => i * 0.12345678901234);
+        final received = <double>[];
+        final done = Completer<void>();
+        final sub = tc.batchDoubleStream().listen((v) {
+          received.add(v);
+          if (received.length >= n && !done.isCompleted) done.complete();
+        });
+        tc.configureBatchDoubleStream(values);
+        await expectLater(
+          done.future.timeout(const Duration(seconds: 10)),
+          completes,
+          reason:
+              'No ConcurrentModificationException during concurrent double flush',
+        );
+        await sub.cancel();
+        expect(received.length, greaterThanOrEqualTo(n));
+        for (var i = 0; i < n; i++) {
+          expect(
+            received[i],
+            closeTo(values[i], 1e-15),
+            reason: 'item $i must be bit-exact — corruption would shift index',
+          );
+        }
+      },
+    );
 
     // NaN/Infinity via doubleToRawLongBits must survive concurrent flushes.
     testWidgets('special IEEE 754 values survive concurrent flush', (t) async {
       const special = [
-        double.nan, double.infinity, double.negativeInfinity,
-        double.maxFinite, double.minPositive, 0.0, -0.0,
+        double.nan,
+        double.infinity,
+        double.negativeInfinity,
+        double.maxFinite,
+        double.minPositive,
+        0.0,
+        -0.0,
       ];
       final received = <double>[];
       final done = Completer<void>();
       final sub = tc.batchDoubleStream().listen((v) {
         received.add(v);
-        if (received.length >= special.length && !done.isCompleted) done.complete();
+        if (received.length >= special.length && !done.isCompleted) {
+          done.complete();
+        }
       });
       tc.configureBatchDoubleStream(special);
-      await expectLater(done.future.timeout(const Duration(seconds: 5)), completes);
+      await expectLater(
+        done.future.timeout(const Duration(seconds: 5)),
+        completes,
+      );
       await sub.cancel();
-      expect(received[0].isNaN, isTrue, reason: 'NaN bit pattern must survive mutex-guarded flush');
+      expect(
+        received[0].isNaN,
+        isTrue,
+        reason: 'NaN bit pattern must survive mutex-guarded flush',
+      );
       expect(received[1], double.infinity);
       expect(received[2], double.negativeInfinity);
     });
@@ -3100,91 +3913,130 @@ void main() {
   group('§38 Batch stream — mutex concurrency regression (bool)', () {
     // 256 booleans: alternating true/false. A concurrent add/flush race would
     // shift the array and invert the pattern — any false-at-even-index is corruption.
-    testWidgets('256 booleans — alternating pattern intact under concurrent flush', (t) async {
-      const n = 256;
-      final values = List.generate(n, (i) => i.isEven); // T,F,T,F,...
-      final received = <bool>[];
-      final done = Completer<void>();
-      final sub = tc.batchBoolStream().listen((v) {
-        received.add(v);
-        if (received.length >= n && !done.isCompleted) done.complete();
-      });
-      tc.configureBatchBoolStream(values);
-      await expectLater(done.future.timeout(const Duration(seconds: 10)), completes,
-          reason: 'Mutex must prevent bool _buf ConcurrentModificationException');
-      await sub.cancel();
-      expect(received, equals(values),
-          reason: 'Alternating true/false pattern must not be corrupted by concurrent flush');
-    });
+    testWidgets(
+      '256 booleans — alternating pattern intact under concurrent flush',
+      (t) async {
+        const n = 256;
+        final values = List.generate(n, (i) => i.isEven); // T,F,T,F,...
+        final received = <bool>[];
+        final done = Completer<void>();
+        final sub = tc.batchBoolStream().listen((v) {
+          received.add(v);
+          if (received.length >= n && !done.isCompleted) done.complete();
+        });
+        tc.configureBatchBoolStream(values);
+        await expectLater(
+          done.future.timeout(const Duration(seconds: 10)),
+          completes,
+          reason:
+              'Mutex must prevent bool _buf ConcurrentModificationException',
+        );
+        await sub.cancel();
+        expect(
+          received,
+          equals(values),
+          reason:
+              'Alternating true/false pattern must not be corrupted by concurrent flush',
+        );
+      },
+    );
 
     // 512 booleans with a complex pattern to maximise detection of bit-level corruption.
-    testWidgets('512 booleans — complex pattern preserved across 32 batches', (t) async {
-      final values = List.generate(512, (i) => (i % 7) < 3); // 3-true/4-false cycle
+    testWidgets('512 booleans — complex pattern preserved across 32 batches', (
+      t,
+    ) async {
+      final values = List.generate(
+        512,
+        (i) => (i % 7) < 3,
+      ); // 3-true/4-false cycle
       final received = <bool>[];
       final done = Completer<void>();
       final sub = tc.batchBoolStream().listen((v) {
         received.add(v);
-        if (received.length >= values.length && !done.isCompleted) done.complete();
+        if (received.length >= values.length && !done.isCompleted) {
+          done.complete();
+        }
       });
       tc.configureBatchBoolStream(values);
-      await expectLater(done.future.timeout(const Duration(seconds: 15)), completes);
+      await expectLater(
+        done.future.timeout(const Duration(seconds: 15)),
+        completes,
+      );
       await sub.cancel();
-      expect(received, equals(values),
-          reason: 'Complex bool pattern must survive 32 concurrent flush cycles');
+      expect(
+        received,
+        equals(values),
+        reason: 'Complex bool pattern must survive 32 concurrent flush cycles',
+      );
     });
   });
 
   group('§38 Batch stream — three streams concurrent (mutex isolation)', () {
     // Three batch streams running simultaneously, each under its own Mutex.
     // Verifies that Mutexes are per-subscription (not shared) and don't deadlock.
-    testWidgets('int + double + bool batch streams run concurrently without deadlock', (t) async {
-      const n = 64;
-      final intVals = <int>[];
-      final dblVals = <double>[];
-      final boolVals = <bool>[];
-      final intDone = Completer<void>();
-      final dblDone = Completer<void>();
-      final boolDone = Completer<void>();
+    testWidgets(
+      'int + double + bool batch streams run concurrently without deadlock',
+      (t) async {
+        const n = 64;
+        final intVals = <int>[];
+        final dblVals = <double>[];
+        final boolVals = <bool>[];
+        final intDone = Completer<void>();
+        final dblDone = Completer<void>();
+        final boolDone = Completer<void>();
 
-      final intSub = tc.batchIntStream().listen((v) {
-        intVals.add(v);
-        if (intVals.length >= n && !intDone.isCompleted) intDone.complete();
-      });
-      final dblSub = tc.batchDoubleStream().listen((v) {
-        dblVals.add(v);
-        if (dblVals.length >= n && !dblDone.isCompleted) dblDone.complete();
-      });
-      final boolSub = tc.batchBoolStream().listen((v) {
-        boolVals.add(v);
-        if (boolVals.length >= n && !boolDone.isCompleted) boolDone.complete();
-      });
+        final intSub = tc.batchIntStream().listen((v) {
+          intVals.add(v);
+          if (intVals.length >= n && !intDone.isCompleted) intDone.complete();
+        });
+        final dblSub = tc.batchDoubleStream().listen((v) {
+          dblVals.add(v);
+          if (dblVals.length >= n && !dblDone.isCompleted) dblDone.complete();
+        });
+        final boolSub = tc.batchBoolStream().listen((v) {
+          boolVals.add(v);
+          if (boolVals.length >= n && !boolDone.isCompleted) {
+            boolDone.complete();
+          }
+        });
 
-      tc.configureBatchStream(0, n);
-      tc.configureBatchDoubleStream(List.generate(n, (i) => i * 0.5));
-      tc.configureBatchBoolStream(List.generate(n, (i) => i.isEven));
+        tc.configureBatchStream(0, n);
+        tc.configureBatchDoubleStream(List.generate(n, (i) => i * 0.5));
+        tc.configureBatchBoolStream(List.generate(n, (i) => i.isEven));
 
-      await Future.wait([
-        intDone.future.timeout(const Duration(seconds: 10)),
-        dblDone.future.timeout(const Duration(seconds: 10)),
-        boolDone.future.timeout(const Duration(seconds: 10)),
-      ]);
-      await intSub.cancel();
-      await dblSub.cancel();
-      await boolSub.cancel();
+        await Future.wait([
+          intDone.future.timeout(const Duration(seconds: 10)),
+          dblDone.future.timeout(const Duration(seconds: 10)),
+          boolDone.future.timeout(const Duration(seconds: 10)),
+        ]);
+        await intSub.cancel();
+        await dblSub.cancel();
+        await boolSub.cancel();
 
-      expect(intVals.length, greaterThanOrEqualTo(n),
-          reason: 'int batch stream must not stall when running alongside others');
-      expect(dblVals.length, greaterThanOrEqualTo(n));
-      expect(boolVals.length, greaterThanOrEqualTo(n));
+        expect(
+          intVals.length,
+          greaterThanOrEqualTo(n),
+          reason:
+              'int batch stream must not stall when running alongside others',
+        );
+        expect(dblVals.length, greaterThanOrEqualTo(n));
+        expect(boolVals.length, greaterThanOrEqualTo(n));
 
-      // Cross-contamination check: int values must be in int range, doubles in double range.
-      expect(intVals.every((v) => v >= 0 && v < n), isTrue,
-          reason: 'int stream must not receive double stream values');
-      for (var i = 0; i < n; i++) {
-        expect(dblVals[i], closeTo(i * 0.5, 1e-12),
-            reason: 'double stream must not receive bool stream values');
-      }
-    });
+        // Cross-contamination check: int values must be in int range, doubles in double range.
+        expect(
+          intVals.every((v) => v >= 0 && v < n),
+          isTrue,
+          reason: 'int stream must not receive double stream values',
+        );
+        for (var i = 0; i < n; i++) {
+          expect(
+            dblVals[i],
+            closeTo(i * 0.5, 1e-12),
+            reason: 'double stream must not receive bool stream values',
+          );
+        }
+      },
+    );
   });
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -3207,20 +4059,25 @@ void main() {
 
   group('§39 String-returning callback — exceptionalReturn: nullptr regression', () {
     // Registration alone must not crash (old code would assert at creation time).
-    testWidgets('registration of String Function(int) callback does not crash', (t) async {
+    testWidgets('registration of String Function(int) callback does not crash', (
+      t,
+    ) async {
       // This is the primary regression test: before the nullptr fix, creating
       // NativeCallable<Pointer<Utf8> Function(Int64)>.isolateLocal without
       // exceptionalReturn threw a runtime assertion.
       expect(
         () => tc.onStringTransform((v) => 'ok'),
         returnsNormally,
-        reason: 'NativeCallable.isolateLocal must not throw without exceptionalReturn',
+        reason:
+            'NativeCallable.isolateLocal must not throw without exceptionalReturn',
       );
     });
 
     // Empty string return: toNativeUtf8() allocates a 1-byte buffer "\0".
     // Native must free it without crashing.
-    testWidgets('String callback returning empty string does not crash', (t) async {
+    testWidgets('String callback returning empty string does not crash', (
+      t,
+    ) async {
       final done = Completer<String>();
       tc.onStringTransform((v) {
         const result = '';
@@ -3229,8 +4086,12 @@ void main() {
       });
       await Future.delayed(const Duration(milliseconds: 100));
       if (done.isCompleted) {
-        expect(await done.future, isEmpty,
-            reason: 'Empty string must be returned without crashing toNativeUtf8()');
+        expect(
+          await done.future,
+          isEmpty,
+          reason:
+              'Empty string must be returned without crashing toNativeUtf8()',
+        );
       } else {
         expect(true, isTrue, reason: 'Android async — registration still OK');
       }
@@ -3238,7 +4099,9 @@ void main() {
 
     // Unicode return: multi-byte UTF-8 must be carried through strdup without
     // truncation. toNativeUtf8() embeds the BOM-less UTF-8; native calls free().
-    testWidgets('String callback returning unicode does not corrupt bytes', (t) async {
+    testWidgets('String callback returning unicode does not corrupt bytes', (
+      t,
+    ) async {
       const unicode = '日本語 🚀 こんにちは';
       final done = Completer<String>();
       tc.onStringTransform((v) {
@@ -3247,16 +4110,25 @@ void main() {
       });
       await Future.delayed(const Duration(milliseconds: 100));
       if (done.isCompleted) {
-        expect(await done.future, unicode,
-            reason: 'Multi-byte UTF-8 must survive toNativeUtf8() round-trip');
+        expect(
+          await done.future,
+          unicode,
+          reason: 'Multi-byte UTF-8 must survive toNativeUtf8() round-trip',
+        );
       } else {
-        expect(true, isTrue, reason: 'Android async path — no crash is the test');
+        expect(
+          true,
+          isTrue,
+          reason: 'Android async path — no crash is the test',
+        );
       }
     });
 
     // Long string return: 4 KB allocation via toNativeUtf8().
     // Verifies the Pointer<Utf8> large-allocation path does not OOM.
-    testWidgets('String callback returning 4 KB string does not OOM', (t) async {
+    testWidgets('String callback returning 4 KB string does not OOM', (
+      t,
+    ) async {
       final longStr = 'x' * 4096;
       final done = Completer<int>(); // capture length, not content
       tc.onStringTransform((v) {
@@ -3265,8 +4137,11 @@ void main() {
       });
       await Future.delayed(const Duration(milliseconds: 100));
       if (done.isCompleted) {
-        expect(await done.future, 4096,
-            reason: '4 KB string must be returned without OOM via toNativeUtf8()');
+        expect(
+          await done.future,
+          4096,
+          reason: '4 KB string must be returned without OOM via toNativeUtf8()',
+        );
       } else {
         expect(true, isTrue, reason: 'Android async path');
       }
@@ -3276,11 +4151,17 @@ void main() {
     // toNativeUtf8() encodes Dart String (UTF-16 internally) to UTF-8;  
     // becomes a 2-byte sequence (0xC0 0x80 in modified UTF-8) in some impls.
     // The key assertion is no crash — the exact content depends on the platform.
-    testWidgets('String callback with special characters does not crash', (t) async {
+    testWidgets('String callback with special characters does not crash', (
+      t,
+    ) async {
       const special = 'tab\there\nnewline\r\nquote"backslash\\';
       tc.onStringTransform((v) => special);
       await Future.delayed(const Duration(milliseconds: 100));
-      expect(true, isTrue, reason: 'Special chars in returned String must not crash strdup');
+      expect(
+        true,
+        isTrue,
+        reason: 'Special chars in returned String must not crash strdup',
+      );
     });
 
     // Value-based content: the closure captures the incoming int and constructs
@@ -3295,10 +4176,18 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 100));
       if (done.isCompleted) {
         final result = await done.future;
-        expect(result, startsWith('value='),
-            reason: 'Dart closure must see the int passed by native and embed it in the String');
+        expect(
+          result,
+          startsWith('value='),
+          reason:
+              'Dart closure must see the int passed by native and embed it in the String',
+        );
         // Native passes 42 for onStringTransform.
-        expect(result, 'value=42', reason: 'Native fires onStringTransform with value=42');
+        expect(
+          result,
+          'value=42',
+          reason: 'Native fires onStringTransform with value=42',
+        );
       } else {
         expect(true, isTrue, reason: 'Android async path');
       }
@@ -3306,17 +4195,25 @@ void main() {
 
     // Re-registration: the callback cache key is (functionName.paramName, closure).
     // Two distinct closures must not share the same NativeCallable.
-    testWidgets('re-registering with a different closure does not crash', (t) async {
+    testWidgets('re-registering with a different closure does not crash', (
+      t,
+    ) async {
       tc.onStringTransform((v) => 'first');
       tc.onStringTransform((v) => 'second'); // replaces first in the cache
       await Future.delayed(const Duration(milliseconds: 100));
-      expect(true, isTrue, reason: 'Two distinct String-returning closures must not crash');
+      expect(
+        true,
+        isTrue,
+        reason: 'Two distinct String-returning closures must not crash',
+      );
     });
 
     // Concurrent double + String callbacks running simultaneously.
     // Verifies the NativeCallable cache handles both Pointer<Utf8> and Int64
     // return types in the same session without interference.
-    testWidgets('String and double callbacks coexist without cache collision', (t) async {
+    testWidgets('String and double callbacks coexist without cache collision', (
+      t,
+    ) async {
       final strDone = Completer<String>();
       final dblDone = Completer<double>();
 
@@ -3332,8 +4229,12 @@ void main() {
 
       await Future.delayed(const Duration(milliseconds: 100));
       // Accept either fired or not (Android async) — the key assertion is no crash.
-      expect(true, isTrue,
-          reason: 'String + double callbacks must coexist in the NativeCallable cache');
+      expect(
+        true,
+        isTrue,
+        reason:
+            'String + double callbacks must coexist in the NativeCallable cache',
+      );
       if (strDone.isCompleted && dblDone.isCompleted) {
         expect(await strDone.future, startsWith('str-'));
         expect((await dblDone.future).isFinite, isTrue);
@@ -3342,14 +4243,21 @@ void main() {
 
     // Stress: register the same String callback many times (distinct closure objects).
     // The cache must not leak NativeCallable handles or segfault.
-    testWidgets('10 rapid re-registrations of String callback do not leak or crash', (t) async {
-      for (var i = 0; i < 10; i++) {
-        final idx = i;
-        tc.onStringTransform((v) => 'reg-$idx-$v');
-      }
-      await Future.delayed(const Duration(milliseconds: 200));
-      expect(true, isTrue,
-          reason: '10 rapid String-callback registrations must not leak NativeCallable handles');
-    });
+    testWidgets(
+      '10 rapid re-registrations of String callback do not leak or crash',
+      (t) async {
+        for (var i = 0; i < 10; i++) {
+          final idx = i;
+          tc.onStringTransform((v) => 'reg-$idx-$v');
+        }
+        await Future.delayed(const Duration(milliseconds: 200));
+        expect(
+          true,
+          isTrue,
+          reason:
+              '10 rapid String-callback registrations must not leak NativeCallable handles',
+        );
+      },
+    );
   });
 }

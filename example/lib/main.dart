@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 import 'package:nitro/nitro.dart';
 import 'package:flutter/material.dart';
 import 'package:nitro_type_coverage/nitro_type_coverage.dart' as plugin;
