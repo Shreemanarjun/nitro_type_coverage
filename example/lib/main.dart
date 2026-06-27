@@ -1,8 +1,23 @@
 import 'dart:async';
-import 'package:nitro/nitro.dart';
 import 'package:flutter/material.dart';
+import 'package:nitro/nitro.dart';
 import 'package:nitro_type_coverage/nitro_type_coverage.dart' as plugin;
 import 'package:signals_flutter/signals_flutter.dart';
+
+import 'models.dart';
+import 'sections/primitives_sync.dart';
+import 'sections/multi_param_sync.dart';
+import 'sections/nullable_primitives_sync.dart';
+import 'sections/enums_structs.dart';
+import 'sections/hybrid_records.dart';
+import 'sections/typed_data.dart';
+import 'sections/collections.dart';
+import 'sections/async_execution.dart';
+import 'sections/streams_backpressure.dart';
+import 'sections/callbacks.dart';
+import 'sections/properties.dart';
+import 'sections/special_features.dart';
+import 'sections/error_handling.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,414 +36,504 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'NitroTypeCoverage Demo',
+      title: 'Nitro Type Coverage',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.deepPurple),
-      home: const _DemoPage(),
+      themeMode: ThemeMode.system,
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.indigo,
+          brightness: Brightness.light,
+        ),
+      ),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.indigo,
+          brightness: Brightness.dark,
+        ),
+      ),
+      home: const DemoDashboard(),
     );
   }
 }
 
-class _DemoPage extends StatefulWidget {
-  const _DemoPage();
+class DemoDashboard extends StatefulWidget {
+  const DemoDashboard({super.key});
+
   @override
-  State<_DemoPage> createState() => _DemoPageState();
+  State<DemoDashboard> createState() => _DemoDashboardState();
 }
 
-class _DemoPageState extends State<_DemoPage> {
-  final _result = signal<String>('—');
-  final _loading = signal<bool>(false);
+class _DemoDashboardState extends State<DemoDashboard> {
+  // Pinned terminal state
+  final _lastMethod = signal<String>('—');
+  final _lastResult = signal<String>('No executions yet');
+  final _lastExecTime = signal<String>('—');
+  final _lastStatus = signal<String>('idle'); // idle, loading, success, error
+
+  // Interactive console logs
+  final _logs = signal<List<String>>([]);
+  final _searchQuery = signal<String>('');
+
+  // Active stream subscriptions
+  final Map<String, StreamSubscription> _activeSubs = {};
+  final _activeStreamsCount = signal<int>(0);
 
   plugin.NitroTypeCoverage get _api => plugin.NitroTypeCoverage.instance;
 
-  // ── Primitives ────────────────────────────────────────────────────────────
-
-  Future<void> _echoInt() async {
-    final v = _api.echoInt(42);
-    _result.value = 'echoInt(42) = $v';
-  }
-
-  Future<void> _echoDouble() async {
-    final v = _api.echoDouble(3.14);
-    _result.value = 'echoDouble(3.14) = $v';
-  }
-
-  Future<void> _echoBool() async {
-    final v = _api.echoBool(true);
-    _result.value = 'echoBool(true) = $v';
-  }
-
-  Future<void> _echoString() async {
-    final v = _api.echoString('Hello Nitro');
-    _result.value = 'echoString("Hello Nitro") = $v';
-  }
-
-  // ── Multi-param ──────────────────────────────────────────────────────────
-
-  Future<void> _addInts() async {
-    final v = _api.addInts(1, 2, 3);
-    _result.value = 'addInts(1, 2, 3) = $v';
-  }
-
-  Future<void> _mulDoubles() async {
-    final v = _api.mulDoubles(2.5, 4.0);
-    _result.value = 'mulDoubles(2.5, 4.0) = $v';
-  }
-
-  Future<void> _joinStrings() async {
-    final v = _api.joinStrings('Hello', 'World', ' ');
-    _result.value = 'joinStrings("Hello", "World", " ") = $v';
-  }
-
-  // ── Nullable ─────────────────────────────────────────────────────────────
-
-  Future<void> _echoNullableInt() async {
-    final v = _api.echoNullableInt(null);
-    _result.value = 'echoNullableInt(null) = $v';
-  }
-
-  Future<void> _echoNullableDouble() async {
-    final v = _api.echoNullableDouble(2.718);
-    _result.value = 'echoNullableDouble(2.718) = $v';
-  }
-
-  Future<void> _echoNullableBool() async {
-    final v = _api.echoNullableBool(null);
-    _result.value = 'echoNullableBool(null) = $v';
-  }
-
-  Future<void> _echoNullableString() async {
-    final v = _api.echoNullableString('nullable');
-    _result.value = 'echoNullableString("nullable") = $v';
-  }
-
-  // ── Enum ─────────────────────────────────────────────────────────────────
-
-  Future<void> _echoStatus() async {
-    final v = _api.echoStatus(plugin.TcStatus.ok);
-    _result.value = 'echoStatus(TcStatus.ok) = ${v.name}';
-  }
-
-  Future<void> _echoNullableStatus() async {
-    final v = _api.echoNullableStatus(plugin.TcStatus.pending);
-    _result.value = 'echoNullableStatus(TcStatus.pending) = ${v?.name}';
-  }
-
-  // ── Struct ───────────────────────────────────────────────────────────────
-
-  Future<void> _echoPoint() async {
-    final v = _api.echoPoint(plugin.TcPoint(x: 1.0, y: 2.0, z: 3.0));
-    _result.value = 'echoPoint(1,2,3) = (${v.x}, ${v.y}, ${v.z})';
-  }
-
-  // ── Record ───────────────────────────────────────────────────────────────
-
-  Future<void> _echoConfig() async {
-    final v = _api.echoConfig(
-      plugin.TcConfig(name: 'test', count: 10, enabled: true, threshold: 0.5),
-    );
-    _result.value =
-        'echoConfig(name:${v.name}, count:${v.count}, enabled:${v.enabled})';
-  }
-
-  // ── TypedData (zero-copy) ────────────────────────────────────────────────
-
-  Future<void> _echoBytes() async {
-    final v = _api.echoBytes(Uint8List.fromList([1, 2, 3, 4]));
-    _result.value = 'echoBytes([1,2,3,4]) = $v';
-  }
-
-  Future<void> _echoFloats() async {
-    final v = _api.echoFloats(Float32List.fromList([1.1, 2.2, 3.3]));
-    _result.value = 'echoFloats([1.1,2.2,3.3]) = $v';
-  }
-
-  Future<void> _echoFloat64s() async {
-    final v = _api.echoFloat64s(Float64List.fromList([1.1, 2.2, 3.3]));
-    _result.value = 'echoFloat64s([1.1,2.2,3.3]) = $v';
-  }
-
-  Future<void> _echoInt32s() async {
-    final v = _api.echoInt32s(Int32List.fromList([10, 20, 30]));
-    _result.value = 'echoInt32s([10,20,30]) = $v';
-  }
-
-  // ── Lists (async) ────────────────────────────────────────────────────────
-
-  Future<void> _echoIntList() async {
-    final v = await _api.echoIntList([1, 2, 3]);
-    _result.value = 'echoIntList([1,2,3]) = $v';
-  }
-
-  Future<void> _echoDoubleList() async {
-    final v = await _api.echoDoubleList([1.1, 2.2]);
-    _result.value = 'echoDoubleList([1.1,2.2]) = $v';
-  }
-
-  Future<void> _echoStringList() async {
-    final v = await _api.echoStringList(['a', 'b', 'c']);
-    _result.value = 'echoStringList(["a","b","c"]) = $v';
-  }
-
-  Future<void> _echoConfigList() async {
-    final v = await _api.echoConfigList([
-      plugin.TcConfig(name: 'x', count: 1, enabled: false, threshold: 0.1),
-      plugin.TcConfig(name: 'y', count: 2, enabled: true, threshold: 0.9),
-    ]);
-    _result.value = 'echoConfigList([2 configs]) = ${v.length} items';
-  }
-
-  // ── Async primitives ─────────────────────────────────────────────────────
-
-  Future<void> _asyncInt() async {
-    final v = await _api.asyncInt(100);
-    _result.value = 'asyncInt(100) = $v';
-  }
-
-  Future<void> _asyncDouble() async {
-    final v = await _api.asyncDouble(9.99);
-    _result.value = 'asyncDouble(9.99) = $v';
-  }
-
-  Future<void> _asyncBool() async {
-    final v = await _api.asyncBool(false);
-    _result.value = 'asyncBool(false) = $v';
-  }
-
-  Future<void> _asyncString() async {
-    final v = await _api.asyncString('async-hello');
-    _result.value = 'asyncString("async-hello") = $v';
-  }
-
-  Future<void> _asyncConfig() async {
-    final v = await _api.asyncConfig(
-      plugin.TcConfig(name: 'async', count: 7, enabled: true, threshold: 0.3),
-    );
-    _result.value = 'asyncConfig(name:${v.name}) = ${v.count}';
-  }
-
-  // ── Async nullable ───────────────────────────────────────────────────────
-
-  Future<void> _asyncNullableInt() async {
-    final v = await _api.asyncNullableInt(null);
-    _result.value = 'asyncNullableInt(null) = $v';
-  }
-
-  Future<void> _asyncNullableString() async {
-    final v = await _api.asyncNullableString('hi');
-    _result.value = 'asyncNullableString("hi") = $v';
-  }
-
-  // ── Callback ─────────────────────────────────────────────────────────────
-
-  Future<void> _onIntEvent() async {
-    _api.onIntEvent((value) {
-      _result.value = 'onIntEvent callback: $value';
-    });
-    _result.value = 'onIntEvent registered ✓';
-  }
-
-  // ── Properties ───────────────────────────────────────────────────────────
-
-  Future<void> _getSetPrecision() async {
-    _api.precision = 42;
-    final v = _api.precision;
-    _result.value = 'precision get/set = $v';
-  }
-
-  Future<void> _getSetTag() async {
-    _api.tag = 'demo-tag';
-    final v = _api.tag;
-    _result.value = 'tag get/set = "$v"';
-  }
-
-  Future<void> _getSetNullableRate() async {
-    _api.nullableRate = 0.75;
-    final v = _api.nullableRate;
-    _result.value = 'nullableRate get/set = $v';
-  }
-
-  Future<void> _getSetEnabled() async {
-    _api.enabled = true;
-    final v = _api.enabled;
-    _result.value = 'enabled get/set = $v';
-  }
-
-  Future<void> _getSetCurrentStatus() async {
-    _api.currentStatus = plugin.TcStatus.ok;
-    final v = _api.currentStatus;
-    _result.value = 'currentStatus get/set = ${v.name}';
-  }
-
-  // ── Streams ──────────────────────────────────────────────────────────────
-
-  StreamSubscription<int>? _intSub;
-  Future<void> _listenIntStream() async {
-    _intSub?.cancel();
-    _intSub = _api.intStream().listen((v) {
-      _result.value = 'intStream: $v';
-    });
-    _result.value = 'intStream listening ✓';
-  }
-
-  StreamSubscription<plugin.TcPoint>? _pointSub;
-  Future<void> _listenPointStream() async {
-    _pointSub?.cancel();
-    _pointSub = _api.pointStream().listen((v) {
-      _result.value = 'pointStream: (${v.x}, ${v.y}, ${v.z})';
-    });
-    _result.value = 'pointStream listening ✓';
-  }
-
-  StreamSubscription<bool>? _boolSub;
-  Future<void> _listenBoolStream() async {
-    _boolSub?.cancel();
-    _boolSub = _api.boolStream().listen((v) {
-      _result.value = 'boolStream: $v';
-    });
-    _result.value = 'boolStream listening ✓';
-  }
-
-  Future<void> _configureStream() async {
-    _api.configureStream(0, 5);
-    _result.value =
-        'configureStream(from:0, count:5) ✓ — check stream listeners';
-  }
-
-  Future<void> _cancelStreams() async {
-    _intSub?.cancel();
-    _pointSub?.cancel();
-    _boolSub?.cancel();
-    _intSub = null;
-    _pointSub = null;
-    _boolSub = null;
-    _result.value = 'all streams cancelled ✓';
-  }
-
-  // ── Error handling ───────────────────────────────────────────────────────
-
-  Future<void> _throwNative() async {
-    try {
-      _api.throwNative('test error');
-    } catch (e) {
-      _result.value = 'throwNative caught: $e';
+  void _log(String message) {
+    final timestamp = DateTime.now().toLocal().toString().split(' ')[1].substring(0, 12);
+    _logs.value = [
+      ..._logs.value,
+      '[$timestamp] $message',
+    ];
+    // Keep last 150 logs
+    if (_logs.value.length > 150) {
+      _logs.value = _logs.value.sublist(_logs.value.length - 150);
     }
   }
 
-  Future<void> _throwNativeAsync() async {
+  void _clearLogs() {
+    _logs.value = [];
+    _log('Logs cleared');
+  }
+
+  // Helper to format values for display
+  String _format(dynamic val) {
+    if (val == null) return 'null';
+    if (val is String) return '"$val"';
+    if (val is plugin.TcStatus) return 'TcStatus.${val.name}';
+    if (val is plugin.TcPoint) return 'TcPoint(x: ${val.x}, y: ${val.y}, z: ${val.z})';
+    if (val is plugin.TcConfig) {
+      return 'TcConfig(name: "${val.name}", count: ${val.count}, enabled: ${val.enabled}, threshold: ${val.threshold})';
+    }
+    if (val is plugin.TcMeta) {
+      return 'TcMeta(version: ${val.version}, weight: ${val.weight}, active: ${val.active}, label: "${val.label}")';
+    }
+    if (val is plugin.TcPacket) {
+      return 'TcPacket(name: "${val.name}", sequence: ${val.sequence}, status: TcStatus.${val.status.name}, valid: ${val.valid})';
+    }
+    if (val is plugin.TcNested) {
+      return 'TcNested(label: "${val.label}", config: ${_format(val.config)}, version: ${val.version})';
+    }
+    if (val is plugin.TcNullableWrapper) {
+      return 'TcNullableWrapper(count: ${val.count.nullable}, rate: ${val.rate.nullable}, name: "${val.name}")';
+    }
+    if (val is plugin.TcStructHolder) {
+      return 'TcStructHolder(label: "${val.label}", origin: ${_format(val.origin)}, radius: ${val.radius})';
+    }
+    if (val is plugin.TcDataRecord) {
+      return 'TcDataRecord(bytes: [${val.bytes.take(5).join(', ')}...], values: [${val.values.take(5).join(', ')}...], scores: [${val.scores.take(5).join(', ')}...], label: "${val.label}")';
+    }
+    if (val is NitroNullableInt) return 'NitroNullableInt(${val.nullable})';
+    if (val is NitroNullableDouble) return 'NitroNullableDouble(${val.nullable})';
+    if (val is NitroNullableBool) return 'NitroNullableBool(${val.nullable})';
+    if (val is NitroResultValue) {
+      if (val is NitroOk) {
+        return 'NitroOk(value: ${val.value})';
+      } else if (val is NitroErr) {
+        return 'NitroErr(message: "${val.message}")';
+      }
+    }
+    if (val is plugin.TcEvent) {
+      if (val is plugin.TcEventTap) return 'TcEventTap(x: ${val.x}, y: ${val.y})';
+      if (val is plugin.TcEventScroll) return 'TcEventScroll(delta: ${val.delta})';
+      if (val is plugin.TcEventResize) return 'TcEventResize(width: ${val.width}, height: ${val.height})';
+      if (val is plugin.TcEventNullable) {
+        return 'TcEventNullable(count: ${val.count}, status: ${val.status?.name}, config: ${_format(val.config)}, samples: ${val.samples})';
+      }
+    }
+    if (val is NativeHandle) {
+      return 'NativeHandle(address: 0x${val.address.toRadixString(16)})';
+    }
+    if (val is List) {
+      return '[${val.take(8).join(', ')}${val.length > 8 ? '...' : ''}]';
+    }
+    if (val is Map) {
+      final entries = val.entries.map((e) => '"${e.key}": ${_format(e.value)}').join(', ');
+      return '{$entries}';
+    }
+    return val.toString();
+  }
+
+  // High-level runner wrapper for sync/async calls
+  Future<void> _runApi(String name, String code, FutureOr<dynamic> Function() action) async {
+    _lastMethod.value = name;
+    _lastStatus.value = 'loading';
+    _log('Executing: $code');
+    final sw = Stopwatch()..start();
     try {
-      await _api.throwNativeAsync('async error');
-    } catch (e) {
-      _result.value = 'throwNativeAsync caught: $e';
+      final result = await action();
+      sw.stop();
+      final timeStr = sw.elapsedMicroseconds < 1000
+          ? '${sw.elapsedMicroseconds} μs'
+          : '${sw.elapsed.inMilliseconds} ms';
+      _lastResult.value = _format(result);
+      _lastExecTime.value = timeStr;
+      _lastStatus.value = 'success';
+      _log('Success: $name -> ${_format(result)} ($timeStr)');
+    } catch (e, s) {
+      sw.stop();
+      final timeStr = sw.elapsedMicroseconds < 1000
+          ? '${sw.elapsedMicroseconds} μs'
+          : '${sw.elapsed.inMilliseconds} ms';
+      _lastResult.value = e.toString();
+      _lastExecTime.value = timeStr;
+      _lastStatus.value = 'error';
+      _log('Error: $name failed: $e\n$s');
     }
   }
 
   @override
   void dispose() {
-    _intSub?.cancel();
-    _pointSub?.cancel();
+    for (final sub in _activeSubs.values) {
+      sub.cancel();
+    }
     super.dispose();
+  }
+
+  // ─── API Sections List ───
+  List<ApiSection> get _apiSections => [
+        getPrimitivesSyncSection(_api, _runApi),
+        getMultiParamSyncSection(_api, _runApi),
+        getNullablePrimitivesSyncSection(_api, _runApi),
+        getEnumsStructsSection(_api, _runApi),
+        getHybridRecordsSection(_api, _runApi),
+        getTypedDataSection(_api, _runApi),
+        getCollectionsSection(_api, _runApi),
+        getAsyncExecutionSection(_api, _runApi),
+        getStreamsBackpressureSection(_api, _runApi, _toggleStream),
+        getCallbacksSection(_api, _runApi, _log),
+        getPropertiesSection(_api, _runApi),
+        getSpecialFeaturesSection(_api, _runApi),
+        getErrorHandlingSection(_api, _runApi),
+      ];
+
+  void _toggleStream(String name, Stream<dynamic> Function() getStream) {
+    if (_activeSubs.containsKey(name)) {
+      _activeSubs[name]!.cancel();
+      _activeSubs.remove(name);
+      _activeStreamsCount.value = _activeSubs.length;
+      _log('Stopped listening to $name');
+      _lastResult.value = 'Cancelled stream: $name';
+      _lastMethod.value = name;
+      _lastStatus.value = 'idle';
+    } else {
+      _log('Subscribing to $name...');
+      final sub = getStream().listen(
+        (val) {
+          _log('[Stream: $name] Emitted: ${_format(val)}');
+          _lastResult.value = _format(val);
+          _lastMethod.value = name;
+          _lastStatus.value = 'success';
+        },
+        onError: (e) {
+          _log('[Stream: $name] Error: $e');
+          _lastResult.value = 'Error: $e';
+          _lastMethod.value = name;
+          _lastStatus.value = 'error';
+        },
+        onDone: () {
+          _log('[Stream: $name] Closed');
+          _activeSubs.remove(name);
+          _activeStreamsCount.value = _activeSubs.length;
+        },
+      );
+      _activeSubs[name] = sub;
+      _activeStreamsCount.value = _activeSubs.length;
+      _log('Started listening to $name');
+      _lastResult.value = 'Listening to stream...';
+      _lastMethod.value = name;
+      _lastStatus.value = 'success';
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('NitroTypeCoverage Demo')),
+      appBar: AppBar(
+        title: const Text(
+          'Nitro Type Coverage',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          SignalBuilder(
+            builder: (context) {
+              final activeCount = _activeStreamsCount.value;
+              if (activeCount == 0) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: Chip(
+                  avatar: const Icon(Icons.waves, size: 14, color: Colors.blue),
+                  label: Text('$activeCount Active Streams'),
+                  backgroundColor: Colors.blue.withAlpha(25),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            tooltip: 'Clear Console Logs',
+            onPressed: _clearLogs,
+          ),
+        ],
+      ),
       body: Column(
         children: [
-          // Result banner
-          SignalBuilder(
-            builder: (c) => Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              color: _loading.value
-                  ? Colors.amber.shade100
-                  : Colors.green.shade50,
-              child: Text(
-                _result.value,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-                textAlign: TextAlign.center,
-              ),
+          // ─── Pinned Results Dashboard ───
+          _buildTerminal(colorScheme),
+
+          // ─── Pinned Search Bar ───
+          _buildSearchBar(colorScheme),
+
+          // ─── Categories Lists ───
+          Expanded(
+            child: SignalBuilder(
+              builder: (context) {
+                final query = _searchQuery.value.trim().toLowerCase();
+                final sectionsToDisplay = <Widget>[];
+
+                for (final section in _apiSections) {
+                  final filteredItems = section.items.where((item) {
+                    return item.name.toLowerCase().contains(query) ||
+                        item.description.toLowerCase().contains(query) ||
+                        item.code.toLowerCase().contains(query) ||
+                        section.title.toLowerCase().contains(query);
+                  }).toList();
+
+                  if (filteredItems.isNotEmpty) {
+                    sectionsToDisplay.add(
+                      Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        clipBehavior: Clip.antiAlias,
+                        child: ExpansionTile(
+                          leading: Icon(section.icon, color: colorScheme.primary),
+                          title: Text(
+                            section.title,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          trailing: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              '${filteredItems.length} APIs',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: colorScheme.onPrimaryContainer,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          initiallyExpanded: query.isNotEmpty,
+                          children: filteredItems.map((item) => _buildApiListItem(item, colorScheme)).toList(),
+                        ),
+                      ),
+                    );
+                  }
+                }
+
+                if (sectionsToDisplay.isEmpty) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24.0),
+                      child: Text(
+                        'No matching APIs found.\nTry searching with different terms.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                    ),
+                  );
+                }
+
+                return ListView(
+                  padding: const EdgeInsets.only(top: 6, bottom: 24),
+                  children: sectionsToDisplay,
+                );
+              },
             ),
           ),
-          if (_loading.value) const LinearProgressIndicator(),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(8),
+
+          // ─── Expandable Developer Console Logs ───
+          _buildConsoleLogsPanel(colorScheme),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTerminal(ColorScheme colorScheme) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F0F0F),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.outlineVariant.withAlpha(128)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(76),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header Bar
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.black.withAlpha(102),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(11)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _section('Primitives (sync)', [
-                  _btn('echoInt(42)', _echoInt),
-                  _btn('echoDouble(3.14)', _echoDouble),
-                  _btn('echoBool(true)', _echoBool),
-                  _btn('echoString', _echoString),
-                ]),
-                _section('Multi-param (sync)', [
-                  _btn('addInts(1,2,3)', _addInts),
-                  _btn('mulDoubles(2.5,4)', _mulDoubles),
-                  _btn('joinStrings', _joinStrings),
-                ]),
-                _section('Nullable (sync)', [
-                  _btn('echoNullableInt(null)', _echoNullableInt),
-                  _btn('echoNullableDouble(2.718)', _echoNullableDouble),
-                  _btn('echoNullableBool(null)', _echoNullableBool),
-                  _btn('echoNullableString', _echoNullableString),
-                ]),
-                _section('Enum', [
-                  _btn('echoStatus(ok)', _echoStatus),
-                  _btn('echoNullableStatus(pending)', _echoNullableStatus),
-                ]),
-                _section('Struct / Record', [
-                  _btn('echoPoint(1,2,3)', _echoPoint),
-                  _btn('echoConfig(test,10)', _echoConfig),
-                ]),
-                _section('TypedData (zero-copy)', [
-                  _btn('echoBytes([1,2,3,4])', _echoBytes),
-                  _btn('echoFloats([1.1,2.2,3.3])', _echoFloats),
-                  _btn('echoFloat64s', _echoFloat64s),
-                  _btn('echoInt32s([10,20,30])', _echoInt32s),
-                ]),
-                _section('Lists (async)', [
-                  _btn('echoIntList', _echoIntList),
-                  _btn('echoDoubleList', _echoDoubleList),
-                  _btn('echoStringList', _echoStringList),
-                  _btn('echoConfigList', _echoConfigList),
-                ]),
-                _section('Async primitives', [
-                  _btn('asyncInt(100)', _asyncInt),
-                  _btn('asyncDouble(9.99)', _asyncDouble),
-                  _btn('asyncBool(false)', _asyncBool),
-                  _btn('asyncString', _asyncString),
-                  _btn('asyncConfig', _asyncConfig),
-                ]),
-                _section('Async nullable', [
-                  _btn('asyncNullableInt(null)', _asyncNullableInt),
-                  _btn('asyncNullableString("hi")', _asyncNullableString),
-                ]),
-                _section('Callback', [
-                  _btn('onIntEvent register', _onIntEvent),
-                ]),
-                _section('Properties', [
-                  _btn('precision get/set', _getSetPrecision),
-                  _btn('tag get/set', _getSetTag),
-                  _btn('nullableRate get/set', _getSetNullableRate),
-                  _btn('enabled get/set', _getSetEnabled),
-                  _btn('currentStatus get/set', _getSetCurrentStatus),
-                ]),
-                _section('Streams', [
-                  _btn('listen intStream', _listenIntStream),
-                  _btn('listen pointStream', _listenPointStream),
-                  _btn('listen boolStream', _listenBoolStream),
-                  _btn('▶ configureStream(0,5)', _configureStream),
-                  _btn('cancel all streams', _cancelStreams),
-                ]),
-                _section('Error handling', [
-                  _btn('throwNative', _throwNative),
-                  _btn('throwNativeAsync', _throwNativeAsync),
-                ]),
-                const SizedBox(height: 40),
+                Row(
+                  children: [
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: const BoxDecoration(color: Colors.amber, shape: BoxShape.circle),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
+                    ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'TERMINAL OUT',
+                      style: TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 11,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                SignalBuilder(
+                  builder: (context) {
+                    final status = _lastStatus.value;
+                    Color color = Colors.grey;
+                    IconData icon = Icons.circle_outlined;
+                    if (status == 'loading') {
+                      color = Colors.amber;
+                      icon = Icons.hourglass_empty;
+                    } else if (status == 'success') {
+                      color = Colors.green;
+                      icon = Icons.check_circle_outline;
+                    } else if (status == 'error') {
+                      color = Colors.red;
+                      icon = Icons.error_outline;
+                    }
+                    return Row(
+                      children: [
+                        Icon(icon, size: 12, color: color),
+                        const SizedBox(width: 4),
+                        Text(
+                          status.toUpperCase(),
+                          style: TextStyle(
+                            fontFamily: 'monospace',
+                            fontSize: 10,
+                            color: color,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+          // Content
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Text(
+                      'Method: ',
+                      style: TextStyle(
+                        fontFamily: 'monospace',
+                        color: Colors.indigoAccent,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Expanded(
+                      child: SignalBuilder(
+                        builder: (context) => Text(
+                          _lastMethod.value,
+                          style: const TextStyle(
+                            fontFamily: 'monospace',
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const Text(
+                      'Elapsed: ',
+                      style: TextStyle(
+                        fontFamily: 'monospace',
+                        color: Colors.grey,
+                        fontSize: 11,
+                      ),
+                    ),
+                    SignalBuilder(
+                      builder: (context) => Text(
+                        _lastExecTime.value,
+                        style: const TextStyle(
+                          fontFamily: 'monospace',
+                          color: Colors.amberAccent,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                const Divider(height: 1, color: Colors.grey),
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  constraints: const BoxConstraints(maxHeight: 120),
+                  child: SingleChildScrollView(
+                    child: SignalBuilder(
+                      builder: (context) => Text(
+                        _lastResult.value,
+                        style: TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 12,
+                          color: _lastStatus.value == 'error'
+                              ? Colors.redAccent
+                              : Colors.greenAccent,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -437,47 +542,187 @@ class _DemoPageState extends State<_DemoPage> {
     );
   }
 
-  Widget _section(String title, List<Widget> children) {
+  Widget _buildSearchBar(ColorScheme colorScheme) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(spacing: 8, runSpacing: 8, children: children),
-            ],
-          ),
-        ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: SearchBar(
+        hintText: 'Search API methods or descriptions...',
+        leading: const Icon(Icons.search),
+        trailing: [
+          SignalBuilder(
+            builder: (context) {
+              if (_searchQuery.value.isEmpty) return const SizedBox.shrink();
+              return IconButton(
+                icon: const Icon(Icons.clear),
+                onPressed: () => _searchQuery.value = '',
+              );
+            },
+          )
+        ],
+        onChanged: (val) => _searchQuery.value = val,
+        elevation: WidgetStateProperty.all(1.0),
+        backgroundColor: WidgetStateProperty.all(colorScheme.surfaceContainer),
       ),
     );
   }
 
-  // Accept FutureOr<void> so both sync and async handlers work and are awaited.
-  Widget _btn(String label, Future<void> Function()? onPressed) {
-    return ElevatedButton(
-      onPressed: onPressed == null
-          ? null
-          : () async {
-              _loading.value = true;
-              try {
-                await onPressed();
-              } catch (e) {
-                _result.value = 'ERROR: $e';
-              } finally {
-                _loading.value = false;
-              }
+  Widget _buildApiListItem(ApiItem item, ColorScheme colorScheme) {
+    return Column(
+      children: [
+        ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          title: Text(
+            item.name,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              fontFamily: 'monospace',
+            ),
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 4),
+              Text(
+                item.description,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: colorScheme.brightness == Brightness.dark
+                      ? Colors.grey.shade900
+                      : Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  item.code,
+                  style: TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 11,
+                    color: colorScheme.primary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          trailing: SignalBuilder(
+            builder: (context) {
+              final isSelfLoading = _lastMethod.value == item.name && _lastStatus.value == 'loading';
+              final isStream = item.name.startsWith('Listen:');
+              final isStreamActive = isStream && _activeSubs.containsKey(item.name.substring(8).trim());
+
+              return SizedBox(
+                height: 38,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isStreamActive
+                        ? Colors.red.withAlpha(38)
+                        : colorScheme.primaryContainer,
+                    foregroundColor: isStreamActive
+                        ? Colors.red
+                        : colorScheme.onPrimaryContainer,
+                  ),
+                  icon: isSelfLoading
+                      ? const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Icon(
+                          isStreamActive ? Icons.stop_circle_outlined : Icons.play_arrow,
+                          size: 16,
+                        ),
+                  label: Text(
+                    isStream ? (isStreamActive ? 'STOP' : 'LISTEN') : 'RUN',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+                  ),
+                  onPressed: isSelfLoading ? null : item.run,
+                ),
+              );
             },
-      child: Text(label, style: const TextStyle(fontSize: 12)),
+          ),
+        ),
+        const Divider(height: 1, indent: 16, endIndent: 16),
+      ],
+    );
+  }
+
+  Widget _buildConsoleLogsPanel(ColorScheme colorScheme) {
+    return Card(
+      margin: const EdgeInsets.all(12),
+      clipBehavior: Clip.antiAlias,
+      child: ExpansionTile(
+        leading: Icon(Icons.terminal, color: colorScheme.secondary),
+        title: const Text(
+          'Developer Console Logs',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+        ),
+        subtitle: SignalBuilder(
+          builder: (context) => Text(
+            '${_logs.value.length} events logged',
+            style: const TextStyle(fontSize: 11, color: Colors.grey),
+          ),
+        ),
+        initiallyExpanded: false,
+        children: [
+          Container(
+            height: 200,
+            width: double.infinity,
+            color: colorScheme.brightness == Brightness.dark
+                ? const Color(0xFF0F0F0F)
+                : Colors.grey.shade50,
+            child: SignalBuilder(
+              builder: (context) {
+                final logLines = _logs.value;
+                if (logLines.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      'No events logged yet. Execute an API to see output logs.',
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                  );
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.all(8),
+                  itemCount: logLines.length,
+                  itemBuilder: (context, idx) {
+                    final line = logLines[logLines.length - 1 - idx];
+                    final isError = line.contains('Error:') || line.contains('failed:');
+                    final isCallback = line.contains('[Callback]');
+                    final isStream = line.contains('[Stream:');
+                    Color textColor = colorScheme.onSurface;
+                    if (isError) {
+                      textColor = Colors.redAccent;
+                    } else if (isCallback) {
+                      textColor = Colors.teal;
+                    } else if (isStream) {
+                      textColor = Colors.blue;
+                    }
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2.0),
+                      child: Text(
+                        line,
+                        style: TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 11,
+                          color: textColor,
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          )
+        ],
+      ),
     );
   }
 }
