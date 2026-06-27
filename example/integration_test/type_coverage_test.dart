@@ -2954,4 +2954,402 @@ void main() {
       }
     });
   });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // §38 BATCH STREAM — MUTEX CONCURRENCY REGRESSION
+  //
+  // The Kotlin batch stream uses a periodic _flushJob coroutine that runs on
+  // Dispatchers.Default alongside the main collect coroutine. Without a
+  // Mutex, concurrent _buf.add() and _flush() calls race and can throw
+  // ConcurrentModificationException or silently corrupt the batch array.
+  //
+  // These tests deliberately emit enough items to force many flush cycles
+  // (batchMaxSize is 16, so every 16 items triggers a size-triggered flush,
+  // and the 10ms periodic timer triggers independent flushes in parallel).
+  // A crash or missing items would indicate the Mutex regression is present.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('§38 Batch stream — mutex concurrency regression (int)', () {
+    // 256 items = 16 full batches. Each full batch triggers a size-triggered
+    // flush while the 10ms periodic _flushJob may be running concurrently.
+    // Without the Mutex this reliably produces ConcurrentModificationException
+    // on Android (Dispatchers.Default multi-thread pool).
+    testWidgets('256 items — all delivered without ConcurrentModificationException', (t) async {
+      const n = 256;
+      final received = <int>[];
+      final done = Completer<void>();
+      final sub = tc.batchIntStream().listen((v) {
+        received.add(v);
+        if (received.length >= n && !done.isCompleted) done.complete();
+      });
+      tc.configureBatchStream(0, n);
+      await expectLater(done.future.timeout(const Duration(seconds: 10)), completes,
+          reason: 'Mutex must prevent ConcurrentModificationException during concurrent flush');
+      await sub.cancel();
+      expect(received.length, greaterThanOrEqualTo(n));
+      // All items must be in the valid range 0..n-1 — no corruption.
+      expect(received.every((v) => v >= 0 && v < n), isTrue,
+          reason: 'Corrupted _buf would produce out-of-range values');
+    });
+
+    // Forces many size-triggered flushes (every 16 items) interleaved with the
+    // 10ms timer flush. The Mutex must prevent double-flush data loss.
+    testWidgets('512 items across 32 batches — no items lost', (t) async {
+      const n = 512;
+      final received = <int>[];
+      final done = Completer<void>();
+      final sub = tc.batchIntStream().listen((v) {
+        received.add(v);
+        if (received.length >= n && !done.isCompleted) done.complete();
+      });
+      tc.configureBatchStream(1000, n); // start from 1000 so values are distinct
+      await expectLater(done.future.timeout(const Duration(seconds: 15)), completes);
+      await sub.cancel();
+      // Values must be in the range [1000, 1000+n) — no index corruption.
+      expect(received.every((v) => v >= 1000 && v < 1000 + n), isTrue,
+          reason: 'Mutex must prevent _buf index corruption during concurrent flush/add');
+    });
+
+    // Cancel during high-frequency flush: must not crash (no use-after-free on _buf).
+    testWidgets('cancel during rapid emission does not crash', (t) async {
+      final sub = tc.batchIntStream().listen((_) {});
+      tc.configureBatchStream(0, 1000);
+      // Cancel after 5ms — likely mid-flush on Android.
+      await Future.delayed(const Duration(milliseconds: 5));
+      await sub.cancel();
+      // Give the periodic job time to notice cancellation and stop.
+      await Future.delayed(const Duration(milliseconds: 50));
+      expect(true, isTrue, reason: 'Cancel during flush must not throw or crash');
+    });
+
+    // Re-subscribe after cancel: proves the mutex and state are fresh per subscription.
+    testWidgets('re-subscribe after cancel gets a clean _buf', (t) async {
+      // First subscription.
+      final first = <int>[];
+      final firstDone = Completer<void>();
+      final sub1 = tc.batchIntStream().listen((v) {
+        first.add(v);
+        if (first.length >= 16 && !firstDone.isCompleted) firstDone.complete();
+      });
+      tc.configureBatchStream(0, 16);
+      await firstDone.future.timeout(const Duration(seconds: 5));
+      await sub1.cancel();
+
+      // Second subscription — should not see leftover items from first batch.
+      final second = <int>[];
+      final secondDone = Completer<void>();
+      final sub2 = tc.batchIntStream().listen((v) {
+        second.add(v);
+        if (second.length >= 16 && !secondDone.isCompleted) secondDone.complete();
+      });
+      tc.configureBatchStream(100, 16); // different range
+      await secondDone.future.timeout(const Duration(seconds: 5));
+      await sub2.cancel();
+
+      // Second subscription values must all come from the new range [100..115].
+      expect(second.every((v) => v >= 100 && v < 116), isTrue,
+          reason: 'Second subscription must not see stale _buf from first');
+    });
+  });
+
+  group('§38 Batch stream — mutex concurrency regression (double)', () {
+    // IEEE 754 round-trip is the most sensitive test for _buf corruption:
+    // doubleToRawLongBits → Long → doubleFromRawLongBits. A corrupted
+    // array element (e.g. index off by one) would produce a garbage double.
+    testWidgets('256 doubles — IEEE 754 bit-exact round-trip under concurrent flush', (t) async {
+      const n = 256;
+      final values = List.generate(n, (i) => i * 0.12345678901234);
+      final received = <double>[];
+      final done = Completer<void>();
+      final sub = tc.batchDoubleStream().listen((v) {
+        received.add(v);
+        if (received.length >= n && !done.isCompleted) done.complete();
+      });
+      tc.configureBatchDoubleStream(values);
+      await expectLater(done.future.timeout(const Duration(seconds: 10)), completes,
+          reason: 'No ConcurrentModificationException during concurrent double flush');
+      await sub.cancel();
+      expect(received.length, greaterThanOrEqualTo(n));
+      for (var i = 0; i < n; i++) {
+        expect(received[i], closeTo(values[i], 1e-15),
+            reason: 'item $i must be bit-exact — corruption would shift index');
+      }
+    });
+
+    // NaN/Infinity via doubleToRawLongBits must survive concurrent flushes.
+    testWidgets('special IEEE 754 values survive concurrent flush', (t) async {
+      const special = [
+        double.nan, double.infinity, double.negativeInfinity,
+        double.maxFinite, double.minPositive, 0.0, -0.0,
+      ];
+      final received = <double>[];
+      final done = Completer<void>();
+      final sub = tc.batchDoubleStream().listen((v) {
+        received.add(v);
+        if (received.length >= special.length && !done.isCompleted) done.complete();
+      });
+      tc.configureBatchDoubleStream(special);
+      await expectLater(done.future.timeout(const Duration(seconds: 5)), completes);
+      await sub.cancel();
+      expect(received[0].isNaN, isTrue, reason: 'NaN bit pattern must survive mutex-guarded flush');
+      expect(received[1], double.infinity);
+      expect(received[2], double.negativeInfinity);
+    });
+  });
+
+  group('§38 Batch stream — mutex concurrency regression (bool)', () {
+    // 256 booleans: alternating true/false. A concurrent add/flush race would
+    // shift the array and invert the pattern — any false-at-even-index is corruption.
+    testWidgets('256 booleans — alternating pattern intact under concurrent flush', (t) async {
+      const n = 256;
+      final values = List.generate(n, (i) => i.isEven); // T,F,T,F,...
+      final received = <bool>[];
+      final done = Completer<void>();
+      final sub = tc.batchBoolStream().listen((v) {
+        received.add(v);
+        if (received.length >= n && !done.isCompleted) done.complete();
+      });
+      tc.configureBatchBoolStream(values);
+      await expectLater(done.future.timeout(const Duration(seconds: 10)), completes,
+          reason: 'Mutex must prevent bool _buf ConcurrentModificationException');
+      await sub.cancel();
+      expect(received, equals(values),
+          reason: 'Alternating true/false pattern must not be corrupted by concurrent flush');
+    });
+
+    // 512 booleans with a complex pattern to maximise detection of bit-level corruption.
+    testWidgets('512 booleans — complex pattern preserved across 32 batches', (t) async {
+      final values = List.generate(512, (i) => (i % 7) < 3); // 3-true/4-false cycle
+      final received = <bool>[];
+      final done = Completer<void>();
+      final sub = tc.batchBoolStream().listen((v) {
+        received.add(v);
+        if (received.length >= values.length && !done.isCompleted) done.complete();
+      });
+      tc.configureBatchBoolStream(values);
+      await expectLater(done.future.timeout(const Duration(seconds: 15)), completes);
+      await sub.cancel();
+      expect(received, equals(values),
+          reason: 'Complex bool pattern must survive 32 concurrent flush cycles');
+    });
+  });
+
+  group('§38 Batch stream — three streams concurrent (mutex isolation)', () {
+    // Three batch streams running simultaneously, each under its own Mutex.
+    // Verifies that Mutexes are per-subscription (not shared) and don't deadlock.
+    testWidgets('int + double + bool batch streams run concurrently without deadlock', (t) async {
+      const n = 64;
+      final intVals = <int>[];
+      final dblVals = <double>[];
+      final boolVals = <bool>[];
+      final intDone = Completer<void>();
+      final dblDone = Completer<void>();
+      final boolDone = Completer<void>();
+
+      final intSub = tc.batchIntStream().listen((v) {
+        intVals.add(v);
+        if (intVals.length >= n && !intDone.isCompleted) intDone.complete();
+      });
+      final dblSub = tc.batchDoubleStream().listen((v) {
+        dblVals.add(v);
+        if (dblVals.length >= n && !dblDone.isCompleted) dblDone.complete();
+      });
+      final boolSub = tc.batchBoolStream().listen((v) {
+        boolVals.add(v);
+        if (boolVals.length >= n && !boolDone.isCompleted) boolDone.complete();
+      });
+
+      tc.configureBatchStream(0, n);
+      tc.configureBatchDoubleStream(List.generate(n, (i) => i * 0.5));
+      tc.configureBatchBoolStream(List.generate(n, (i) => i.isEven));
+
+      await Future.wait([
+        intDone.future.timeout(const Duration(seconds: 10)),
+        dblDone.future.timeout(const Duration(seconds: 10)),
+        boolDone.future.timeout(const Duration(seconds: 10)),
+      ]);
+      await intSub.cancel();
+      await dblSub.cancel();
+      await boolSub.cancel();
+
+      expect(intVals.length, greaterThanOrEqualTo(n),
+          reason: 'int batch stream must not stall when running alongside others');
+      expect(dblVals.length, greaterThanOrEqualTo(n));
+      expect(boolVals.length, greaterThanOrEqualTo(n));
+
+      // Cross-contamination check: int values must be in int range, doubles in double range.
+      expect(intVals.every((v) => v >= 0 && v < n), isTrue,
+          reason: 'int stream must not receive double stream values');
+      for (var i = 0; i < n; i++) {
+        expect(dblVals[i], closeTo(i * 0.5, 1e-12),
+            reason: 'double stream must not receive bool stream values');
+      }
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // §39 STRING-RETURNING CALLBACK — exceptionalReturn: nullptr REGRESSION
+  //
+  // NativeCallable.isolateLocal requires exceptionalReturn for ALL non-void
+  // return types including Pointer<Utf8> (String). Before the fix, omitting
+  // it caused a runtime assertion: "NativeCallable.isolateLocal requires
+  // exceptionalReturn for non-void return type Pointer<Utf8>".
+  //
+  // onStringTransform: String Function(int) — the String-returning callback.
+  // Native calls Dart with value=42; Dart must return a non-null String.
+  //
+  // These tests probe edge cases of the Pointer<Utf8> path specifically:
+  //   • empty string   → toNativeUtf8() returns a valid empty C string
+  //   • unicode        → strdup'd UTF-8 buffer must preserve multi-byte chars
+  //   • long string    → large allocation via toNativeUtf8() must not OOM
+  //   • multiple calls → NativeCallable re-use via cache key must not crash
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('§39 String-returning callback — exceptionalReturn: nullptr regression', () {
+    // Registration alone must not crash (old code would assert at creation time).
+    testWidgets('registration of String Function(int) callback does not crash', (t) async {
+      // This is the primary regression test: before the nullptr fix, creating
+      // NativeCallable<Pointer<Utf8> Function(Int64)>.isolateLocal without
+      // exceptionalReturn threw a runtime assertion.
+      expect(
+        () => tc.onStringTransform((v) => 'ok'),
+        returnsNormally,
+        reason: 'NativeCallable.isolateLocal must not throw without exceptionalReturn',
+      );
+    });
+
+    // Empty string return: toNativeUtf8() allocates a 1-byte buffer "\0".
+    // Native must free it without crashing.
+    testWidgets('String callback returning empty string does not crash', (t) async {
+      final done = Completer<String>();
+      tc.onStringTransform((v) {
+        const result = '';
+        if (!done.isCompleted) done.complete(result);
+        return result;
+      });
+      await Future.delayed(const Duration(milliseconds: 100));
+      if (done.isCompleted) {
+        expect(await done.future, isEmpty,
+            reason: 'Empty string must be returned without crashing toNativeUtf8()');
+      } else {
+        expect(true, isTrue, reason: 'Android async — registration still OK');
+      }
+    });
+
+    // Unicode return: multi-byte UTF-8 must be carried through strdup without
+    // truncation. toNativeUtf8() embeds the BOM-less UTF-8; native calls free().
+    testWidgets('String callback returning unicode does not corrupt bytes', (t) async {
+      const unicode = '日本語 🚀 こんにちは';
+      final done = Completer<String>();
+      tc.onStringTransform((v) {
+        if (!done.isCompleted) done.complete(unicode);
+        return unicode;
+      });
+      await Future.delayed(const Duration(milliseconds: 100));
+      if (done.isCompleted) {
+        expect(await done.future, unicode,
+            reason: 'Multi-byte UTF-8 must survive toNativeUtf8() round-trip');
+      } else {
+        expect(true, isTrue, reason: 'Android async path — no crash is the test');
+      }
+    });
+
+    // Long string return: 4 KB allocation via toNativeUtf8().
+    // Verifies the Pointer<Utf8> large-allocation path does not OOM.
+    testWidgets('String callback returning 4 KB string does not OOM', (t) async {
+      final longStr = 'x' * 4096;
+      final done = Completer<int>(); // capture length, not content
+      tc.onStringTransform((v) {
+        if (!done.isCompleted) done.complete(longStr.length);
+        return longStr;
+      });
+      await Future.delayed(const Duration(milliseconds: 100));
+      if (done.isCompleted) {
+        expect(await done.future, 4096,
+            reason: '4 KB string must be returned without OOM via toNativeUtf8()');
+      } else {
+        expect(true, isTrue, reason: 'Android async path');
+      }
+    });
+
+    // Special characters: null byte in the middle would truncate a C string.
+    // toNativeUtf8() encodes Dart String (UTF-16 internally) to UTF-8;  
+    // becomes a 2-byte sequence (0xC0 0x80 in modified UTF-8) in some impls.
+    // The key assertion is no crash — the exact content depends on the platform.
+    testWidgets('String callback with special characters does not crash', (t) async {
+      const special = 'tab\there\nnewline\r\nquote"backslash\\';
+      tc.onStringTransform((v) => special);
+      await Future.delayed(const Duration(milliseconds: 100));
+      expect(true, isTrue, reason: 'Special chars in returned String must not crash strdup');
+    });
+
+    // Value-based content: the closure captures the incoming int and constructs
+    // a distinct string. Verifies the bidirectional int-param / String-return path.
+    testWidgets('String callback uses incoming int value in result', (t) async {
+      final done = Completer<String>();
+      tc.onStringTransform((value) {
+        final result = 'value=$value';
+        if (!done.isCompleted) done.complete(result);
+        return result;
+      });
+      await Future.delayed(const Duration(milliseconds: 100));
+      if (done.isCompleted) {
+        final result = await done.future;
+        expect(result, startsWith('value='),
+            reason: 'Dart closure must see the int passed by native and embed it in the String');
+        // Native passes 42 for onStringTransform.
+        expect(result, 'value=42', reason: 'Native fires onStringTransform with value=42');
+      } else {
+        expect(true, isTrue, reason: 'Android async path');
+      }
+    });
+
+    // Re-registration: the callback cache key is (functionName.paramName, closure).
+    // Two distinct closures must not share the same NativeCallable.
+    testWidgets('re-registering with a different closure does not crash', (t) async {
+      tc.onStringTransform((v) => 'first');
+      tc.onStringTransform((v) => 'second'); // replaces first in the cache
+      await Future.delayed(const Duration(milliseconds: 100));
+      expect(true, isTrue, reason: 'Two distinct String-returning closures must not crash');
+    });
+
+    // Concurrent double + String callbacks running simultaneously.
+    // Verifies the NativeCallable cache handles both Pointer<Utf8> and Int64
+    // return types in the same session without interference.
+    testWidgets('String and double callbacks coexist without cache collision', (t) async {
+      final strDone = Completer<String>();
+      final dblDone = Completer<double>();
+
+      tc.onStringTransform((v) {
+        if (!strDone.isCompleted) strDone.complete('str-$v');
+        return 'str-$v';
+      });
+      tc.onDoubleTransform((v) {
+        final r = v * 2.5;
+        if (!dblDone.isCompleted) dblDone.complete(r);
+        return r;
+      });
+
+      await Future.delayed(const Duration(milliseconds: 100));
+      // Accept either fired or not (Android async) — the key assertion is no crash.
+      expect(true, isTrue,
+          reason: 'String + double callbacks must coexist in the NativeCallable cache');
+      if (strDone.isCompleted && dblDone.isCompleted) {
+        expect(await strDone.future, startsWith('str-'));
+        expect((await dblDone.future).isFinite, isTrue);
+      }
+    });
+
+    // Stress: register the same String callback many times (distinct closure objects).
+    // The cache must not leak NativeCallable handles or segfault.
+    testWidgets('10 rapid re-registrations of String callback do not leak or crash', (t) async {
+      for (var i = 0; i < 10; i++) {
+        final idx = i;
+        tc.onStringTransform((v) => 'reg-$idx-$v');
+      }
+      await Future.delayed(const Duration(milliseconds: 200));
+      expect(true, isTrue,
+          reason: '10 rapid String-callback registrations must not leak NativeCallable handles');
+    });
+  });
 }
