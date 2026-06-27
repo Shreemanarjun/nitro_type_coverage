@@ -1901,7 +1901,7 @@ public func _nitro_type_coverage_call_asyncEchoEvent(_ event: UnsafeMutableRawPo
     guard let _vr = _vResult else { return nil }
     let _vw = NitroRecordWriter()
     _vr.writeFields(to: _vw)
-    return _vw.toNative().map { UnsafeMutableRawPointer($0) }
+    return _vw.toNative().map { UnsafeMutablePointer($0) }
 }
 
 // source: nitro_type_coverage.native.dart:323
