@@ -446,11 +446,9 @@ class TcStructHolder {
   });
 }
 
-/// §36: @NitroVariant sealed class — three event cases.
-/// Wire format: [4B len][1B tag: 0=Tap, 1=Scroll, 2=Resize][case fields]
-///   Tap:    [int64 x][int64 y]
-///   Scroll: [float64 delta]
-///   Resize: [int64 width][int64 height]
+/// §36: @NitroVariant sealed class — event cases.
+/// Wire format: [4B len][1B tag][case fields].
+/// Nullable case fields write a 1-byte presence flag before the field payload.
 @NitroVariant()
 sealed class TcEvent {
   const TcEvent();
@@ -471,4 +469,17 @@ class TcEventResize extends TcEvent {
   final int width;
   final int height;
   const TcEventResize({required this.width, required this.height});
+}
+
+class TcEventNullable extends TcEvent {
+  final int? count;
+  final TcStatus? status;
+  final TcConfig? config;
+  final List<int>? samples;
+  const TcEventNullable({
+    required this.count,
+    required this.status,
+    required this.config,
+    required this.samples,
+  });
 }

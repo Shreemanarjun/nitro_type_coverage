@@ -3476,6 +3476,49 @@ void main() {
       final output = tc.echoEvent(input) as TcEventScroll;
       expect(output.delta, 0.0);
     });
+
+    testWidgets('echoEvent: Nullable case round-trips non-null fields', (
+      t,
+    ) async {
+      final input = TcEventNullable(
+        count: 7,
+        status: TcStatus.pending,
+        config: TcConfig(
+          name: 'nullable-event',
+          count: 3,
+          enabled: true,
+          threshold: 0.75,
+        ),
+        samples: const [1, 2, 3],
+      );
+      final output = tc.echoEvent(input);
+      expect(output, isA<TcEventNullable>());
+      final event = output as TcEventNullable;
+      expect(event.count, 7);
+      expect(event.status, TcStatus.pending);
+      expect(event.config, isNotNull);
+      expect(event.config!.name, 'nullable-event');
+      expect(event.config!.count, 3);
+      expect(event.config!.enabled, isTrue);
+      expect(event.config!.threshold, closeTo(0.75, 1e-12));
+      expect(event.samples, [1, 2, 3]);
+    });
+
+    testWidgets('echoEvent: Nullable case round-trips null fields', (t) async {
+      const input = TcEventNullable(
+        count: null,
+        status: null,
+        config: null,
+        samples: null,
+      );
+      final output = tc.echoEvent(input);
+      expect(output, isA<TcEventNullable>());
+      final event = output as TcEventNullable;
+      expect(event.count, isNull);
+      expect(event.status, isNull);
+      expect(event.config, isNull);
+      expect(event.samples, isNull);
+    });
   });
 
   group('§36 — @NitroResult<double> (safeDiv)', () {
@@ -3618,6 +3661,24 @@ void main() {
       final output = await tc.asyncEchoEvent(input) as TcEventTap;
       expect(output.x, max64);
       expect(output.y, -max64);
+    });
+
+    testWidgets('Nullable case round-trips through background thread', (
+      t,
+    ) async {
+      const input = TcEventNullable(
+        count: null,
+        status: TcStatus.ok,
+        config: null,
+        samples: [5, 8, 13],
+      );
+      final output = await tc.asyncEchoEvent(input);
+      expect(output, isA<TcEventNullable>());
+      final event = output as TcEventNullable;
+      expect(event.count, isNull);
+      expect(event.status, TcStatus.ok);
+      expect(event.config, isNull);
+      expect(event.samples, [5, 8, 13]);
     });
   });
 

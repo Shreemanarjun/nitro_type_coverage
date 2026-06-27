@@ -5,6 +5,9 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
+#if defined(__APPLE__)
+#import <Foundation/Foundation.h>
+#endif
 #include "dart_api_dl.h"
 #include "nitro_type_coverage.bridge.g.h"
 
