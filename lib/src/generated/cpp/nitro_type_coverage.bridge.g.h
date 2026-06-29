@@ -185,6 +185,12 @@ NITRO_EXPORT void* nitro_type_coverage_get_event_list(int64_t instanceId, NitroE
 NITRO_EXPORT void* nitro_type_coverage_echo_event_list(int64_t instanceId, void* values, NitroError* _nitro_err);
 NITRO_EXPORT void nitro_type_coverage_configure_nullable_status_stream(int64_t instanceId, int64_t count, NitroError* _nitro_err);
 NITRO_EXPORT void nitro_type_coverage_configure_nullable_string_stream(int64_t instanceId, int64_t count, NitroError* _nitro_err);
+NITRO_EXPORT void* nitro_type_coverage_echo_pair(int64_t instanceId, void* value, NitroError* _nitro_err);
+NITRO_EXPORT void* nitro_type_coverage_echo_nullable_pair(int64_t instanceId, void* value, NitroError* _nitro_err);
+NITRO_EXPORT uint64_t nitro_type_coverage_echo_uint64(int64_t instanceId, uint64_t value, NitroError* _nitro_err);
+NITRO_EXPORT uint8_t* nitro_type_coverage_echo_nullable_uint64(int64_t instanceId, const uint8_t* value, NitroError* _nitro_err);
+NITRO_EXPORT void nitro_type_coverage_configure_uint64_stream(int64_t instanceId, int64_t from, int64_t count, NitroError* _nitro_err);
+NITRO_EXPORT void nitro_type_coverage_configure_nullable_uint64_stream(int64_t instanceId, int64_t count, NitroError* _nitro_err);
 
 // Properties
 NITRO_EXPORT int64_t nitro_type_coverage_get_precision(int64_t instanceId, NitroError* _nitro_err);
@@ -253,6 +259,12 @@ NITRO_EXPORT void nitro_type_coverage_release_nullable_status_stream_stream(int6
 // Stream<String?> nullableStringStream
 NITRO_EXPORT void nitro_type_coverage_register_nullable_string_stream_stream(int64_t instanceId, int64_t dart_port);
 NITRO_EXPORT void nitro_type_coverage_release_nullable_string_stream_stream(int64_t dart_port);
+// Stream<uint64> uint64Stream
+NITRO_EXPORT void nitro_type_coverage_register_uint64_stream_stream(int64_t instanceId, int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_release_uint64_stream_stream(int64_t dart_port);
+// Stream<uint64?> nullableUint64Stream
+NITRO_EXPORT void nitro_type_coverage_register_nullable_uint64_stream_stream(int64_t instanceId, int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_release_nullable_uint64_stream_stream(int64_t dart_port);
 
 // Struct release functions
 NITRO_EXPORT void nitro_type_coverage_release_TcPoint(void* ptr);

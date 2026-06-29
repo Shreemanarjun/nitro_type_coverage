@@ -405,4 +405,31 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
             }
         }
     }
+
+    // ── L12: @NitroTuple round-trip ───────────────────────────────────────────
+    public func echoPair(value: TcPair) -> TcPair { value }
+    public func echoNullablePair(value: TcPair?) -> TcPair? { value }
+
+    // ── L13: uint64 round-trip ────────────────────────────────────────────────
+    public func echoUint64(value: UInt64) -> UInt64 { value }
+    public func echoNullableUint64(value: UInt64?) -> UInt64? { value }
+
+    // ── L13: uint64 streams ───────────────────────────────────────────────────
+    private let _uint64StreamSubject = PassthroughSubject<UInt64, Never>()
+    public var uint64Stream: AnyPublisher<UInt64, Never> { _uint64StreamSubject.eraseToAnyPublisher() }
+    public func configureUint64Stream(from: Int64, count: Int64) {
+        DispatchQueue.global().async { [weak self] in
+            for i in 0..<count { self?._uint64StreamSubject.send(UInt64(bitPattern: from + i)) }
+        }
+    }
+
+    private let _nullableUint64StreamSubject = PassthroughSubject<UInt64?, Never>()
+    public var nullableUint64Stream: AnyPublisher<UInt64?, Never> { _nullableUint64StreamSubject.eraseToAnyPublisher() }
+    public func configureNullableUint64Stream(count: Int64) {
+        DispatchQueue.global().async { [weak self] in
+            for i in 0..<count {
+                self?._nullableUint64StreamSubject.send(i % 2 == 0 ? nil : UInt64(i))
+            }
+        }
+    }
 }

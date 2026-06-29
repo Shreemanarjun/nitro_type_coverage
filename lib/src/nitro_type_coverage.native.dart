@@ -4,6 +4,14 @@ import 'package:nitro/nitro.dart';
 
 part 'nitro_type_coverage.g.dart';
 
+// ── L13: uint64 scalar type ────────────────────────────────────────────────────
+// Dart alias so `uint64` is valid syntax in method signatures below.
+// TODO(spec_extractor): nitrogen must detect `typedef uint64 = int` via
+//   TypeAliasElement and emit BridgeType(name: 'uint64') → C: uint64_t,
+//   Swift: UInt64, Kotlin: Long (same wire as int but unsigned semantics).
+// ignore: camel_case_types
+typedef uint64 = int;
+
 @NitroModule(
   ios: NativeImpl.swift,
   android: NativeImpl.kotlin,
@@ -393,6 +401,28 @@ abstract class NitroTypeCoverage extends HybridObject {
   @NitroStream(backpressure: Backpressure.dropLatest)
   Stream<String?> nullableStringStream();
   void configureNullableStringStream(int count);
+
+
+  // ── L12: @NitroTuple — positional record round-trip ──────────────────────
+  // Wire: uint8_t* / ByteArray — same binary codec as @HybridRecord.
+  // Dart: (int, String) positional record; fields via $1, $2.
+  TcPair echoPair(TcPair value);
+  TcPair? echoNullablePair(TcPair? value);
+
+  // ── L13: uint64 scalar round-trip ─────────────────────────────────────────
+  // Wire: uint64_t (non-null) / NitroOptInt64* (nullable, 9-byte packed).
+  // Dart: int; Kotlin: Long; Swift: UInt64.
+  uint64 echoUint64(uint64 value);
+  uint64? echoNullableUint64(uint64? value);
+
+  // ── L13: uint64 stream items ──────────────────────────────────────────────
+  @NitroStream(backpressure: Backpressure.dropLatest)
+  Stream<uint64> uint64Stream();
+  void configureUint64Stream(int from, int count);
+
+  @NitroStream(backpressure: Backpressure.dropLatest)
+  Stream<uint64?> nullableUint64Stream();
+  void configureNullableUint64Stream(int count);
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -566,3 +596,12 @@ class TcEventNullable extends TcEvent {
     required this.samples,
   });
 }
+
+// ── L12: @NitroTuple — positional record typedef ──────────────────────────────
+// Wire: same binary codec as @HybridRecord (uint8_t* / ByteArray blob).
+// Dart positional record — fields accessed via $1 (int), $2 (String).
+// Generator emits standalone _nitroDecode_TcPair / _nitroEncode_TcPair free
+// functions (not extension methods, which cannot be added to typedefs).
+// TODO(spec_extractor): nitrogen needs TypeAliasElement @NitroTuple detection.
+@NitroTuple()
+typedef TcPair = (int, String);

@@ -462,6 +462,33 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
         }
     }
 
+    // ── L12: @NitroTuple round-trip ───────────────────────────────────────────
+    override fun echoPair(value: nitro.nitro_type_coverage_module.TcPair): nitro.nitro_type_coverage_module.TcPair = value
+    override fun echoNullablePair(value: nitro.nitro_type_coverage_module.TcPair?): nitro.nitro_type_coverage_module.TcPair? = value
+
+    // ── L13: uint64 round-trip ────────────────────────────────────────────────
+    override fun echoUint64(value: Long): Long = value
+    override fun echoNullableUint64(value: Long?): Long? = value
+
+    // ── L13: uint64 streams ───────────────────────────────────────────────────
+    private val _uint64Stream = MutableSharedFlow<Long>(extraBufferCapacity = 64)
+    override val uint64Stream: kotlinx.coroutines.flow.Flow<Long> = _uint64Stream
+    override fun configureUint64Stream(from: Long, count: Long) {
+        CoroutineScope(Dispatchers.Default).launch {
+            for (i in 0 until count) { _uint64Stream.emit(from + i) }
+        }
+    }
+
+    private val _nullableUint64Stream = MutableSharedFlow<Long?>(extraBufferCapacity = 64)
+    override val nullableUint64Stream: kotlinx.coroutines.flow.Flow<Long?> = _nullableUint64Stream
+    override fun configureNullableUint64Stream(count: Long) {
+        CoroutineScope(Dispatchers.Default).launch {
+            for (i in 0 until count) {
+                _nullableUint64Stream.emit(if (i % 2L == 0L) null else i)
+            }
+        }
+    }
+
     companion object {
         // ART's Unsafe.allocateMemory/freeMemory wrap malloc/free, so pointers
         // returned here are freed by the C bridge's _release function via free().

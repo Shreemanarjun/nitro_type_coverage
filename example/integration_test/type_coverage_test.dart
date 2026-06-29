@@ -6263,4 +6263,107 @@ void main() {
       expect(result!.millisecondsSinceEpoch, 0);
     });
   });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // L12 — @NitroTuple positional record round-trip
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('L12 @NitroTuple — positional record round-trip', () {
+    test('echoPair: basic (42, "hello") round-trips', () {
+      final result = tc.echoPair((42, 'hello'));
+      expect(result.$1, 42);
+      expect(result.$2, 'hello');
+    });
+
+    test('echoPair: zero int with empty string', () {
+      final result = tc.echoPair((0, ''));
+      expect(result.$1, 0);
+      expect(result.$2, '');
+    });
+
+    test('echoPair: negative int with unicode string', () {
+      final result = tc.echoPair((-1, '日本語 🎉'));
+      expect(result.$1, -1);
+      expect(result.$2, '日本語 🎉');
+    });
+
+    test('echoPair: int64 max preserves bit pattern', () {
+      const max = 9223372036854775807;
+      final result = tc.echoPair((max, 'max'));
+      expect(result.$1, max);
+    });
+
+    test('echoNullablePair: non-null round-trips', () {
+      final result = tc.echoNullablePair((7, 'seven'));
+      expect(result, isNotNull);
+      expect(result!.$1, 7);
+      expect(result.$2, 'seven');
+    });
+
+    test('echoNullablePair: null → null', () {
+      expect(tc.echoNullablePair(null), isNull);
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // L13 — uint64 scalar type
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('L13 uint64 — scalar round-trip', () {
+    test('echoUint64: 0 round-trips', () {
+      expect(tc.echoUint64(0), 0);
+    });
+
+    test('echoUint64: 1 round-trips', () {
+      expect(tc.echoUint64(1), 1);
+    });
+
+    test('echoUint64: large positive value round-trips', () {
+      const v = 9223372036854775807; // int64 max — safe Dart int
+      expect(tc.echoUint64(v), v);
+    });
+
+    test('echoNullableUint64: non-null round-trips', () {
+      expect(tc.echoNullableUint64(42), 42);
+    });
+
+    test('echoNullableUint64: null → null', () {
+      expect(tc.echoNullableUint64(null), isNull);
+    });
+
+    test('echoNullableUint64: 0 is not confused with null', () {
+      expect(tc.echoNullableUint64(0), 0);
+    });
+  });
+
+  group('L13 uint64 — stream items', () {
+    test('uint64Stream: emits sequential values from 0', () async {
+      final completer = Completer<List<int>>();
+      final received = <int>[];
+      final sub = tc.uint64Stream().listen((v) {
+        received.add(v);
+        if (received.length == 5) completer.complete(List.of(received));
+      });
+      tc.configureUint64Stream(0, 5);
+      final items = await completer.future.timeout(const Duration(seconds: 5));
+      await sub.cancel();
+      expect(items, [0, 1, 2, 3, 4]);
+    });
+
+    test('nullableUint64Stream: alternates null and non-null', () async {
+      final completer = Completer<List<int?>>();
+      final received = <int?>[];
+      final sub = tc.nullableUint64Stream().listen((v) {
+        received.add(v);
+        if (received.length == 4) completer.complete(List.of(received));
+      });
+      tc.configureNullableUint64Stream(4);
+      final items = await completer.future.timeout(const Duration(seconds: 5));
+      await sub.cancel();
+      expect(items[0], isNull);
+      expect(items[1], isNotNull);
+      expect(items[2], isNull);
+      expect(items[3], isNotNull);
+    });
+  });
 }
