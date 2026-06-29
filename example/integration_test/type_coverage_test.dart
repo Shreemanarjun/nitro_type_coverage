@@ -8,7 +8,6 @@
 //   flutter test integration_test/type_coverage_test.dart -d <device-id>
 
 import 'dart:async';
-import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -5853,6 +5852,92 @@ void main() {
     });
   });
 
+  group('§63 List<@HybridEnum>', () {
+    test('getStatusList returns all 3 TcStatus values', () {
+      final list = tc.getStatusList();
+      expect(list.length, 3);
+      expect(list[0], TcStatus.ok);
+      expect(list[1], TcStatus.error);
+      expect(list[2], TcStatus.pending);
+    });
+
+    test('echoStatusList round-trips correctly', () {
+      final input = [TcStatus.pending, TcStatus.ok, TcStatus.error, TcStatus.ok];
+      final result = tc.echoStatusList(input);
+      expect(result.length, input.length);
+      for (int i = 0; i < input.length; i++) {
+        expect(result[i], input[i]);
+      }
+    });
+
+    test('echoStatusList with empty list returns empty', () {
+      expect(tc.echoStatusList([]), isEmpty);
+    });
+
+    test('echoStatusList with single element', () {
+      final result = tc.echoStatusList([TcStatus.error]);
+      expect(result, [TcStatus.error]);
+    });
+  });
+
+  group('§64 List<@NitroVariant>', () {
+    test('getEventList returns 3 events', () {
+      final list = tc.getEventList();
+      expect(list.length, 3);
+      expect(list[0], isA<TcEventTap>());
+      expect(list[1], isA<TcEventScroll>());
+      expect(list[2], isA<TcEventResize>());
+    });
+
+    test('getEventList tap has correct coordinates', () {
+      final tap = tc.getEventList()[0] as TcEventTap;
+      expect(tap.x, 1);
+      expect(tap.y, 2);
+    });
+
+    test('getEventList scroll has correct delta', () {
+      final scroll = tc.getEventList()[1] as TcEventScroll;
+      expect(scroll.delta, closeTo(3.5, 1e-9));
+    });
+
+    test('getEventList resize has correct dimensions', () {
+      final resize = tc.getEventList()[2] as TcEventResize;
+      expect(resize.width, 100);
+      expect(resize.height, 200);
+    });
+
+    test('echoEventList round-trips correctly', () {
+      final input = [
+        const TcEventTap(x: 5, y: 10),
+        const TcEventScroll(delta: 2.5),
+        const TcEventResize(width: 320, height: 480),
+      ];
+      final result = tc.echoEventList(input);
+      expect(result.length, input.length);
+      final tap = result[0] as TcEventTap;
+      expect(tap.x, 5);
+      expect(tap.y, 10);
+      final scroll = result[1] as TcEventScroll;
+      expect(scroll.delta, closeTo(2.5, 1e-9));
+      final resize = result[2] as TcEventResize;
+      expect(resize.width, 320);
+      expect(resize.height, 480);
+    });
+
+    test('echoEventList with empty list returns empty', () {
+      expect(tc.echoEventList([]), isEmpty);
+    });
+
+    test('echoEventList with single event', () {
+      final input = [const TcEventTap(x: 7, y: 8)];
+      final result = tc.echoEventList(input);
+      expect(result.length, 1);
+      final tap = result[0] as TcEventTap;
+      expect(tap.x, 7);
+      expect(tap.y, 8);
+    });
+  });
+
   group('§46i NitroOpt* old-sentinel regression guard', () {
     test('sync int? Int64.min is a value, never null', () {
       const min = -9223372036854775808;
@@ -5879,6 +5964,303 @@ void main() {
       final r = await tc.asyncNullableDouble(double.nan);
       expect(r, isNotNull, reason: 'async NaN must round-trip as value');
       expect(r!.isNaN, isTrue);
+    });
+  });
+
+  group('§65 @NitroVariant as property type', () {
+    test('initial value is tap(x:0, y:0)', () {
+      final v = tc.currentEvent;
+      expect(v, isA<TcEventTap>());
+      final tap = v as TcEventTap;
+      expect(tap.x, equals(0));
+      expect(tap.y, equals(0));
+    });
+
+    test('setter round-trips TcEventTap', () {
+      tc.currentEvent = TcEventTap(x: 42, y: 99);
+      final v = tc.currentEvent;
+      expect(v, isA<TcEventTap>());
+      final tap = v as TcEventTap;
+      expect(tap.x, equals(42));
+      expect(tap.y, equals(99));
+    });
+
+    test('setter round-trips TcEventScroll', () {
+      tc.currentEvent = TcEventScroll(delta: 3.14);
+      final v = tc.currentEvent;
+      expect(v, isA<TcEventScroll>());
+      expect((v as TcEventScroll).delta, closeTo(3.14, 1e-10));
+    });
+
+    test('setter round-trips TcEventResize', () {
+      tc.currentEvent = TcEventResize(width: 1920, height: 1080);
+      final v = tc.currentEvent;
+      expect(v, isA<TcEventResize>());
+      final resize = v as TcEventResize;
+      expect(resize.width, equals(1920));
+      expect(resize.height, equals(1080));
+    });
+
+    tearDown(() => tc.currentEvent = TcEventTap(x: 0, y: 0));
+  });
+
+  group('§66 nullable enum/String stream items', () {
+    testWidgets('Stream<TcStatus?> — null items round-trip as Dart null', (t) async {
+      const count = 9;
+      final items = <TcStatus?>[];
+      final done = Completer<void>();
+      final sub = tc.nullableStatusStream().listen((v) {
+        items.add(v);
+        if (items.length >= count && !done.isCompleted) done.complete();
+      });
+      await Future.delayed(const Duration(milliseconds: 50));
+      tc.configureNullableStatusStream(count);
+      await expectLater(done.future, completes);
+      await sub.cancel();
+      expect(items.length, equals(count));
+      // Pattern: null, ok, error, null, ok, error, ...
+      expect(items[0], isNull);
+      expect(items[1], equals(TcStatus.ok));
+      expect(items[2], equals(TcStatus.error));
+      expect(items[3], isNull);
+    });
+
+    testWidgets('Stream<TcStatus?> — non-null items are correct enum values', (t) async {
+      const count = 6;
+      final items = <TcStatus?>[];
+      final done = Completer<void>();
+      final sub = tc.nullableStatusStream().listen((v) {
+        items.add(v);
+        if (items.length >= count && !done.isCompleted) done.complete();
+      });
+      await Future.delayed(const Duration(milliseconds: 50));
+      tc.configureNullableStatusStream(count);
+      await expectLater(done.future, completes);
+      await sub.cancel();
+      final nonNull = items.whereType<TcStatus>().toList();
+      expect(nonNull, everyElement(anyOf(equals(TcStatus.ok), equals(TcStatus.error))));
+    });
+
+    testWidgets('Stream<String?> — null items round-trip as Dart null', (t) async {
+      const count = 6;
+      final items = <String?>[];
+      final done = Completer<void>();
+      final sub = tc.nullableStringStream().listen((v) {
+        items.add(v);
+        if (items.length >= count && !done.isCompleted) done.complete();
+      });
+      await Future.delayed(const Duration(milliseconds: 50));
+      tc.configureNullableStringStream(count);
+      await expectLater(done.future, completes);
+      await sub.cancel();
+      expect(items.length, equals(count));
+      // Even indices are null, odd are "item{i}".
+      expect(items[0], isNull);
+      expect(items[1], equals('item1'));
+      expect(items[2], isNull);
+      expect(items[3], equals('item3'));
+    });
+
+    testWidgets('Stream<String?> — non-null items are correct strings', (t) async {
+      const count = 4;
+      final items = <String?>[];
+      final done = Completer<void>();
+      final sub = tc.nullableStringStream().listen((v) {
+        items.add(v);
+        if (items.length >= count && !done.isCompleted) done.complete();
+      });
+      await Future.delayed(const Duration(milliseconds: 50));
+      tc.configureNullableStringStream(count);
+      await expectLater(done.future, completes);
+      await sub.cancel();
+      final nonNull = items.whereType<String>().toList();
+      for (final s in nonNull) {
+        expect(s, startsWith('item'));
+      }
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // §L4 Map<String, @HybridRecord> and Map<String, @NitroVariant> (binary tag-5)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('§L4a Map<String, @HybridRecord> — echoConfigMap round-trip', () {
+    test('empty map returns empty map', () {
+      final result = tc.echoConfigMap({});
+      expect(result, isEmpty);
+    });
+
+    test('single entry round-trips correctly', () {
+      final input = {
+        'alpha': TcConfig(name: 'alpha', count: 1, enabled: true, threshold: 0.5),
+      };
+      final result = tc.echoConfigMap(input);
+      expect(result.length, equals(1));
+      expect(result['alpha']?.name, equals('alpha'));
+      expect(result['alpha']?.count, equals(1));
+      expect(result['alpha']?.enabled, isTrue);
+      expect(result['alpha']?.threshold, closeTo(0.5, 1e-10));
+    });
+
+    test('multiple entries preserve all fields', () {
+      final input = {
+        'a': TcConfig(name: 'A', count: 10, enabled: false, threshold: 1.0),
+        'b': TcConfig(name: 'B', count: 20, enabled: true, threshold: 2.0),
+        'c': TcConfig(name: 'C', count: 30, enabled: false, threshold: 3.0),
+      };
+      final result = tc.echoConfigMap(input);
+      expect(result.length, equals(3));
+      expect(result['b']?.name, equals('B'));
+      expect(result['b']?.count, equals(20));
+      expect(result['c']?.threshold, closeTo(3.0, 1e-10));
+    });
+
+    test('unicode keys are preserved', () {
+      final input = {
+        '日本語': TcConfig(name: 'jp', count: 99, enabled: true, threshold: 0.1),
+        '🎉': TcConfig(name: 'party', count: 0, enabled: false, threshold: 0.0),
+      };
+      final result = tc.echoConfigMap(input);
+      expect(result.length, equals(2));
+      expect(result['日本語']?.name, equals('jp'));
+      expect(result['🎉']?.name, equals('party'));
+    });
+
+    test('string field with special chars round-trips', () {
+      final input = {
+        'k1': TcConfig(
+          name: 'hello "world"\nnewline\ttab',
+          count: 7,
+          enabled: true,
+          threshold: 0.0,
+        ),
+      };
+      final result = tc.echoConfigMap(input);
+      expect(result['k1']?.name, equals('hello "world"\nnewline\ttab'));
+    });
+
+    test('large map (50 entries) round-trips all values', () {
+      final input = {
+        for (var i = 0; i < 50; i++)
+          'key$i': TcConfig(
+            name: 'name$i',
+            count: i,
+            enabled: i.isEven,
+            threshold: i * 0.1,
+          ),
+      };
+      final result = tc.echoConfigMap(input);
+      expect(result.length, equals(50));
+      for (var i = 0; i < 50; i++) {
+        expect(result['key$i']?.count, equals(i));
+        expect(result['key$i']?.enabled, equals(i.isEven));
+        expect(result['key$i']?.threshold, closeTo(i * 0.1, 1e-9));
+      }
+    });
+  });
+
+  group('§L4b Map<String, @NitroVariant> — echoEventMap round-trip', () {
+    test('empty map returns empty map', () {
+      final result = tc.echoEventMap({});
+      expect(result, isEmpty);
+    });
+
+    test('TcEventTap round-trips correctly', () {
+      final input = {'tap': TcEventTap(x: 10, y: 20)};
+      final result = tc.echoEventMap(input);
+      expect(result.length, equals(1));
+      expect(result['tap'], isA<TcEventTap>());
+      final tap = result['tap'] as TcEventTap;
+      expect(tap.x, equals(10));
+      expect(tap.y, equals(20));
+    });
+
+    test('TcEventScroll round-trips correctly', () {
+      final input = {'scroll': TcEventScroll(delta: 3.14)};
+      final result = tc.echoEventMap(input);
+      final scroll = result['scroll'] as TcEventScroll;
+      expect(scroll.delta, closeTo(3.14, 1e-10));
+    });
+
+    test('TcEventResize round-trips correctly', () {
+      final input = {'resize': TcEventResize(width: 1920, height: 1080)};
+      final result = tc.echoEventMap(input);
+      final resize = result['resize'] as TcEventResize;
+      expect(resize.width, equals(1920));
+      expect(resize.height, equals(1080));
+    });
+
+    test('mixed variant cases in same map', () {
+      final input = {
+        'e1': TcEventTap(x: 1, y: 2),
+        'e2': TcEventScroll(delta: 0.5),
+        'e3': TcEventResize(width: 800, height: 600),
+      };
+      final result = tc.echoEventMap(input);
+      expect(result.length, equals(3));
+      expect(result['e1'], isA<TcEventTap>());
+      expect(result['e2'], isA<TcEventScroll>());
+      expect(result['e3'], isA<TcEventResize>());
+    });
+
+    test('10-entry variant map preserves all cases', () {
+      final input = <String, TcEvent>{};
+      for (var i = 0; i < 10; i++) {
+        switch (i % 3) {
+          case 0:
+            input['ev$i'] = TcEventTap(x: i, y: i * 2);
+          case 1:
+            input['ev$i'] = TcEventScroll(delta: i * 1.5);
+          default:
+            input['ev$i'] = TcEventResize(width: i * 100, height: i * 50);
+        }
+      }
+      final result = tc.echoEventMap(input);
+      expect(result.length, equals(10));
+      final tap = result['ev0'] as TcEventTap;
+      expect(tap.x, equals(0));
+      final scroll = result['ev1'] as TcEventScroll;
+      expect(scroll.delta, closeTo(1.5, 1e-10));
+      final resize = result['ev2'] as TcEventResize;
+      expect(resize.width, equals(200));
+    });
+  });
+
+  // §L11 DateTime — sync echo (non-null and nullable)
+  group('§L11 DateTime — ms-epoch bridge round-trip', () {
+    test('echoDateTime: epoch 0', () {
+      final dt = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+      expect(tc.echoDateTime(dt).millisecondsSinceEpoch, 0);
+    });
+    test('echoDateTime: known UTC timestamp', () {
+      final dt = DateTime.utc(2024, 6, 15, 12, 30, 45);
+      expect(
+        tc.echoDateTime(dt).millisecondsSinceEpoch,
+        dt.millisecondsSinceEpoch,
+      );
+    });
+    test('echoDateTime: negative ms (before epoch)', () {
+      final dt = DateTime.fromMillisecondsSinceEpoch(-1000, isUtc: true);
+      expect(tc.echoDateTime(dt).millisecondsSinceEpoch, -1000);
+    });
+    test('echoDateTime: large positive ms', () {
+      final dt = DateTime.fromMillisecondsSinceEpoch(1_000_000_000_000, isUtc: true);
+      expect(tc.echoDateTime(dt).millisecondsSinceEpoch, 1_000_000_000_000);
+    });
+
+    test('echoNullableDateTime: non-null value round-trips', () {
+      final dt = DateTime.utc(2025, 1, 1);
+      final result = tc.echoNullableDateTime(dt);
+      expect(result?.millisecondsSinceEpoch, dt.millisecondsSinceEpoch);
+    });
+    test('echoNullableDateTime: null → null', () {
+      expect(tc.echoNullableDateTime(null), isNull);
+    });
+    test('echoNullableDateTime: epoch 0 round-trips (not confused with null)', () {
+      final dt = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+      final result = tc.echoNullableDateTime(dt);
+      expect(result, isNotNull);
+      expect(result!.millisecondsSinceEpoch, 0);
     });
   });
 }

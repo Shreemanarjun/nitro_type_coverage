@@ -30,6 +30,10 @@ abstract class NitroTypeCoverage extends HybridObject {
   double mulDoubles(double a, double b);
   String joinStrings(String a, String b, String separator);
 
+  // ── DateTime (sync) ───────────────────────────────────────────────────────
+  DateTime echoDateTime(DateTime value);
+  DateTime? echoNullableDateTime(DateTime? value);
+
   // ── Nullable primitives (sync) ────────────────────────────────────────────
   int? echoNullableInt(int? value);
   double? echoNullableDouble(double? value);
@@ -141,8 +145,9 @@ abstract class NitroTypeCoverage extends HybridObject {
   Map<String, String> echoStringMap(Map<String, String> value);
   Map<String, double> echoDoubleMap(Map<String, double> value);
   Map<String, bool> echoBoolMap(Map<String, bool> value);
-  // LIMITATION: Map<String, @HybridRecord> not supported type-safely.
-  // The Kotlin bridge uses Any? for record-valued maps. Use List<Record> instead.
+  // L4: Map<String, @HybridRecord> and Map<String, @NitroVariant> — binary tag-5 encoding.
+  Map<String, TcConfig> echoConfigMap(Map<String, TcConfig> value);
+  Map<String, TcEvent> echoEventMap(Map<String, TcEvent> value);
 
   // ── @HybridRecord with enum field (§25 coverage) ─────────────────────────
   // Tests binary codec with mixed primitive + enum field ordering.
@@ -367,6 +372,27 @@ abstract class NitroTypeCoverage extends HybridObject {
   @NitroStream(backpressure: Backpressure.dropLatest)
   Stream<TcEvent> eventStream();
   void configureEventStream(int count);
+
+  // ── §63: List<@HybridEnum> — encode/decode enum list via record codec ─────
+  List<TcStatus> getStatusList();
+  List<TcStatus> echoStatusList(List<TcStatus> values);
+
+  // ── §64: List<@NitroVariant> — encode/decode variant list via record codec ─
+  List<TcEvent> getEventList();
+  List<TcEvent> echoEventList(List<TcEvent> values);
+
+  // ── §65: @NitroVariant as property type ──────────────────────────────────
+  TcEvent get currentEvent;
+  set currentEvent(TcEvent value);
+
+  // ── §66: Nullable enum/String stream items ────────────────────────────────
+  @NitroStream(backpressure: Backpressure.dropLatest)
+  Stream<TcStatus?> nullableStatusStream();
+  void configureNullableStatusStream(int count);
+
+  @NitroStream(backpressure: Backpressure.dropLatest)
+  Stream<String?> nullableStringStream();
+  void configureNullableStringStream(int count);
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────

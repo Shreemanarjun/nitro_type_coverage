@@ -60,6 +60,10 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     override fun mulDoubles(a: Double, b: Double): Double = a * b
     override fun joinStrings(a: String, b: String, separator: String): String = a + separator + b
 
+    // ── DateTime ─────────────────────────────────────────────────────────────
+    override fun echoDateTime(value: Long): Long = value
+    override fun echoNullableDateTime(value: Long?): Long? = value
+
     // ── Nullable primitives ───────────────────────────────────────────────────
     override fun echoNullableInt(value: Long?): Long? = value
     override fun echoNullableDouble(value: Double?): Double? = value
@@ -188,11 +192,13 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     override fun echoNullableDoubleSafe(value: NitroNullableDouble): NitroNullableDouble = value
     override fun echoNullableBoolSafe(value: NitroNullableBool): NitroNullableBool = value
 
-    // ── Maps (§24) ───────────────────────────────────────────────────────────
+    // ── Maps (§24 + L4) ─────────────────────────────────────────────────────
     override fun echoIntMap(value: Map<String, Long>): Map<String, Long> = value
     override fun echoStringMap(value: Map<String, String>): Map<String, String> = value
     override fun echoDoubleMap(value: Map<String, Double>): Map<String, Double> = value
     override fun echoBoolMap(value: Map<String, Boolean>): Map<String, Boolean> = value
+    override fun echoConfigMap(value: Map<String, TcConfig>): Map<String, TcConfig> = value
+    override fun echoEventMap(value: Map<String, TcEvent>): Map<String, TcEvent> = value
 
     // ── @HybridRecord with enum field (§25) ───────────────────────────────────
     override fun echoPacket(value: TcPacket): TcPacket = value
@@ -412,6 +418,46 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
                 } else {
                     _eventStream.emit(TcEvent.TcEventScroll(delta = i.toDouble()))
                 }
+            }
+        }
+    }
+
+    // ── §63: List<@HybridEnum> ────────────────────────────────────────────────
+    override fun getStatusList(): List<TcStatus> = listOf(TcStatus.OK, TcStatus.ERROR, TcStatus.PENDING)
+    override fun echoStatusList(values: List<TcStatus>): List<TcStatus> = values
+
+    // ── §64: List<@NitroVariant> ──────────────────────────────────────────────
+    override fun getEventList(): List<TcEvent> = listOf(
+        TcEvent.TcEventTap(x = 1L, y = 2L),
+        TcEvent.TcEventScroll(delta = 3.5),
+        TcEvent.TcEventResize(width = 100L, height = 200L),
+    )
+    override fun echoEventList(values: List<TcEvent>): List<TcEvent> = values
+
+    // ── §65: @NitroVariant as property type ──────────────────────────────────
+    override var currentEvent: TcEvent = TcEvent.TcEventTap(x = 0, y = 0)
+
+    // ── §66: Nullable enum/String stream items ────────────────────────────────
+    private val _nullableStatusStream = MutableSharedFlow<TcStatus?>(extraBufferCapacity = 64)
+    override val nullableStatusStream: kotlinx.coroutines.flow.Flow<TcStatus?> = _nullableStatusStream
+    override fun configureNullableStatusStream(count: Long) {
+        CoroutineScope(Dispatchers.Default).launch {
+            for (i in 0 until count) {
+                if (i % 3L == 0L) _nullableStatusStream.emit(null)
+                else when (i % 3L) {
+                    1L -> _nullableStatusStream.emit(TcStatus.OK)
+                    else -> _nullableStatusStream.emit(TcStatus.ERROR)
+                }
+            }
+        }
+    }
+
+    private val _nullableStringStream = MutableSharedFlow<String?>(extraBufferCapacity = 64)
+    override val nullableStringStream: kotlinx.coroutines.flow.Flow<String?> = _nullableStringStream
+    override fun configureNullableStringStream(count: Long) {
+        CoroutineScope(Dispatchers.Default).launch {
+            for (i in 0 until count) {
+                _nullableStringStream.emit(if (i % 2L == 0L) null else "item$i")
             }
         }
     }

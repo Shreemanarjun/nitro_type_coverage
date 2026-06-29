@@ -475,7 +475,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     );
     NitroRuntime.checkLinkChecksum(
       'nitro_type_coverage',
-      '1a3077d3c155ad8f',
+      'f8b659bcd13c5e8f',
       () => _dylib
           .lookupFunction<Pointer<Utf8> Function(), Pointer<Utf8> Function()>(
             'nitro_type_coverage_nitro_bridge_checksum',
@@ -581,6 +581,36 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
           Pointer<NitroErrorFfi>,
         )
       >('nitro_type_coverage_join_strings');
+  late final int Function(int, int, Pointer<NitroErrorFfi>) _echoDateTimePtr =
+      _dylib
+          .lookup<
+            NativeFunction<Int64 Function(Int64, Int64, Pointer<NitroErrorFfi>)>
+          >('nitro_type_coverage_echo_date_time')
+          .asFunction<int Function(int, int, Pointer<NitroErrorFfi>)>(
+            isLeaf: true,
+          );
+  late final Pointer<NitroOptInt64> Function(
+    int,
+    Pointer<NitroOptInt64>,
+    Pointer<NitroErrorFfi>,
+  )
+  _echoNullableDateTimePtr = _dylib
+      .lookup<
+        NativeFunction<
+          Pointer<NitroOptInt64> Function(
+            Int64,
+            Pointer<NitroOptInt64>,
+            Pointer<NitroErrorFfi>,
+          )
+        >
+      >('nitro_type_coverage_echo_nullable_date_time')
+      .asFunction<
+        Pointer<NitroOptInt64> Function(
+          int,
+          Pointer<NitroOptInt64>,
+          Pointer<NitroErrorFfi>,
+        )
+      >(isLeaf: true);
   late final Pointer<NitroOptInt64> Function(
     int,
     Pointer<NitroOptInt64>,
@@ -984,6 +1014,26 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
         Pointer<Uint8> Function(Int64, Pointer<Uint8>, Pointer<NitroErrorFfi>),
         Pointer<Uint8> Function(int, Pointer<Uint8>, Pointer<NitroErrorFfi>)
       >('nitro_type_coverage_echo_bool_map');
+  late final Pointer<Uint8> Function(
+    int,
+    Pointer<Uint8>,
+    Pointer<NitroErrorFfi>,
+  )
+  _echoConfigMapPtr = _dylib
+      .lookupFunction<
+        Pointer<Uint8> Function(Int64, Pointer<Uint8>, Pointer<NitroErrorFfi>),
+        Pointer<Uint8> Function(int, Pointer<Uint8>, Pointer<NitroErrorFfi>)
+      >('nitro_type_coverage_echo_config_map');
+  late final Pointer<Uint8> Function(
+    int,
+    Pointer<Uint8>,
+    Pointer<NitroErrorFfi>,
+  )
+  _echoEventMapPtr = _dylib
+      .lookupFunction<
+        Pointer<Uint8> Function(Int64, Pointer<Uint8>, Pointer<NitroErrorFfi>),
+        Pointer<Uint8> Function(int, Pointer<Uint8>, Pointer<NitroErrorFfi>)
+      >('nitro_type_coverage_echo_event_map');
   late final Pointer<Uint8> Function(
     int,
     Pointer<Uint8>,
@@ -1494,6 +1544,54 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
       .asFunction<void Function(int, int, Pointer<NitroErrorFfi>)>(
         isLeaf: true,
       );
+  late final Pointer<Uint8> Function(int, Pointer<NitroErrorFfi>)
+  _getStatusListPtr = _dylib
+      .lookupFunction<
+        Pointer<Uint8> Function(Int64, Pointer<NitroErrorFfi>),
+        Pointer<Uint8> Function(int, Pointer<NitroErrorFfi>)
+      >('nitro_type_coverage_get_status_list');
+  late final Pointer<Uint8> Function(
+    int,
+    Pointer<Uint8>,
+    Pointer<NitroErrorFfi>,
+  )
+  _echoStatusListPtr = _dylib
+      .lookupFunction<
+        Pointer<Uint8> Function(Int64, Pointer<Uint8>, Pointer<NitroErrorFfi>),
+        Pointer<Uint8> Function(int, Pointer<Uint8>, Pointer<NitroErrorFfi>)
+      >('nitro_type_coverage_echo_status_list');
+  late final Pointer<Uint8> Function(int, Pointer<NitroErrorFfi>)
+  _getEventListPtr = _dylib
+      .lookupFunction<
+        Pointer<Uint8> Function(Int64, Pointer<NitroErrorFfi>),
+        Pointer<Uint8> Function(int, Pointer<NitroErrorFfi>)
+      >('nitro_type_coverage_get_event_list');
+  late final Pointer<Uint8> Function(
+    int,
+    Pointer<Uint8>,
+    Pointer<NitroErrorFfi>,
+  )
+  _echoEventListPtr = _dylib
+      .lookupFunction<
+        Pointer<Uint8> Function(Int64, Pointer<Uint8>, Pointer<NitroErrorFfi>),
+        Pointer<Uint8> Function(int, Pointer<Uint8>, Pointer<NitroErrorFfi>)
+      >('nitro_type_coverage_echo_event_list');
+  late final void Function(int, int, Pointer<NitroErrorFfi>)
+  _configureNullableStatusStreamPtr = _dylib
+      .lookup<
+        NativeFunction<Void Function(Int64, Int64, Pointer<NitroErrorFfi>)>
+      >('nitro_type_coverage_configure_nullable_status_stream')
+      .asFunction<void Function(int, int, Pointer<NitroErrorFfi>)>(
+        isLeaf: true,
+      );
+  late final void Function(int, int, Pointer<NitroErrorFfi>)
+  _configureNullableStringStreamPtr = _dylib
+      .lookup<
+        NativeFunction<Void Function(Int64, Int64, Pointer<NitroErrorFfi>)>
+      >('nitro_type_coverage_configure_nullable_string_stream')
+      .asFunction<void Function(int, int, Pointer<NitroErrorFfi>)>(
+        isLeaf: true,
+      );
   late final int Function(int, Pointer<NitroErrorFfi>) _getPrecisionPtr = _dylib
       .lookup<NativeFunction<Int64 Function(Int64, Pointer<NitroErrorFfi>)>>(
         'nitro_type_coverage_get_precision',
@@ -1585,6 +1683,24 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
         Void Function(Int64, Pointer<NitroOptBool>, Pointer<NitroErrorFfi>),
         void Function(int, Pointer<NitroOptBool>, Pointer<NitroErrorFfi>)
       >('nitro_type_coverage_set_optional_flag');
+  late final Pointer<Uint8> Function(int, Pointer<NitroErrorFfi>)
+  _getCurrentEventPtr = _dylib
+      .lookup<
+        NativeFunction<Pointer<Uint8> Function(Int64, Pointer<NitroErrorFfi>)>
+      >('nitro_type_coverage_get_current_event')
+      .asFunction<Pointer<Uint8> Function(int, Pointer<NitroErrorFfi>)>(
+        isLeaf: true,
+      );
+  late final void Function(int, Pointer<Uint8>, Pointer<NitroErrorFfi>)
+  _setCurrentEventPtr = _dylib
+      .lookup<
+        NativeFunction<
+          Void Function(Int64, Pointer<Uint8>, Pointer<NitroErrorFfi>)
+        >
+      >('nitro_type_coverage_set_current_event')
+      .asFunction<void Function(int, Pointer<Uint8>, Pointer<NitroErrorFfi>)>(
+        isLeaf: true,
+      );
   late final void Function(int, int) _registerCallbackReleasePtr = _dylib
       .lookupFunction<Void Function(Int64, Int64), void Function(int, int)>(
         'nitro_type_coverage_registerCallbackRelease',
@@ -1701,6 +1817,22 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
       .lookupFunction<Void Function(Int64), void Function(int)>(
         'nitro_type_coverage_release_event_stream_stream',
       );
+  late final void Function(int, int) _registerNullableStatusStreamPtr = _dylib
+      .lookupFunction<Void Function(Int64, Int64), void Function(int, int)>(
+        'nitro_type_coverage_register_nullable_status_stream_stream',
+      );
+  late final void Function(int) _releaseNullableStatusStreamPtr = _dylib
+      .lookupFunction<Void Function(Int64), void Function(int)>(
+        'nitro_type_coverage_release_nullable_status_stream_stream',
+      );
+  late final void Function(int, int) _registerNullableStringStreamPtr = _dylib
+      .lookupFunction<Void Function(Int64, Int64), void Function(int, int)>(
+        'nitro_type_coverage_register_nullable_string_stream_stream',
+      );
+  late final void Function(int) _releaseNullableStringStreamPtr = _dylib
+      .lookupFunction<Void Function(Int64), void Function(int)>(
+        'nitro_type_coverage_release_nullable_string_stream_stream',
+      );
   // ignore: unused_field
   late final Pointer<NitroErrorFfi> Function() _getErrorPtr = _dylib
       .lookupFunction<
@@ -1738,6 +1870,9 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     super.dispose(); // sets isDisposed = true, calls onDestroy()
     NitroRuntime.logLifecycle('dispose(nitro_type_coverage)', 'disposed');
   }
+
+  /// Opaque reference to this native impl — pass to other plugins via AnyNativeObject.
+  AnyNativeObject get asAnyNativeObject => AnyNativeObject(_instanceId);
 
   // Native callback handles are cached so native code can retain
   // callback pointers safely until this HybridObject is disposed.
@@ -2037,6 +2172,41 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
         return res.toDartStringWithFree();
       }),
       methodName: 'joinStrings',
+    );
+  }
+
+  @override
+  DateTime echoDateTime(DateTime value) {
+    checkDisposed();
+    return NitroRuntime.callSync(() {
+      final res = _echoDateTimePtr(
+        _instanceId,
+        value.millisecondsSinceEpoch,
+        _nitroErr,
+      );
+      NitroRuntime.throwIfOutParamError(_nitroErr);
+      return DateTime.fromMillisecondsSinceEpoch(res);
+    }, methodName: 'echoDateTime');
+  }
+
+  @override
+  DateTime? echoNullableDateTime(DateTime? value) {
+    checkDisposed();
+    return NitroRuntime.callSync(
+      () => withArena((arena) {
+        final res = _echoNullableDateTimePtr(
+          _instanceId,
+          arena.packInt(value?.millisecondsSinceEpoch),
+          _nitroErr,
+        );
+        NitroRuntime.throwIfOutParamError(_nitroErr);
+        final _msResult = res.decoded;
+        malloc.free(res);
+        return _msResult != null
+            ? DateTime.fromMillisecondsSinceEpoch(_msResult)
+            : null;
+      }),
+      methodName: 'echoNullableDateTime',
     );
   }
 
@@ -2944,6 +3114,52 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
   }
 
   @override
+  Map<String, TcConfig> echoConfigMap(Map<String, TcConfig> value) {
+    checkDisposed();
+    return NitroRuntime.callSync(
+      () => withArena((arena) {
+        final res = _echoConfigMapPtr(
+          _instanceId,
+          _nitroEncodeMapBinaryTcConfig(value, arena),
+          _nitroErr,
+        );
+        NitroRuntime.throwIfOutParamError(_nitroErr);
+        final Map<String, TcConfig> decoded;
+        try {
+          decoded = _nitroDecodeMapBinaryTcConfig(res);
+        } finally {
+          malloc.free(res);
+        }
+        return decoded;
+      }),
+      methodName: 'echoConfigMap',
+    );
+  }
+
+  @override
+  Map<String, TcEvent> echoEventMap(Map<String, TcEvent> value) {
+    checkDisposed();
+    return NitroRuntime.callSync(
+      () => withArena((arena) {
+        final res = _echoEventMapPtr(
+          _instanceId,
+          _nitroEncodeMapBinaryTcEvent(value, arena),
+          _nitroErr,
+        );
+        NitroRuntime.throwIfOutParamError(_nitroErr);
+        final Map<String, TcEvent> decoded;
+        try {
+          decoded = _nitroDecodeMapBinaryTcEvent(res);
+        } finally {
+          malloc.free(res);
+        }
+        return decoded;
+      }),
+      methodName: 'echoEventMap',
+    );
+  }
+
+  @override
   TcPacket echoPacket(TcPacket value) {
     checkDisposed();
     return NitroRuntime.callSync(
@@ -3821,6 +4037,88 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
   }
 
   @override
+  List<TcStatus> getStatusList() {
+    checkDisposed();
+    return NitroRuntime.callSync(() {
+      final res = _getStatusListPtr(_instanceId, _nitroErr);
+      NitroRuntime.throwIfOutParamError(_nitroErr);
+      return RecordReader.decodeList(res, (r) => r.readInt().toTcStatus());
+    }, methodName: 'getStatusList');
+  }
+
+  @override
+  List<TcStatus> echoStatusList(List<TcStatus> values) {
+    checkDisposed();
+    return NitroRuntime.callSync(
+      () => withArena((arena) {
+        final res = _echoStatusListPtr(
+          _instanceId,
+          RecordWriter.encodeList(
+            values,
+            (w, e) => w.writeInt(e.nativeValue),
+            arena,
+          ),
+          _nitroErr,
+        );
+        NitroRuntime.throwIfOutParamError(_nitroErr);
+        return RecordReader.decodeList(res, (r) => r.readInt().toTcStatus());
+      }),
+      methodName: 'echoStatusList',
+    );
+  }
+
+  @override
+  List<TcEvent> getEventList() {
+    checkDisposed();
+    return NitroRuntime.callSync(() {
+      final res = _getEventListPtr(_instanceId, _nitroErr);
+      NitroRuntime.throwIfOutParamError(_nitroErr);
+      return RecordReader.decodeList(
+        res,
+        (r) => TcEventVariantExt.fromReader(r),
+      );
+    }, methodName: 'getEventList');
+  }
+
+  @override
+  List<TcEvent> echoEventList(List<TcEvent> values) {
+    checkDisposed();
+    return NitroRuntime.callSync(
+      () => withArena((arena) {
+        final res = _echoEventListPtr(
+          _instanceId,
+          RecordWriter.encodeList(values, (w, v) => v.writeFields(w), arena),
+          _nitroErr,
+        );
+        NitroRuntime.throwIfOutParamError(_nitroErr);
+        return RecordReader.decodeList(
+          res,
+          (r) => TcEventVariantExt.fromReader(r),
+        );
+      }),
+      methodName: 'echoEventList',
+    );
+  }
+
+  @override
+  void configureNullableStatusStream(int count) {
+    checkDisposed();
+    NitroRuntime.callSync<void>(() {
+      _configureNullableStatusStreamPtr(_instanceId, count, _nitroErr);
+      NitroRuntime.throwIfOutParamError(_nitroErr);
+    }, methodName: 'configureNullableStatusStream');
+  }
+
+  @override
+  void configureNullableStringStream(int count) {
+    checkDisposed();
+    NitroRuntime.callSync<void>(() {
+      _configureNullableStringStreamPtr(_instanceId, count, _nitroErr);
+      NitroRuntime.throwIfOutParamError(_nitroErr);
+    }, methodName: 'configureNullableStringStream');
+  }
+
+  @override
   int get precision {
     checkDisposed();
     return NitroRuntime.callSync(() {
@@ -3972,6 +4270,35 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
         NitroRuntime.throwIfOutParamError(_nitroErr);
       }),
       methodName: 'set optionalFlag',
+    );
+  }
+
+  @override
+  TcEvent get currentEvent {
+    checkDisposed();
+    return NitroRuntime.callSync(() {
+      final res = _getCurrentEventPtr(_instanceId, _nitroErr);
+      NitroRuntime.throwIfOutParamError(_nitroErr);
+      if (res == nullptr) throw StateError('TcEvent returned null');
+      final _variant;
+      try {
+        _variant = TcEventVariantExt.fromNative(res);
+      } finally {
+        malloc.free(res);
+      }
+      return _variant;
+    }, methodName: 'get currentEvent');
+  }
+
+  @override
+  set currentEvent(TcEvent value) {
+    checkDisposed();
+    NitroRuntime.callSync<void>(
+      () => withArena((arena) {
+        _setCurrentEventPtr(_instanceId, value.toNative(arena), _nitroErr);
+        NitroRuntime.throwIfOutParamError(_nitroErr);
+      }),
+      methodName: 'set currentEvent',
     );
   }
 
@@ -4173,6 +4500,29 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
       backpressure: Backpressure.dropLatest,
     );
   }
+
+  @override
+  Stream<TcStatus?> nullableStatusStream() {
+    checkDisposed();
+    return NitroRuntime.openStream<TcStatus?>(
+      register: (port) => _registerNullableStatusStreamPtr(_instanceId, port),
+      unpack: (message) =>
+          message == null ? null : (message as int).toTcStatus(),
+      release: (port) => _releaseNullableStatusStreamPtr(port),
+      backpressure: Backpressure.dropLatest,
+    );
+  }
+
+  @override
+  Stream<String?> nullableStringStream() {
+    checkDisposed();
+    return NitroRuntime.openStream<String?>(
+      register: (port) => _registerNullableStringStreamPtr(_instanceId, port),
+      unpack: (message) => message as String?,
+      release: (port) => _releaseNullableStringStreamPtr(port),
+      backpressure: Backpressure.dropLatest,
+    );
+  }
 }
 
 // Binary map encode/decode helpers (generated by Nitrogen)
@@ -4342,6 +4692,104 @@ Map<String, bool> _nitroDecodeMapBinaryBool(Pointer<Uint8> ptr) {
     pos += 1; // skip type tag (always 3=bool for Map<String,bool>)
     final v = bd.getUint8(pos) != 0;
     pos += 1;
+    result[key] = v;
+  }
+  return result;
+}
+
+Pointer<Uint8> _nitroEncodeMapBinaryTcConfig(
+  Map<String, TcConfig> m,
+  Allocator alloc,
+) {
+  final bytes = _nitroMapPayload(m, (h, bb, v) {
+    bb.addByte(5);
+    final _rec = (v as TcConfig).toNative(alloc);
+    final _recLen =
+        ByteData.sublistView(_rec.asTypedList(4)).getInt32(0, Endian.little) +
+        4;
+    h.setInt32(0, _recLen, Endian.little);
+    bb.add(h.buffer.asUint8List(0, 4));
+    bb.add(_rec.asTypedList(_recLen));
+  });
+  final ptr = alloc<Uint8>(bytes.length);
+  ptr.asTypedList(bytes.length).setAll(0, bytes);
+  return ptr;
+}
+
+Map<String, TcConfig> _nitroDecodeMapBinaryTcConfig(Pointer<Uint8> ptr) {
+  final payLen = ByteData.sublistView(
+    ptr.asTypedList(4),
+  ).getInt32(0, Endian.little);
+  final bd = ByteData.sublistView(
+    Uint8List.fromList((ptr + 4).asTypedList(payLen)),
+  );
+  int pos = 0;
+  final count = bd.getInt32(pos, Endian.little);
+  pos += 4;
+  final result = <String, TcConfig>{};
+  for (var i = 0; i < count; i++) {
+    final kLen = bd.getInt32(pos, Endian.little);
+    pos += 4;
+    final key = utf8.decode(bd.buffer.asUint8List(pos, kLen));
+    pos += kLen;
+    pos += 1; // skip type tag (always 5=binary record for Map<String,TcConfig>)
+    final _bLen = bd.getInt32(pos, Endian.little);
+    pos += 4;
+    final _bSlice = bd.buffer.asUint8List(pos, _bLen);
+    pos += _bLen;
+    final _bPtr = malloc<Uint8>(_bLen);
+    _bPtr.asTypedList(_bLen).setAll(0, _bSlice);
+    final v = TcConfigRecordExt.fromNative(_bPtr);
+    malloc.free(_bPtr);
+    result[key] = v;
+  }
+  return result;
+}
+
+Pointer<Uint8> _nitroEncodeMapBinaryTcEvent(
+  Map<String, TcEvent> m,
+  Allocator alloc,
+) {
+  final bytes = _nitroMapPayload(m, (h, bb, v) {
+    bb.addByte(5);
+    final _rec = (v as TcEvent).toNative(alloc);
+    final _recLen =
+        ByteData.sublistView(_rec.asTypedList(4)).getInt32(0, Endian.little) +
+        4;
+    h.setInt32(0, _recLen, Endian.little);
+    bb.add(h.buffer.asUint8List(0, 4));
+    bb.add(_rec.asTypedList(_recLen));
+  });
+  final ptr = alloc<Uint8>(bytes.length);
+  ptr.asTypedList(bytes.length).setAll(0, bytes);
+  return ptr;
+}
+
+Map<String, TcEvent> _nitroDecodeMapBinaryTcEvent(Pointer<Uint8> ptr) {
+  final payLen = ByteData.sublistView(
+    ptr.asTypedList(4),
+  ).getInt32(0, Endian.little);
+  final bd = ByteData.sublistView(
+    Uint8List.fromList((ptr + 4).asTypedList(payLen)),
+  );
+  int pos = 0;
+  final count = bd.getInt32(pos, Endian.little);
+  pos += 4;
+  final result = <String, TcEvent>{};
+  for (var i = 0; i < count; i++) {
+    final kLen = bd.getInt32(pos, Endian.little);
+    pos += 4;
+    final key = utf8.decode(bd.buffer.asUint8List(pos, kLen));
+    pos += kLen;
+    pos += 1; // skip type tag (always 5=binary variant for Map<String,TcEvent>)
+    final _bLen = bd.getInt32(pos, Endian.little);
+    pos += 4;
+    final _bSlice = bd.buffer.asUint8List(pos, _bLen);
+    pos += _bLen;
+    final _bPtr = malloc<Uint8>(_bLen);
+    _bPtr.asTypedList(_bLen).setAll(0, _bSlice);
+    final v = TcEventVariantExt.fromNative(_bPtr);
+    malloc.free(_bPtr);
     result[key] = v;
   }
   return result;

@@ -39,6 +39,10 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     public func mulDoubles(a: Double, b: Double) -> Double { a * b }
     public func joinStrings(a: String, b: String, separator: String) -> String { a + separator + b }
 
+    // ── DateTime ─────────────────────────────────────────────────────────────
+    public func echoDateTime(value: Date) -> Date { value }
+    public func echoNullableDateTime(value: Date?) -> Date? { value }
+
     // ── Nullable primitives ───────────────────────────────────────────────────
     public func echoNullableInt(value: Int64?) -> Int64? { value }
     public func echoNullableDouble(value: Double?) -> Double? { value }
@@ -94,11 +98,13 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     public func echoNullableDoubleSafe(value: NitroNullableDouble) -> NitroNullableDouble { value }
     public func echoNullableBoolSafe(value: NitroNullableBool) -> NitroNullableBool { value }
 
-    // ── Maps (§24) ────────────────────────────────────────────────────────────
+    // ── Maps (§24 + L4) ──────────────────────────────────────────────────────
     public func echoIntMap(value: Any) -> Any { value }
     public func echoStringMap(value: Any) -> Any { value }
     public func echoDoubleMap(value: Any) -> Any { value }
     public func echoBoolMap(value: Any) -> Any { value }
+    public func echoConfigMap(value: Any) -> Any { value }
+    public func echoEventMap(value: Any) -> Any { value }
 
     // ── @HybridRecord with TypedData fields (§29) ────────────────────────────
     public func echoDataRecord(value: TcDataRecord) -> TcDataRecord { value }
@@ -360,6 +366,42 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
                 } else {
                     self?._eventStreamSubject.send(.scroll(delta: Double(i)))
                 }
+            }
+        }
+    }
+
+    // ── §63: List<@HybridEnum> ────────────────────────────────────────────────
+    public func getStatusList() -> [TcStatus] { [.ok, .error, .pending] }
+    public func echoStatusList(values: [TcStatus]) -> [TcStatus] { values }
+
+    // ── §64: List<@NitroVariant> ──────────────────────────────────────────────
+    public func getEventList() -> [TcEvent] {
+        [.tap(x: 1, y: 2), .scroll(delta: 3.5), .resize(width: 100, height: 200)]
+    }
+    public func echoEventList(values: [TcEvent]) -> [TcEvent] { values }
+
+    // ── §65: @NitroVariant as property type ──────────────────────────────────
+    public var currentEvent: TcEvent = .tap(x: 0, y: 0)
+
+    // ── §66: Nullable enum/String stream items ────────────────────────────────
+    private let _nullableStatusStreamSubject = PassthroughSubject<TcStatus?, Never>()
+    public var nullableStatusStream: AnyPublisher<TcStatus?, Never> { _nullableStatusStreamSubject.eraseToAnyPublisher() }
+    public func configureNullableStatusStream(count: Int64) {
+        DispatchQueue.global().async { [weak self] in
+            for i in 0..<count {
+                if i % 3 == 0 { self?._nullableStatusStreamSubject.send(nil) }
+                else if i % 3 == 1 { self?._nullableStatusStreamSubject.send(.ok) }
+                else { self?._nullableStatusStreamSubject.send(.error) }
+            }
+        }
+    }
+
+    private let _nullableStringStreamSubject = PassthroughSubject<String?, Never>()
+    public var nullableStringStream: AnyPublisher<String?, Never> { _nullableStringStreamSubject.eraseToAnyPublisher() }
+    public func configureNullableStringStream(count: Int64) {
+        DispatchQueue.global().async { [weak self] in
+            for i in 0..<count {
+                self?._nullableStringStreamSubject.send(i % 2 == 0 ? nil : "item\(i)")
             }
         }
     }
