@@ -5653,6 +5653,206 @@ void main() {
     });
   });
 
+  // ══════════════════════════════════════════════════════════════════════════
+  // §59 Gap 9 — Non-contiguous @HybridEnum round-trip
+  // TcPriority has native values [0, 100, 200] — non-sequential.
+  // The generator emits a switch expression instead of `index + startValue`.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('§59 Gap 9 — non-contiguous @HybridEnum', () {
+    test('echoPriority: low (native 0) round-trips', () {
+      expect(tc.echoPriority(TcPriority.low), TcPriority.low);
+    });
+    test('echoPriority: medium (native 100) round-trips', () {
+      expect(tc.echoPriority(TcPriority.medium), TcPriority.medium);
+    });
+    test('echoPriority: high (native 200) round-trips', () {
+      expect(tc.echoPriority(TcPriority.high), TcPriority.high);
+    });
+    test('TcPriority.values covers all three cases', () {
+      expect(TcPriority.values, hasLength(3));
+      expect(TcPriority.values, containsAllInOrder([
+        TcPriority.low, TcPriority.medium, TcPriority.high,
+      ]));
+    });
+    test('echoPriority: all values survive round-trip', () {
+      for (final p in TcPriority.values) {
+        expect(tc.echoPriority(p), p,
+            reason: '$p must survive round-trip through native bridge');
+      }
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // §60 Gap 10 — Backpressure.bufferDrop stream
+  // Items beyond the ring-buffer capacity drop the OLDEST entry.
+  // Integration test verifies items are delivered and cancellation is safe.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('§60 Gap 10 — Backpressure.bufferDrop stream', () {
+    testWidgets('bufferDropIntStream: items delivered', (t) async {
+      final items = <int>[];
+      final sub = tc.bufferDropIntStream().listen(items.add);
+      tc.configureBufferDropIntStream(0, 10);
+      await Future.delayed(const Duration(milliseconds: 300));
+      sub.cancel();
+      expect(items, isNotEmpty,
+          reason: 'bufferDropIntStream must deliver at least one item');
+    });
+
+    testWidgets('bufferDropIntStream: sequential values from 0..4', (t) async {
+      final items = <int>[];
+      final sub = tc.bufferDropIntStream().listen(items.add);
+      tc.configureBufferDropIntStream(0, 5);
+      await Future.delayed(const Duration(milliseconds: 300));
+      sub.cancel();
+      for (var i = 0; i < 5; i++) {
+        expect(items, contains(i),
+            reason: 'item $i should appear in bufferDropIntStream');
+      }
+    });
+
+    testWidgets('bufferDropIntStream: cancel mid-stream does not crash',
+        (t) async {
+      final sub = tc.bufferDropIntStream().listen((_) {});
+      tc.configureBufferDropIntStream(0, 100);
+      await Future.delayed(const Duration(milliseconds: 50));
+      sub.cancel();
+      await Future.delayed(const Duration(milliseconds: 100));
+      expect(true, isTrue, reason: 'Cancel mid-stream did not crash');
+    });
+
+    testWidgets('bufferDropIntStream: multiple subscribers independent',
+        (t) async {
+      final a = <int>[], b = <int>[];
+      final subA = tc.bufferDropIntStream().listen(a.add);
+      final subB = tc.bufferDropIntStream().listen(b.add);
+      tc.configureBufferDropIntStream(10, 5);
+      await Future.delayed(const Duration(milliseconds: 300));
+      subA.cancel();
+      subB.cancel();
+      expect(a, isNotEmpty);
+      expect(b, isNotEmpty);
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // §61 Gap 13 — @NitroVariant as callback parameter
+  // The callback receives a TcEvent variant (tagged union) from native.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('§61 Gap 13 — @NitroVariant as callback parameter', () {
+    testWidgets('onEventCallback: fires with TcEventTap case', (t) async {
+      final completer = Completer<TcEvent>();
+      tc.onEventCallback((event) {
+        if (!completer.isCompleted) completer.complete(event);
+      });
+      final received =
+          await completer.future.timeout(const Duration(seconds: 2));
+      expect(received, isA<TcEventTap>(),
+          reason: 'First callback event should be TcEventTap');
+      final tap = received as TcEventTap;
+      expect(tap.x, 10);
+      expect(tap.y, 20);
+    });
+
+    testWidgets('onEventCallback: fires multiple events with different cases',
+        (t) async {
+      final events = <TcEvent>[];
+      final completer = Completer<void>();
+      tc.onEventCallback((event) {
+        events.add(event);
+        if (events.length >= 2 && !completer.isCompleted) {
+          completer.complete();
+        }
+      });
+      await completer.future.timeout(const Duration(seconds: 2));
+      expect(events.length, greaterThanOrEqualTo(2));
+      expect(events[0], isA<TcEventTap>());
+      expect(events[1], isA<TcEventScroll>());
+    });
+
+    testWidgets('onEventCallback: TcEventScroll has correct delta', (t) async {
+      final events = <TcEvent>[];
+      final completer = Completer<void>();
+      tc.onEventCallback((event) {
+        events.add(event);
+        if (events.length >= 2 && !completer.isCompleted) {
+          completer.complete();
+        }
+      });
+      await completer.future.timeout(const Duration(seconds: 2));
+      final scroll = events.whereType<TcEventScroll>().first;
+      expect(scroll.delta, closeTo(1.5, 1e-9));
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // §62 Gap 17 — @NitroVariant as Stream<T> item
+  // eventStream delivers TcEvent variants (tap/scroll) from native.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('§62 Gap 17 — @NitroVariant as Stream item', () {
+    testWidgets('eventStream: delivers TcEvent items', (t) async {
+      final items = <TcEvent>[];
+      final sub = tc.eventStream().listen(items.add);
+      tc.configureEventStream(4);
+      await Future.delayed(const Duration(milliseconds: 300));
+      sub.cancel();
+      expect(items, isNotEmpty,
+          reason: 'eventStream must deliver at least one TcEvent');
+    });
+
+    testWidgets('eventStream: delivers alternating Tap and Scroll events',
+        (t) async {
+      final items = <TcEvent>[];
+      final sub = tc.eventStream().listen(items.add);
+      tc.configureEventStream(4);
+      await Future.delayed(const Duration(milliseconds: 300));
+      sub.cancel();
+      expect(items.whereType<TcEventTap>(), isNotEmpty,
+          reason: 'eventStream must deliver TcEventTap cases');
+      expect(items.whereType<TcEventScroll>(), isNotEmpty,
+          reason: 'eventStream must deliver TcEventScroll cases');
+    });
+
+    testWidgets('eventStream: TcEventTap has correct coordinates', (t) async {
+      final items = <TcEvent>[];
+      final sub = tc.eventStream().listen(items.add);
+      tc.configureEventStream(4);
+      await Future.delayed(const Duration(milliseconds: 300));
+      sub.cancel();
+      final taps = items.whereType<TcEventTap>().toList();
+      expect(taps, isNotEmpty);
+      // First tap is for i=0: x=0, y=0
+      final firstTap = taps.first;
+      expect(firstTap.x, 0);
+      expect(firstTap.y, 0);
+    });
+
+    testWidgets('eventStream: TcEventScroll has correct delta', (t) async {
+      final items = <TcEvent>[];
+      final sub = tc.eventStream().listen(items.add);
+      tc.configureEventStream(4);
+      await Future.delayed(const Duration(milliseconds: 300));
+      sub.cancel();
+      final scrolls = items.whereType<TcEventScroll>().toList();
+      expect(scrolls, isNotEmpty);
+      // First scroll is for i=1: delta=1.0
+      final firstScroll = scrolls.first;
+      expect(firstScroll.delta, closeTo(1.0, 1e-9));
+    });
+
+    testWidgets('eventStream: cancel mid-stream does not crash', (t) async {
+      final sub = tc.eventStream().listen((_) {});
+      tc.configureEventStream(50);
+      await Future.delayed(const Duration(milliseconds: 50));
+      sub.cancel();
+      await Future.delayed(const Duration(milliseconds: 100));
+      expect(true, isTrue, reason: 'Cancel mid-stream did not crash');
+    });
+  });
+
   group('§46i NitroOpt* old-sentinel regression guard', () {
     test('sync int? Int64.min is a value, never null', () {
       const min = -9223372036854775808;

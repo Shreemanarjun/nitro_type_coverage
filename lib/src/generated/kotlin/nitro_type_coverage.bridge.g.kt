@@ -12,9 +12,21 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.runBlocking
 
 // --- Enums ---
+@Keep
+enum class TcPriority(val nativeValue: Long) {
+  LOW(0),
+  MEDIUM(100),
+  HIGH(200);
+
+  companion object {
+    fun fromNative(v: Long): TcPriority = values().first { it.nativeValue == v }
+  }
+}
+
 @Keep
 enum class TcStatus(val nativeValue: Long) {
   OK(0),
@@ -814,6 +826,15 @@ sealed class TcEvent {
       }
     }
   }
+
+  fun encode(): ByteArray {
+    val w = RecordWriter()
+    writeFields(w)
+    val payload = w.toByteArray()
+    val lenBuf = java.nio.ByteBuffer.allocate(4).order(java.nio.ByteOrder.LITTLE_ENDIAN)
+    lenBuf.putInt(payload.size)
+    return lenBuf.array() + payload
+  }
 }
 
 /** Minimal RecordReader for @NitroVariant bridge decode. */
@@ -1098,6 +1119,14 @@ interface HybridNitroTypeCoverageSpec {
     suspend fun asyncSafeDiv(a: Double, b: Double): Double
     // source: nitro_type_coverage.native.dart:353
     suspend fun asyncValidateLabel(label: String): String
+    // source: nitro_type_coverage.native.dart:356
+    fun echoPriority(value: TcPriority): TcPriority
+    // source: nitro_type_coverage.native.dart:361
+    fun configureBufferDropIntStream(from: Long, count: Long): Unit
+    // source: nitro_type_coverage.native.dart:364
+    fun onEventCallback(handler: (p0: TcEvent) -> Unit): Unit
+    // source: nitro_type_coverage.native.dart:369
+    fun configureEventStream(count: Long): Unit
     var precision: Long
     var tag: String
     var nullableRate: Double?
@@ -1117,6 +1146,8 @@ interface HybridNitroTypeCoverageSpec {
     val boolStream: Flow<Boolean>
     val doubleStream: Flow<Double>
     val statusStream: Flow<TcStatus>
+    val bufferDropIntStream: Flow<Long>
+    val eventStream: Flow<TcEvent>
 }
 
 @Keep
@@ -2127,6 +2158,26 @@ object NitroTypeCoverageJniBridge {
             nitroEncodeResultError(_e.message ?: "Unknown error")
         }
     }
+    // source: nitro_type_coverage.native.dart:356
+    @JvmStatic fun echoPriority_call(instanceId: Long, value: Long): Long {
+        val impl = _implementations[instanceId] ?: throw IllegalStateException("NitroTypeCoverage instance $instanceId not registered")
+        return impl.echoPriority(TcPriority.fromNative(value)).nativeValue
+    }
+    // source: nitro_type_coverage.native.dart:361
+    @JvmStatic fun configureBufferDropIntStream_call(instanceId: Long, from: Long, count: Long): Unit {
+        val impl = _implementations[instanceId] ?: throw IllegalStateException("NitroTypeCoverage instance $instanceId not registered")
+        impl.configureBufferDropIntStream(from, count)
+    }
+    // source: nitro_type_coverage.native.dart:364
+    @JvmStatic fun onEventCallback_call(instanceId: Long, handler: Long): Unit {
+        val impl = _implementations[instanceId] ?: throw IllegalStateException("NitroTypeCoverage instance $instanceId not registered")
+        impl.onEventCallback({ p0: TcEvent -> _invoke_handler(handler, p0.encode()) })
+    }
+    // source: nitro_type_coverage.native.dart:369
+    @JvmStatic fun configureEventStream_call(instanceId: Long, count: Long): Unit {
+        val impl = _implementations[instanceId] ?: throw IllegalStateException("NitroTypeCoverage instance $instanceId not registered")
+        impl.configureEventStream(count)
+    }
     @JvmStatic fun nitro_type_coverage_get_precision_call(instanceId: Long): Long {
         val impl = _implementations[instanceId] ?: throw IllegalStateException("NitroTypeCoverage instance $instanceId not registered")
         return impl.precision
@@ -2331,12 +2382,14 @@ object NitroTypeCoverageJniBridge {
     @JvmStatic fun nitro_type_coverage_register_block_int_stream_stream_call(instanceId: Long, dartPort: Long) {
         val impl = _implementations[instanceId] ?: return
         _streamJobs[Pair("blockIntStream", dartPort)] = CoroutineScope(Dispatchers.Default).launch(start = CoroutineStart.UNDISPATCHED) {
-            impl.blockIntStream.collect { item -> 
-                if (!emit_blockIntStream(dartPort, item)) {
-                    _streamJobs.remove(Pair("blockIntStream", dartPort))?.cancel()
-                    return@collect
+            impl.blockIntStream
+                .buffer(capacity = 64)
+                .collect { item ->
+                    if (!emit_blockIntStream(dartPort, item)) {
+                        _streamJobs.remove(Pair("blockIntStream", dartPort))?.cancel()
+                        return@collect
+                    }
                 }
-            }
         }
     }
     @JvmStatic fun nitro_type_coverage_release_block_int_stream_stream_call(dartPort: Long) {
@@ -2422,6 +2475,40 @@ object NitroTypeCoverageJniBridge {
     @JvmStatic fun nitro_type_coverage_release_status_stream_stream_call(dartPort: Long) {
         _streamJobs.remove(Pair("statusStream", dartPort))?.cancel()
     }
+    @JvmStatic external fun emit_bufferDropIntStream(dartPort: Long, item: Long): Boolean
+
+    @JvmStatic fun nitro_type_coverage_register_buffer_drop_int_stream_stream_call(instanceId: Long, dartPort: Long) {
+        val impl = _implementations[instanceId] ?: return
+        _streamJobs[Pair("bufferDropIntStream", dartPort)] = CoroutineScope(Dispatchers.Default).launch(start = CoroutineStart.UNDISPATCHED) {
+            impl.bufferDropIntStream
+                .buffer(capacity = 64, onBufferOverflow = kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST)
+                .collect { item ->
+                    if (!emit_bufferDropIntStream(dartPort, item)) {
+                        _streamJobs.remove(Pair("bufferDropIntStream", dartPort))?.cancel()
+                        return@collect
+                    }
+                }
+        }
+    }
+    @JvmStatic fun nitro_type_coverage_release_buffer_drop_int_stream_stream_call(dartPort: Long) {
+        _streamJobs.remove(Pair("bufferDropIntStream", dartPort))?.cancel()
+    }
+    @JvmStatic external fun emit_eventStream(dartPort: Long, item: ByteArray): Boolean
+
+    @JvmStatic fun nitro_type_coverage_register_event_stream_stream_call(instanceId: Long, dartPort: Long) {
+        val impl = _implementations[instanceId] ?: return
+        _streamJobs[Pair("eventStream", dartPort)] = CoroutineScope(Dispatchers.Default).launch(start = CoroutineStart.UNDISPATCHED) {
+            impl.eventStream.collect { item -> 
+                if (!emit_eventStream(dartPort, item.encode())) {
+                    _streamJobs.remove(Pair("eventStream", dartPort))?.cancel()
+                    return@collect
+                }
+            }
+        }
+    }
+    @JvmStatic fun nitro_type_coverage_release_event_stream_stream_call(dartPort: Long) {
+        _streamJobs.remove(Pair("eventStream", dartPort))?.cancel()
+    }
     @JvmStatic external fun _invoke_transformCb(callbackPtr: Long, arg0: Long): Long
     @JvmStatic external fun _release_transformCb(callbackPtr: Long)
     @JvmStatic external fun _invoke_stringCb(callbackPtr: Long, arg0: Long): String
@@ -2438,4 +2525,6 @@ object NitroTypeCoverageJniBridge {
     @JvmStatic external fun _release_detailCb(callbackPtr: Long)
     @JvmStatic external fun _invoke_callback(callbackPtr: Long, arg0: Long)
     @JvmStatic external fun _release_callback(callbackPtr: Long)
+    @JvmStatic external fun _invoke_handler(callbackPtr: Long, arg0: ByteArray)
+    @JvmStatic external fun _release_handler(callbackPtr: Long)
 }

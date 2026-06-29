@@ -21,6 +21,7 @@ import nitro.nitro_type_coverage_module.TcPacket
 import nitro.nitro_type_coverage_module.TcEvent
 import nitro.nitro_type_coverage_module.TcPoint
 import nitro.nitro_type_coverage_module.TcStatus
+import nitro.nitro_type_coverage_module.TcPriority
 import nitro.nitro_type_coverage_module.TcStructHolder
 
 /// Complete echo implementation of HybridNitroTypeCoverageSpec.
@@ -380,6 +381,39 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
         val trimmed = label.trim()
         if (trimmed.isEmpty()) throw IllegalArgumentException("empty label")
         return trimmed
+    }
+
+    // ── §59: Gap 9 — non-contiguous enum round-trip ───────────────────────────
+    override fun echoPriority(value: TcPriority): TcPriority = value
+
+    // ── §60: Gap 10 — Backpressure.bufferDrop stream ─────────────────────────
+    private val _bufferDropIntStream = MutableSharedFlow<Long>(extraBufferCapacity = 64)
+    override val bufferDropIntStream: kotlinx.coroutines.flow.Flow<Long> = _bufferDropIntStream
+    override fun configureBufferDropIntStream(from: Long, count: Long) {
+        CoroutineScope(Dispatchers.Default).launch {
+            for (i in 0 until count) { _bufferDropIntStream.emit(from + i) }
+        }
+    }
+
+    // ── §61: Gap 13 — @NitroVariant as callback parameter ────────────────────
+    override fun onEventCallback(handler: (p0: TcEvent) -> Unit) {
+        handler(TcEvent.TcEventTap(x = 10L, y = 20L))
+        handler(TcEvent.TcEventScroll(delta = 1.5))
+    }
+
+    // ── §62: Gap 17 — @NitroVariant as Stream item ───────────────────────────
+    private val _eventStream = MutableSharedFlow<TcEvent>(extraBufferCapacity = 64)
+    override val eventStream: kotlinx.coroutines.flow.Flow<TcEvent> = _eventStream
+    override fun configureEventStream(count: Long) {
+        CoroutineScope(Dispatchers.Default).launch {
+            for (i in 0 until count) {
+                if (i % 2 == 0L) {
+                    _eventStream.emit(TcEvent.TcEventTap(x = i, y = i * 2))
+                } else {
+                    _eventStream.emit(TcEvent.TcEventScroll(delta = i.toDouble()))
+                }
+            }
+        }
     }
 
     companion object {

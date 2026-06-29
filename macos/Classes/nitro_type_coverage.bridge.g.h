@@ -37,6 +37,12 @@ typedef struct { uint8_t hasValue; uint8_t  value; } NitroOptBool;
 
 // --- Enums ---
 typedef enum {
+  TCPRIORITY_LOW = 0,
+  TCPRIORITY_MEDIUM = 100,
+  TCPRIORITY_HIGH = 200,
+} TcPriority;
+
+typedef enum {
   TCSTATUS_OK = 0,
   TCSTATUS_ERROR = 1,
   TCSTATUS_PENDING = 2,
@@ -165,6 +171,10 @@ NITRO_EXPORT void* nitro_type_coverage_async_acquire_buffer(int64_t instanceId, 
 NITRO_EXPORT uint8_t* nitro_type_coverage_async_echo_event(int64_t instanceId, void* event);
 NITRO_EXPORT uint8_t* nitro_type_coverage_async_safe_div(int64_t instanceId, double a, double b);
 NITRO_EXPORT uint8_t* nitro_type_coverage_async_validate_label(int64_t instanceId, const char* label);
+NITRO_EXPORT int64_t nitro_type_coverage_echo_priority(int64_t instanceId, int64_t value, NitroError* _nitro_err);
+NITRO_EXPORT void nitro_type_coverage_configure_buffer_drop_int_stream(int64_t instanceId, int64_t from, int64_t count, NitroError* _nitro_err);
+NITRO_EXPORT void nitro_type_coverage_on_event_callback(int64_t instanceId, void (*handler)(void*), NitroError* _nitro_err);
+NITRO_EXPORT void nitro_type_coverage_configure_event_stream(int64_t instanceId, int64_t count, NitroError* _nitro_err);
 
 // Properties
 NITRO_EXPORT int64_t nitro_type_coverage_get_precision(int64_t instanceId, NitroError* _nitro_err);
@@ -219,6 +229,12 @@ NITRO_EXPORT void nitro_type_coverage_release_double_stream_stream(int64_t dart_
 // Stream<TcStatus> statusStream
 NITRO_EXPORT void nitro_type_coverage_register_status_stream_stream(int64_t instanceId, int64_t dart_port);
 NITRO_EXPORT void nitro_type_coverage_release_status_stream_stream(int64_t dart_port);
+// Stream<int> bufferDropIntStream
+NITRO_EXPORT void nitro_type_coverage_register_buffer_drop_int_stream_stream(int64_t instanceId, int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_release_buffer_drop_int_stream_stream(int64_t dart_port);
+// Stream<TcEvent> eventStream
+NITRO_EXPORT void nitro_type_coverage_register_event_stream_stream(int64_t instanceId, int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_release_event_stream_stream(int64_t dart_port);
 
 // Struct release functions
 NITRO_EXPORT void nitro_type_coverage_release_TcPoint(void* ptr);

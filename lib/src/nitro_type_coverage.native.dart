@@ -351,9 +351,28 @@ abstract class NitroTypeCoverage extends HybridObject {
   @nitroAsync
   @NitroResult()
   Future<NitroResultValue<String>> asyncValidateLabel(String label);
+
+  // ── §59: Gap 9 — non-contiguous enum round-trip ──────────────────────────
+  TcPriority echoPriority(TcPriority value);
+
+  // ── §60: Gap 10 — Backpressure.bufferDrop stream ─────────────────────────
+  @NitroStream(backpressure: Backpressure.bufferDrop)
+  Stream<int> bufferDropIntStream();
+  void configureBufferDropIntStream(int from, int count);
+
+  // ── §61: Gap 13 — @NitroVariant as callback parameter ────────────────────
+  void onEventCallback(void Function(TcEvent event) handler);
+
+  // ── §62: Gap 17 — @NitroVariant as Stream item ───────────────────────────
+  @NitroStream(backpressure: Backpressure.dropLatest)
+  Stream<TcEvent> eventStream();
+  void configureEventStream(int count);
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
+
+@HybridEnum(nativeValues: [0, 100, 200])
+enum TcPriority { low, medium, high }
 
 @HybridEnum()
 enum TcStatus { ok, error, pending }

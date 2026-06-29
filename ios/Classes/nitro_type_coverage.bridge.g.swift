@@ -34,6 +34,12 @@ public protocol NitroEncodable {
 }
 
 // --- Enums ---
+public enum TcPriority: Int64 {
+  case low = 0
+  case medium = 100
+  case high = 200
+}
+
 public enum TcStatus: Int64 {
   case ok = 0
   case error = 1
@@ -1133,6 +1139,14 @@ public protocol HybridNitroTypeCoverageProtocol: AnyObject {
     func asyncSafeDiv(a: Double, b: Double) async throws -> Double
     // source: nitro_type_coverage.native.dart:353
     func asyncValidateLabel(label: String) async throws -> String
+    // source: nitro_type_coverage.native.dart:356
+    func echoPriority(value: TcPriority) -> TcPriority
+    // source: nitro_type_coverage.native.dart:361
+    func configureBufferDropIntStream(from: Int64, count: Int64) -> Void
+    // source: nitro_type_coverage.native.dart:364
+    func onEventCallback(handler: @escaping (TcEvent) -> Void) -> Void
+    // source: nitro_type_coverage.native.dart:369
+    func configureEventStream(count: Int64) -> Void
     var precision: Int64 { get set }
     var tag: String { get set }
     var nullableRate: Double? { get set }
@@ -1152,6 +1166,8 @@ public protocol HybridNitroTypeCoverageProtocol: AnyObject {
     var boolStream: AnyPublisher<Bool, Never> { get }
     var doubleStream: AnyPublisher<Double, Never> { get }
     var statusStream: AnyPublisher<TcStatus, Never> { get }
+    var bufferDropIntStream: AnyPublisher<Int64, Never> { get }
+    var eventStream: AnyPublisher<TcEvent, Never> { get }
 }
 
 public class NitroTypeCoverageRegistry {
@@ -1199,6 +1215,12 @@ public class NitroTypeCoverageRegistry {
 
     // Stream: statusStream cancellables keyed by dartPort
     public static var _statusStreamCancellables = [Int64: AnyCancellable]()
+
+    // Stream: bufferDropIntStream cancellables keyed by dartPort
+    public static var _bufferDropIntStreamCancellables = [Int64: AnyCancellable]()
+
+    // Stream: eventStream cancellables keyed by dartPort
+    public static var _eventStreamCancellables = [Int64: AnyCancellable]()
 }
 
 // MARK: - C bridge stubs — exported as C symbols called by the generated .cpp shim
@@ -2183,6 +2205,31 @@ public func _nitro_type_coverage_call_asyncValidateLabel(_ label: UnsafePointer<
     return _nitroEncodeResultString(_ok)
 }
 
+// source: nitro_type_coverage.native.dart:356
+@_cdecl("_nitro_type_coverage_call_echoPriority")
+public func _nitro_type_coverage_call_echoPriority(_ value: Int64) -> Int64 {
+    guard let impl = NitroTypeCoverageRegistry.impl else { return 0 }
+    return impl.echoPriority(value: TcPriority(rawValue: value)!).rawValue
+}
+
+// source: nitro_type_coverage.native.dart:361
+@_cdecl("_nitro_type_coverage_call_configureBufferDropIntStream")
+public func _nitro_type_coverage_call_configureBufferDropIntStream(_ from: Int64, _ count: Int64) -> Void {
+    NitroTypeCoverageRegistry.impl?.configureBufferDropIntStream(from: from, count: count)
+}
+
+// source: nitro_type_coverage.native.dart:364
+@_cdecl("_nitro_type_coverage_call_onEventCallback")
+public func _nitro_type_coverage_call_onEventCallback(_ handler: @convention(c) (UnsafeMutablePointer<UInt8>?) -> Void) -> Void {
+    NitroTypeCoverageRegistry.impl?.onEventCallback(handler: { arg0 in handler(arg0.toNative()) })
+}
+
+// source: nitro_type_coverage.native.dart:369
+@_cdecl("_nitro_type_coverage_call_configureEventStream")
+public func _nitro_type_coverage_call_configureEventStream(_ count: Int64) -> Void {
+    NitroTypeCoverageRegistry.impl?.configureEventStream(count: count)
+}
+
 @_cdecl("_nitro_type_coverage_call_get_precision")
 public func _nitro_type_coverage_call_get_precision() -> Int64 {
     return NitroTypeCoverageRegistry.impl?.precision ?? 0
@@ -2416,9 +2463,7 @@ public func _nitro_type_coverage_register_stringStream_stream(
     NitroTypeCoverageRegistry._stringStreamCancellables[dartPort] =
         NitroTypeCoverageRegistry.impl?.stringStream.sink { item in
             item.withCString { ptr in
-                if !emitCb(dartPort, UnsafeMutablePointer(mutating: ptr)) {
-                    NitroTypeCoverageRegistry._stringStreamCancellables.removeValue(forKey: dartPort)?.cancel()
-                }
+                if !emitCb(dartPort, UnsafeMutablePointer(mutating: ptr)) { NitroTypeCoverageRegistry._stringStreamCancellables.removeValue(forKey: dartPort)?.cancel() }
             }
         }
 }
@@ -2436,9 +2481,7 @@ public func _nitro_type_coverage_register_batchStringStream_stream(
     NitroTypeCoverageRegistry._batchStringStreamCancellables[dartPort] =
         NitroTypeCoverageRegistry.impl?.batchStringStream.sink { item in
             item.withCString { ptr in
-                if !emitCb(dartPort, UnsafeMutablePointer(mutating: ptr)) {
-                    NitroTypeCoverageRegistry._batchStringStreamCancellables.removeValue(forKey: dartPort)?.cancel()
-                }
+                if !emitCb(dartPort, UnsafeMutablePointer(mutating: ptr)) { NitroTypeCoverageRegistry._batchStringStreamCancellables.removeValue(forKey: dartPort)?.cancel() }
             }
         }
 }
@@ -2453,11 +2496,13 @@ public func _nitro_type_coverage_register_blockIntStream_stream(
     _ dartPort: Int64,
     _ emitCb: @convention(c) (Int64, Int64) -> Bool
 ) {
+    let _serialQ = DispatchQueue(label: "com.nitro.block.blockIntStream.(dartPort)", qos: .userInteractive)
     NitroTypeCoverageRegistry._blockIntStreamCancellables[dartPort] =
-        NitroTypeCoverageRegistry.impl?.blockIntStream.sink { item in
-            if !emitCb(dartPort, item) {
-                NitroTypeCoverageRegistry._blockIntStreamCancellables.removeValue(forKey: dartPort)?.cancel()
-            }
+        NitroTypeCoverageRegistry.impl?.blockIntStream
+            .buffer(size: 64, prefetch: .byRequest, whenFull: .dropNewest)
+            .receive(on: _serialQ)
+            .sink { item in
+                if !emitCb(dartPort, item) { NitroTypeCoverageRegistry._blockIntStreamCancellables.removeValue(forKey: dartPort)?.cancel() }
         }
 }
 
@@ -2473,9 +2518,7 @@ public func _nitro_type_coverage_register_intStream_stream(
 ) {
     NitroTypeCoverageRegistry._intStreamCancellables[dartPort] =
         NitroTypeCoverageRegistry.impl?.intStream.sink { item in
-            if !emitCb(dartPort, item) {
-                NitroTypeCoverageRegistry._intStreamCancellables.removeValue(forKey: dartPort)?.cancel()
-            }
+            if !emitCb(dartPort, item) { NitroTypeCoverageRegistry._intStreamCancellables.removeValue(forKey: dartPort)?.cancel() }
         }
 }
 
@@ -2513,9 +2556,7 @@ public func _nitro_type_coverage_register_boolStream_stream(
 ) {
     NitroTypeCoverageRegistry._boolStreamCancellables[dartPort] =
         NitroTypeCoverageRegistry.impl?.boolStream.sink { item in
-            if !emitCb(dartPort, Int8(item ? 1 : 0)) {
-                NitroTypeCoverageRegistry._boolStreamCancellables.removeValue(forKey: dartPort)?.cancel()
-            }
+            if !emitCb(dartPort, Int8(item ? 1 : 0)) { NitroTypeCoverageRegistry._boolStreamCancellables.removeValue(forKey: dartPort)?.cancel() }
         }
 }
 
@@ -2531,9 +2572,7 @@ public func _nitro_type_coverage_register_doubleStream_stream(
 ) {
     NitroTypeCoverageRegistry._doubleStreamCancellables[dartPort] =
         NitroTypeCoverageRegistry.impl?.doubleStream.sink { item in
-            if !emitCb(dartPort, item) {
-                NitroTypeCoverageRegistry._doubleStreamCancellables.removeValue(forKey: dartPort)?.cancel()
-            }
+            if !emitCb(dartPort, item) { NitroTypeCoverageRegistry._doubleStreamCancellables.removeValue(forKey: dartPort)?.cancel() }
         }
 }
 
@@ -2549,9 +2588,7 @@ public func _nitro_type_coverage_register_statusStream_stream(
 ) {
     NitroTypeCoverageRegistry._statusStreamCancellables[dartPort] =
         NitroTypeCoverageRegistry.impl?.statusStream.sink { item in
-            if !emitCb(dartPort, item.rawValue) {
-                NitroTypeCoverageRegistry._statusStreamCancellables.removeValue(forKey: dartPort)?.cancel()
-            }
+            if !emitCb(dartPort, item.rawValue) { NitroTypeCoverageRegistry._statusStreamCancellables.removeValue(forKey: dartPort)?.cancel() }
         }
 }
 
@@ -2559,4 +2596,42 @@ public func _nitro_type_coverage_register_statusStream_stream(
 public func _nitro_type_coverage_release_statusStream_stream(_ dartPort: Int64) {
     NitroTypeCoverageRegistry._statusStreamCancellables[dartPort]?.cancel()
     NitroTypeCoverageRegistry._statusStreamCancellables.removeValue(forKey: dartPort)
+}
+@_cdecl("_nitro_type_coverage_register_bufferDropIntStream_stream")
+public func _nitro_type_coverage_register_bufferDropIntStream_stream(
+    _ dartPort: Int64,
+    _ emitCb: @convention(c) (Int64, Int64) -> Bool
+) {
+    NitroTypeCoverageRegistry._bufferDropIntStreamCancellables[dartPort] =
+        NitroTypeCoverageRegistry.impl?.bufferDropIntStream
+            .buffer(size: 64, prefetch: .byRequest, whenFull: .dropOldest)
+            .sink { item in
+                if !emitCb(dartPort, item) { NitroTypeCoverageRegistry._bufferDropIntStreamCancellables.removeValue(forKey: dartPort)?.cancel() }
+        }
+}
+
+@_cdecl("_nitro_type_coverage_release_bufferDropIntStream_stream")
+public func _nitro_type_coverage_release_bufferDropIntStream_stream(_ dartPort: Int64) {
+    NitroTypeCoverageRegistry._bufferDropIntStreamCancellables[dartPort]?.cancel()
+    NitroTypeCoverageRegistry._bufferDropIntStreamCancellables.removeValue(forKey: dartPort)
+}
+@_cdecl("_nitro_type_coverage_register_eventStream_stream")
+public func _nitro_type_coverage_register_eventStream_stream(
+    _ dartPort: Int64,
+    _ emitCb: @convention(c) (Int64, UnsafeMutablePointer<UInt8>?) -> Bool
+) {
+    NitroTypeCoverageRegistry._eventStreamCancellables[dartPort] =
+        NitroTypeCoverageRegistry.impl?.eventStream.sink { item in
+            let raw = item.toNative()
+            if !emitCb(dartPort, raw) {
+                if let raw { free(UnsafeMutableRawPointer(raw)) }
+                NitroTypeCoverageRegistry._eventStreamCancellables.removeValue(forKey: dartPort)?.cancel()
+            }
+        }
+}
+
+@_cdecl("_nitro_type_coverage_release_eventStream_stream")
+public func _nitro_type_coverage_release_eventStream_stream(_ dartPort: Int64) {
+    NitroTypeCoverageRegistry._eventStreamCancellables[dartPort]?.cancel()
+    NitroTypeCoverageRegistry._eventStreamCancellables.removeValue(forKey: dartPort)
 }

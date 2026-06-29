@@ -87,7 +87,7 @@ run_on_device() {
   local label="$1"
   local target="${2:-$label}"
   local log_file
-  log_file="$(mktemp /tmp/nitro_test_XXXXXX.log)"
+  log_file="$(mktemp "${TMPDIR:-/tmp}/nitro_test_XXXXXX.log")"
 
   log_info "Running integration tests on: $label"
 

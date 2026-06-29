@@ -330,4 +330,37 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
         if trimmed.isEmpty { throw NSError(domain: "NitroTypeCoverage", code: 2, userInfo: [NSLocalizedDescriptionKey: "empty label"]) }
         return trimmed
     }
+
+    // ── §59: Gap 9 — non-contiguous enum round-trip ───────────────────────────
+    public func echoPriority(value: TcPriority) -> TcPriority { value }
+
+    // ── §60: Gap 10 — Backpressure.bufferDrop stream ─────────────────────────
+    private let _bufferDropIntSubject = PassthroughSubject<Int64, Never>()
+    public var bufferDropIntStream: AnyPublisher<Int64, Never> { _bufferDropIntSubject.eraseToAnyPublisher() }
+    public func configureBufferDropIntStream(from: Int64, count: Int64) {
+        DispatchQueue.global().async { [weak self] in
+            for i in 0..<count { self?._bufferDropIntSubject.send(from + i) }
+        }
+    }
+
+    // ── §61: Gap 13 — @NitroVariant as callback parameter ────────────────────
+    public func onEventCallback(handler: @escaping (TcEvent) -> Void) {
+        handler(.tap(x: 10, y: 20))
+        handler(.scroll(delta: 1.5))
+    }
+
+    // ── §62: Gap 17 — @NitroVariant as Stream item ───────────────────────────
+    private let _eventStreamSubject = PassthroughSubject<TcEvent, Never>()
+    public var eventStream: AnyPublisher<TcEvent, Never> { _eventStreamSubject.eraseToAnyPublisher() }
+    public func configureEventStream(count: Int64) {
+        DispatchQueue.global().async { [weak self] in
+            for i in 0..<count {
+                if i % 2 == 0 {
+                    self?._eventStreamSubject.send(.tap(x: i, y: i * 2))
+                } else {
+                    self?._eventStreamSubject.send(.scroll(delta: Double(i)))
+                }
+            }
+        }
+    }
 }
