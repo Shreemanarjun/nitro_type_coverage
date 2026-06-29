@@ -184,6 +184,16 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
         }
     }
 
+    private var _batchStringSubject = PassthroughSubject<String, Never>()
+    public var batchStringStream: AnyPublisher<String, Never> {
+        _batchStringSubject.eraseToAnyPublisher()
+    }
+    public func configureBatchStringStream(values: [String]) {
+        DispatchQueue.global().async { [weak self] in
+            for v in values { self?._batchStringSubject.send(v) }
+        }
+    }
+
     // ── §35: Bool/enum bidirectional callbacks ────────────────────────────────
     public func onBoolTransform(boolCb: @escaping (Int64) -> Bool) {
         _ = boolCb(42)  // Dart returns true when value == 42
@@ -292,6 +302,16 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
         if trimmed.isEmpty { throw NSError(domain: "NitroTypeCoverage", code: 2, userInfo: [NSLocalizedDescriptionKey: "empty label"]) }
         return trimmed
     }
+
+    // ── §47: Slow async — deliberate delay for timeout testing ────────────────
+    public func slowAsync(delayMs: Int64) async throws -> Int64 {
+        try await Task.sleep(nanoseconds: UInt64(delayMs) * 1_000_000)
+        return delayMs
+    }
+
+    // ── §52: Deeply nested @HybridRecord ─────────────────────────────────────
+    public func echoDeepRecord(value: TcDeepRecord) -> TcDeepRecord { value }
+    public func asyncDeepRecord(value: TcDeepRecord) async throws -> TcDeepRecord { value }
 
     // ── §37: @nitroAsync + @NitroOwned/@NitroVariant/@NitroResult ────────────
     public func asyncAcquireBuffer(size: Int64) async throws -> UnsafeMutableRawPointer? {

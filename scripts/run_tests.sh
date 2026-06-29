@@ -86,14 +86,31 @@ ios_devices()     { _devices_for 'ios'; }
 run_on_device() {
   local label="$1"
   local target="${2:-$label}"
+  local log_file
+  log_file="$(mktemp /tmp/nitro_test_XXXXXX.log)"
 
   log_info "Running integration tests on: $label"
 
-  if (cd "$EXAMPLE_DIR" && flutter test "$TEST_FILE" -d "$target" 2>&1); then
+  if (cd "$EXAMPLE_DIR" && flutter test "$TEST_FILE" -d "$target" 2>&1) | tee "$log_file"; then
     log_ok "PASSED — $label"
+    rm -f "$log_file"
     return 0
   else
     log_err "FAILED — $label"
+    echo ""
+    echo "════════════════════════════════════════════════════════════════"
+    echo "  FAILURE DIGEST — $label"
+    echo "════════════════════════════════════════════════════════════════"
+    # Print only failing test names, exception messages, and error lines.
+    grep -E '^\s*(✗|EXCEPTION|The following|#[0-9]+|TimeoutException|Error:|error:|Expected:|Actual:|Test failed\.)' "$log_file" \
+      | head -60 || true
+    # Also print the last 20 lines for context.
+    echo ""
+    echo "--- last 20 lines of output ---"
+    tail -20 "$log_file"
+    echo "════════════════════════════════════════════════════════════════"
+    echo ""
+    rm -f "$log_file"
     return 1
   fi
 }

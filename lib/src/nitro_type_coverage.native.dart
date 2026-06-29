@@ -1,3 +1,5 @@
+import 'dart:isolate';
+
 import 'package:nitro/nitro.dart';
 
 part 'nitro_type_coverage.g.dart';
@@ -8,7 +10,14 @@ part 'nitro_type_coverage.g.dart';
   macos: NativeImpl.swift,
 )
 abstract class NitroTypeCoverage extends HybridObject {
-  static final NitroTypeCoverage instance = _NitroTypeCoverageImpl();
+  // Default singleton — same as getInstance('default').
+  static NitroTypeCoverage get instance => getInstance();
+
+  // Returns the cached instance for [key], creating one on first access.
+  // Each unique key maps to a dedicated native impl (string-keyed registry,
+  // int64 instanceId used internally for zero-overhead C bridge calls).
+  static NitroTypeCoverage getInstance([String key = 'default']) =>
+      _NitroTypeCoverageImpl(key);
 
   // ── Primitives (sync) ──────────────────────────────────────────────────────
   int echoInt(int value);
@@ -217,6 +226,11 @@ abstract class NitroTypeCoverage extends HybridObject {
   Stream<String> stringStream();
   void configureStringStream(List<String> values);
 
+  // ── §42: Secondary String stream — validates multiple concurrent String streams ──
+  @NitroStream(backpressure: Backpressure.dropLatest)
+  Stream<String> batchStringStream();
+  void configureBatchStringStream(List<String> values);
+
   // ── §35: Backpressure.block stream ────────────────────────────────────────
   @NitroStream(backpressure: Backpressure.block)
   Stream<int> blockIntStream();
@@ -304,6 +318,19 @@ abstract class NitroTypeCoverage extends HybridObject {
   // validateLabel returns NitroResultValue<String>: NitroOk(trimmed) or NitroErr("empty label").
   @NitroResult()
   NitroResultValue<String> validateLabel(String label);
+
+  // ── §47: Slow async — deliberate delay for timeout testing ───────────────
+  // Returns delayMs after sleeping that many milliseconds.
+  // @NitroAsync(timeout: 800) enforces an 800 ms deadline on all platforms.
+  @NitroAsync(timeout: 800)
+  Future<int> slowAsync(int delayMs);
+
+  // ── §52: Deeply nested @HybridRecord — 3-level nesting ───────────────────
+  // TcDeepRecord → TcNested → TcConfig (3 levels of nested record codec).
+  TcDeepRecord echoDeepRecord(TcDeepRecord value);
+
+  @nitroAsync
+  Future<TcDeepRecord> asyncDeepRecord(TcDeepRecord value);
 
   // ── §37: @nitroAsync + @NitroOwned/@NitroVariant/@NitroResult combos ─────
   // asyncAcquireBuffer: same allocation as acquireBuffer but dispatched async.
@@ -444,6 +471,17 @@ class TcStructHolder {
     required this.origin,
     required this.radius,
   });
+}
+
+/// §52: Deeply nested @HybridRecord — 3 levels of nesting.
+/// Wire: label(string) → nested(TcNested inline) → depth(int64)
+/// TcNested itself contains TcConfig, making this a 3-level record codec.
+@HybridRecord()
+class TcDeepRecord {
+  final String label;
+  final TcNested nested;
+  final int depth;
+  TcDeepRecord({required this.label, required this.nested, required this.depth});
 }
 
 /// §36: @NitroVariant sealed class — event cases.

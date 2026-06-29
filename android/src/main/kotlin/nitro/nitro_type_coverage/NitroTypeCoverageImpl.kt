@@ -14,6 +14,7 @@ import nitro.nitro_type_coverage_module.NitroNullableInt
 import nitro.nitro_type_coverage_module.TcConfig
 import nitro.nitro_type_coverage_module.TcDataRecord
 import nitro.nitro_type_coverage_module.TcMeta
+import nitro.nitro_type_coverage_module.TcDeepRecord
 import nitro.nitro_type_coverage_module.TcNested
 import nitro.nitro_type_coverage_module.TcNullableWrapper
 import nitro.nitro_type_coverage_module.TcPacket
@@ -62,7 +63,7 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     override fun echoNullableInt(value: Long?): Long? = value
     override fun echoNullableDouble(value: Double?): Double? = value
     override fun echoNullableBool(value: Boolean?): Boolean? = value
-    override fun echoNullableString(value: String?): String = value ?: ""
+    override fun echoNullableString(value: String?): String? = value
 
     // ── Enum ──────────────────────────────────────────────────────────────────
     override fun echoStatus(value: TcStatus): TcStatus = value
@@ -116,21 +117,13 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     }
 
     // ── Lists (async) ─────────────────────────────────────────────────────────
-    @Suppress("UNCHECKED_CAST")
-    override suspend fun echoIntList(value: Any?): List<Long> =
-        (value as? List<Long>) ?: emptyList()
+    override suspend fun echoIntList(value: List<Long>): List<Long> = value
 
-    @Suppress("UNCHECKED_CAST")
-    override suspend fun echoDoubleList(value: Any?): List<Double> =
-        (value as? List<Double>) ?: emptyList()
+    override suspend fun echoDoubleList(value: List<Double>): List<Double> = value
 
-    @Suppress("UNCHECKED_CAST")
-    override suspend fun echoStringList(value: Any?): List<String> =
-        (value as? List<String>) ?: emptyList()
+    override suspend fun echoStringList(value: List<String>): List<String> = value
 
-    @Suppress("UNCHECKED_CAST")
-    override suspend fun echoConfigList(values: Any?): List<TcConfig> =
-        (values as? List<TcConfig>) ?: emptyList()
+    override suspend fun echoConfigList(values: List<TcConfig>): List<TcConfig> = values
 
     // ── Async ─────────────────────────────────────────────────────────────────
     override suspend fun asyncInt(value: Long): Long = value
@@ -178,10 +171,7 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     override fun echoNested(value: TcNested): TcNested = value
 
     // #4 List<TcConfig> sync param
-    override suspend fun echoConfigListSync(values: Any?): List<TcConfig> {
-        @Suppress("UNCHECKED_CAST")
-        return (values as? List<TcConfig>) ?: emptyList()
-    }
+    override suspend fun echoConfigListSync(values: List<TcConfig>): List<TcConfig> = values
 
     // #5 NitroNullable inside @HybridRecord
     override fun echoNullableWrapper(value: TcNullableWrapper): TcNullableWrapper = value
@@ -198,14 +188,10 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     override fun echoNullableBoolSafe(value: NitroNullableBool): NitroNullableBool = value
 
     // ── Maps (§24) ───────────────────────────────────────────────────────────
-    @Suppress("UNCHECKED_CAST")
-    override fun echoIntMap(value: Any?): Any? = value
-    @Suppress("UNCHECKED_CAST")
-    override fun echoStringMap(value: Any?): Any? = value
-    @Suppress("UNCHECKED_CAST")
-    override fun echoDoubleMap(value: Any?): Any? = value
-    @Suppress("UNCHECKED_CAST")
-    override fun echoBoolMap(value: Any?): Any? = value
+    override fun echoIntMap(value: Map<String, Long>): Map<String, Long> = value
+    override fun echoStringMap(value: Map<String, String>): Map<String, String> = value
+    override fun echoDoubleMap(value: Map<String, Double>): Map<String, Double> = value
+    override fun echoBoolMap(value: Map<String, Boolean>): Map<String, Boolean> = value
 
     // ── @HybridRecord with enum field (§25) ───────────────────────────────────
     override fun echoPacket(value: TcPacket): TcPacket = value
@@ -239,22 +225,17 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
 
     private val _batchDoubleChannel = Channel<Double>(Channel.UNLIMITED)
     override val batchDoubleStream: kotlinx.coroutines.flow.Flow<Double> = _batchDoubleChannel.receiveAsFlow()
-    @Suppress("UNCHECKED_CAST")
-    override fun configureBatchDoubleStream(values: Any?) {
-        val list = (values as? List<Double>) ?: return
+    override fun configureBatchDoubleStream(values: List<Double>) {
         CoroutineScope(Dispatchers.Default).launch {
-            for (v in list) { _batchDoubleChannel.send(v) }
+            for (v in values) { _batchDoubleChannel.send(v) }
         }
     }
 
     private val _batchBoolChannel = Channel<Boolean>(Channel.UNLIMITED)
     override val batchBoolStream: kotlinx.coroutines.flow.Flow<Boolean> = _batchBoolChannel.receiveAsFlow()
-    @Suppress("UNCHECKED_CAST")
-    override fun configureBatchBoolStream(values: Any?) {
-        // Bridge decodes bool items as Long (0L = false, non-zero = true)
-        val list = (values as? List<Any>) ?: return
+    override fun configureBatchBoolStream(values: List<Boolean>) {
         CoroutineScope(Dispatchers.Default).launch {
-            for (v in list) { _batchBoolChannel.send((v as? Long ?: 0L) != 0L) }
+            for (v in values) { _batchBoolChannel.send(v) }
         }
     }
 
@@ -269,15 +250,9 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     }
 
     // ── §35: List<bool> and List<TcPoint> ────────────────────────────────────
-    @Suppress("UNCHECKED_CAST")
-    override suspend fun echoListBool(value: Any?): List<Boolean> {
-        val list = value as? List<*> ?: return emptyList()
-        return list.map { (it as? Long ?: 0L) != 0L }
-    }
+    override suspend fun echoListBool(value: List<Boolean>): List<Boolean> = value
 
-    @Suppress("UNCHECKED_CAST")
-    override suspend fun echoPointList(values: Any?): List<TcPoint> =
-        (values as? List<TcPoint>) ?: emptyList()
+    override suspend fun echoPointList(values: List<TcPoint>): List<TcPoint> = values
 
     // ── §35: @NitroNativeAsync with typed returns ──────────────────────────────
     override suspend fun nativeAsyncInt(value: Long): Long = value
@@ -288,11 +263,18 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     // ── §35: Stream<String> ───────────────────────────────────────────────────
     private val _stringStream = MutableSharedFlow<String>(extraBufferCapacity = 64)
     override val stringStream: kotlinx.coroutines.flow.Flow<String> = _stringStream
-    @Suppress("UNCHECKED_CAST")
-    override fun configureStringStream(values: Any?) {
-        val list = (values as? List<String>) ?: return
+    override fun configureStringStream(values: List<String>) {
         CoroutineScope(Dispatchers.Default).launch {
-            for (v in list) { _stringStream.emit(v) }
+            for (v in values) { _stringStream.emit(v) }
+        }
+    }
+
+    // ── §42: Batch Stream<String> ─────────────────────────────────────────────
+    private val _batchStringStream = MutableSharedFlow<String>(extraBufferCapacity = 64)
+    override val batchStringStream: kotlinx.coroutines.flow.Flow<String> = _batchStringStream
+    override fun configureBatchStringStream(values: List<String>) {
+        CoroutineScope(Dispatchers.Default).launch {
+            for (v in values) { _batchStringStream.emit(v) }
         }
     }
 
@@ -354,17 +336,10 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     }
 
     // ── §36: @NitroOwned ─────────────────────────────────────────────────────
-    // acquireBuffer: allocate a ByteArray of `size` bytes and return its address.
-    // The bridge wraps this as a NativeHandle<Void> (opaque pointer).
-    override fun acquireBuffer(size: Long): Long {
-        // Allocate on Kotlin side; return address via sun.misc.Unsafe or store globally.
-        // For testing, we just return a stable non-null Long pointer value.
-        val buf = ByteArray(size.toInt())
-        // Store in a static list to prevent GC; return index + 1 as "pointer"
-        val idx = _ownedBuffers.size.toLong()
-        _ownedBuffers.add(buf)
-        return idx + 1L  // Non-zero = valid handle
-    }
+    // acquireBuffer: allocate `size` bytes on the native heap and return the address.
+    // ART's Unsafe.allocateMemory calls malloc internally, so the C bridge _release
+    // function can free() it directly when the NativeHandle is GC'd.
+    override fun acquireBuffer(size: Long): Long = _allocNative(size)
 
     // ── §36: @NitroVariant ────────────────────────────────────────────────────
     override fun echoEvent(event: TcEvent): TcEvent = event
@@ -381,12 +356,18 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
         return trimmed
     }
 
-    // ── §37: @nitroAsync + @NitroOwned/@NitroVariant/@NitroResult ────────────
-    override suspend fun asyncAcquireBuffer(size: Long): Long {
-        val idx = _ownedBuffers.size.toLong()
-        _ownedBuffers.add(ByteArray(size.toInt()))
-        return idx + 1L
+    // ── §47: Slow async — deliberate delay for timeout testing ────────────────
+    override suspend fun slowAsync(delayMs: Long): Long {
+        kotlinx.coroutines.delay(delayMs)
+        return delayMs
     }
+
+    // ── §52: Deeply nested @HybridRecord ─────────────────────────────────────
+    override fun echoDeepRecord(value: TcDeepRecord): TcDeepRecord = value
+    override suspend fun asyncDeepRecord(value: TcDeepRecord): TcDeepRecord = value
+
+    // ── §37: @nitroAsync + @NitroOwned/@NitroVariant/@NitroResult ────────────
+    override suspend fun asyncAcquireBuffer(size: Long): Long = _allocNative(size)
 
     override suspend fun asyncEchoEvent(event: TcEvent): TcEvent = event
 
@@ -402,6 +383,19 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     }
 
     companion object {
-        private val _ownedBuffers = mutableListOf<ByteArray>()
+        // ART's Unsafe.allocateMemory/freeMemory wrap malloc/free, so pointers
+        // returned here are freed by the C bridge's _release function via free().
+        // Access via reflection to avoid direct sun.misc.Unsafe reference which is
+        // flagged by the Kotlin compiler's strict class-path checking on newer AGP.
+        private val _unsafeInstance: Any by lazy {
+            Class.forName("sun.misc.Unsafe")
+                .getDeclaredField("theUnsafe")
+                .also { it.isAccessible = true }
+                .get(null)!!
+        }
+        private val _allocateMemoryMethod by lazy {
+            Class.forName("sun.misc.Unsafe").getDeclaredMethod("allocateMemory", Long::class.java)
+        }
+        fun _allocNative(size: Long): Long = _allocateMemoryMethod.invoke(_unsafeInstance, size) as Long
     }
 }
