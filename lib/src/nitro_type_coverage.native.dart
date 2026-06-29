@@ -6,9 +6,6 @@ part 'nitro_type_coverage.g.dart';
 
 // ── L13: uint64 scalar type ────────────────────────────────────────────────────
 // Dart alias so `uint64` is valid syntax in method signatures below.
-// TODO(spec_extractor): nitrogen must detect `typedef uint64 = int` via
-//   TypeAliasElement and emit BridgeType(name: 'uint64') → C: uint64_t,
-//   Swift: UInt64, Kotlin: Long (same wire as int but unsigned semantics).
 // ignore: camel_case_types
 typedef uint64 = int;
 
@@ -602,6 +599,5 @@ class TcEventNullable extends TcEvent {
 // Dart positional record — fields accessed via $1 (int), $2 (String).
 // Generator emits standalone _nitroDecode_TcPair / _nitroEncode_TcPair free
 // functions (not extension methods, which cannot be added to typedefs).
-// TODO(spec_extractor): nitrogen needs TypeAliasElement @NitroTuple detection.
 @NitroTuple()
 typedef TcPair = (int, String);
