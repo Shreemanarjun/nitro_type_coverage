@@ -1,4 +1,3 @@
-import 'dart:isolate';
 
 import 'package:nitro/nitro.dart';
 
