@@ -489,6 +489,58 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
         }
     }
 
+    // ── N1: Narrow scalar types (bridge always uses widest type; typedef aliases are transparent) ───
+    override fun echoInt8(value: Long): Long = value
+    override fun echoInt16(value: Long): Long = value
+    override fun echoInt32(value: Long): Long = value
+    override fun echoUint8(value: Long): Long = value
+    override fun echoUint16(value: Long): Long = value
+    override fun echoUint32(value: Long): Long = value
+    override fun echoFloat(value: Double): Double = value
+    override fun echoNullableInt32(value: Long?): Long? = value
+    override fun echoNullableFloat(value: Double?): Double? = value
+
+    // ── N2: Nullable primitive streams ────────────────────────────────────────
+    private val _nullableIntStream = MutableSharedFlow<Long?>(extraBufferCapacity = 64)
+    override val nullableIntStream: kotlinx.coroutines.flow.Flow<Long?> = _nullableIntStream
+    override fun configureNullableIntStream(count: Long) {
+        CoroutineScope(Dispatchers.Default).launch {
+            for (i in 0 until count) {
+                _nullableIntStream.emit(if (i % 2L == 0L) null else i)
+            }
+        }
+    }
+
+    private val _nullableDoubleStream = MutableSharedFlow<Double?>(extraBufferCapacity = 64)
+    override val nullableDoubleStream: kotlinx.coroutines.flow.Flow<Double?> = _nullableDoubleStream
+    override fun configureNullableDoubleStream(count: Long) {
+        CoroutineScope(Dispatchers.Default).launch {
+            for (i in 0 until count) {
+                _nullableDoubleStream.emit(if (i % 2L == 0L) null else i.toDouble() * 0.5)
+            }
+        }
+    }
+
+    private val _nullableBoolStream = MutableSharedFlow<Boolean?>(extraBufferCapacity = 64)
+    override val nullableBoolStream: kotlinx.coroutines.flow.Flow<Boolean?> = _nullableBoolStream
+    override fun configureNullableBoolStream(count: Long) {
+        CoroutineScope(Dispatchers.Default).launch {
+            for (i in 0 until count) {
+                val v: Boolean? = when (i % 3L) {
+                    0L -> null
+                    1L -> true
+                    else -> false
+                }
+                _nullableBoolStream.emit(v)
+            }
+        }
+    }
+
+    // ── N3: @NitroNativeAsync with nullable returns ───────────────────────────
+    override suspend fun nativeAsyncNullableInt(value: Long?): Long? = value
+    override suspend fun nativeAsyncNullableDouble(value: Double?): Double? = value
+    override suspend fun nativeAsyncNullableBool(value: Boolean?): Boolean? = value
+
     companion object {
         // ART's Unsafe.allocateMemory/freeMemory wrap malloc/free, so pointers
         // returned here are freed by the C bridge's _release function via free().

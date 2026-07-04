@@ -432,4 +432,52 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
             }
         }
     }
+
+    // ── N1: Narrow scalar types (bridge always uses widest type; typedef aliases are transparent) ───
+    public func echoInt8(value: Int64) -> Int64 { value }
+    public func echoInt16(value: Int64) -> Int64 { value }
+    public func echoInt32(value: Int64) -> Int64 { value }
+    public func echoUint8(value: Int64) -> Int64 { value }
+    public func echoUint16(value: Int64) -> Int64 { value }
+    public func echoUint32(value: Int64) -> Int64 { value }
+    public func echoFloat(value: Double) -> Double { value }
+    public func echoNullableInt32(value: Int64?) -> Int64? { value }
+    public func echoNullableFloat(value: Double?) -> Double? { value }
+
+    // ── N2: Nullable primitive streams ────────────────────────────────────────
+    private let _nullableIntStreamSubject = PassthroughSubject<Int64?, Never>()
+    public var nullableIntStream: AnyPublisher<Int64?, Never> { _nullableIntStreamSubject.eraseToAnyPublisher() }
+    public func configureNullableIntStream(count: Int64) {
+        DispatchQueue.global().async { [weak self] in
+            for i in 0..<count {
+                self?._nullableIntStreamSubject.send(i % 2 == 0 ? nil : i)
+            }
+        }
+    }
+
+    private let _nullableDoubleStreamSubject = PassthroughSubject<Double?, Never>()
+    public var nullableDoubleStream: AnyPublisher<Double?, Never> { _nullableDoubleStreamSubject.eraseToAnyPublisher() }
+    public func configureNullableDoubleStream(count: Int64) {
+        DispatchQueue.global().async { [weak self] in
+            for i in 0..<count {
+                self?._nullableDoubleStreamSubject.send(i % 2 == 0 ? nil : Double(i) * 0.5)
+            }
+        }
+    }
+
+    private let _nullableBoolStreamSubject = PassthroughSubject<Bool?, Never>()
+    public var nullableBoolStream: AnyPublisher<Bool?, Never> { _nullableBoolStreamSubject.eraseToAnyPublisher() }
+    public func configureNullableBoolStream(count: Int64) {
+        DispatchQueue.global().async { [weak self] in
+            for i in 0..<count {
+                let v: Bool? = i % 3 == 0 ? nil : (i % 3 == 1 ? true : false)
+                self?._nullableBoolStreamSubject.send(v)
+            }
+        }
+    }
+
+    // ── N3: @NitroNativeAsync with nullable returns ───────────────────────────
+    public func nativeAsyncNullableInt(value: Int64?) async throws -> Int64? { value }
+    public func nativeAsyncNullableDouble(value: Double?) async throws -> Double? { value }
+    public func nativeAsyncNullableBool(value: Bool?) async throws -> Bool? { value }
 }

@@ -6366,4 +6366,179 @@ void main() {
       expect(items[3], isNotNull);
     });
   });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // N1 — Narrow scalar types
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('N1 narrow scalar types — round-trip', () {
+    test('echoInt8: 127 (max int8) round-trips', () {
+      expect(tc.echoInt8(127), 127);
+    });
+    test('echoInt8: -128 (min int8) round-trips', () {
+      expect(tc.echoInt8(-128), -128);
+    });
+    test('echoInt8: 0 round-trips', () {
+      expect(tc.echoInt8(0), 0);
+    });
+    test('echoInt16: 32767 (max int16) round-trips', () {
+      expect(tc.echoInt16(32767), 32767);
+    });
+    test('echoInt16: -32768 (min int16) round-trips', () {
+      expect(tc.echoInt16(-32768), -32768);
+    });
+    test('echoInt32: 2147483647 (max int32) round-trips', () {
+      expect(tc.echoInt32(2147483647), 2147483647);
+    });
+    test('echoInt32: -2147483648 (min int32) round-trips', () {
+      expect(tc.echoInt32(-2147483648), -2147483648);
+    });
+    test('echoUint8: 255 (max uint8) round-trips', () {
+      expect(tc.echoUint8(255), 255);
+    });
+    test('echoUint8: 0 round-trips', () {
+      expect(tc.echoUint8(0), 0);
+    });
+    test('echoUint16: 65535 (max uint16) round-trips', () {
+      expect(tc.echoUint16(65535), 65535);
+    });
+    test('echoUint32: 4294967295 (max uint32) round-trips', () {
+      expect(tc.echoUint32(4294967295), 4294967295);
+    });
+    test('echoFloat: 0.5 round-trips within float precision', () {
+      expect(tc.echoFloat(0.5), closeTo(0.5, 1e-6));
+    });
+    test('echoFloat: negative float round-trips', () {
+      expect(tc.echoFloat(-1.25), closeTo(-1.25, 1e-6));
+    });
+    test('echoFloat: zero round-trips', () {
+      expect(tc.echoFloat(0.0), closeTo(0.0, 1e-10));
+    });
+    test('echoNullableInt32: non-null round-trips', () {
+      expect(tc.echoNullableInt32(42), 42);
+    });
+    test('echoNullableInt32: null round-trips', () {
+      expect(tc.echoNullableInt32(null), isNull);
+    });
+    test('echoNullableInt32: max int32 round-trips', () {
+      expect(tc.echoNullableInt32(2147483647), 2147483647);
+    });
+    test('echoNullableFloat: non-null round-trips', () {
+      expect(tc.echoNullableFloat(1.5), closeTo(1.5, 1e-6));
+    });
+    test('echoNullableFloat: null round-trips', () {
+      expect(tc.echoNullableFloat(null), isNull);
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // N2 — Nullable primitive streams
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('N2 nullable primitive streams', () {
+    test('nullableIntStream: alternates null and non-null', () async {
+      final completer = Completer<List<int?>>();
+      final received = <int?>[];
+      final sub = tc.nullableIntStream().listen((v) {
+        received.add(v);
+        if (received.length == 4) completer.complete(List.of(received));
+      });
+      tc.configureNullableIntStream(4);
+      final items = await completer.future.timeout(const Duration(seconds: 5));
+      await sub.cancel();
+      expect(items[0], isNull);
+      expect(items[1], isNotNull);
+      expect(items[2], isNull);
+      expect(items[3], isNotNull);
+    });
+
+    test('nullableDoubleStream: alternates null and non-null', () async {
+      final completer = Completer<List<double?>>();
+      final received = <double?>[];
+      final sub = tc.nullableDoubleStream().listen((v) {
+        received.add(v);
+        if (received.length == 4) completer.complete(List.of(received));
+      });
+      tc.configureNullableDoubleStream(4);
+      final items = await completer.future.timeout(const Duration(seconds: 5));
+      await sub.cancel();
+      expect(items[0], isNull);
+      expect(items[1], isNotNull);
+      expect(items[2], isNull);
+      expect(items[3], isNotNull);
+    });
+
+    test('nullableBoolStream: sends null, true, false in rotation', () async {
+      final completer = Completer<List<bool?>>();
+      final received = <bool?>[];
+      final sub = tc.nullableBoolStream().listen((v) {
+        received.add(v);
+        if (received.length == 3) completer.complete(List.of(received));
+      });
+      tc.configureNullableBoolStream(3);
+      final items = await completer.future.timeout(const Duration(seconds: 5));
+      await sub.cancel();
+      expect(items[0], isNull);
+      expect(items[1], true);
+      expect(items[2], false);
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // N3 — @NitroNativeAsync with nullable returns
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('N3 @NitroNativeAsync nullable returns', () {
+    test('nativeAsyncNullableInt: non-null round-trips', () async {
+      final result = await tc.nativeAsyncNullableInt(42);
+      expect(result, 42);
+    });
+    test('nativeAsyncNullableInt: null round-trips', () async {
+      final result = await tc.nativeAsyncNullableInt(null);
+      expect(result, isNull);
+    });
+    // Boundary: 0 must not be confused with null (no sentinel values used).
+    // The NitroOptInt64 packed struct [hasValue=1][value=0] distinguishes 0 from null.
+    test('nativeAsyncNullableInt: zero not confused with null', () async {
+      final result = await tc.nativeAsyncNullableInt(0);
+      expect(result, 0);
+    });
+    // Negative values must pass through the malloc'd NitroOptInt64 struct correctly.
+    test('nativeAsyncNullableInt: negative value round-trips', () async {
+      final result = await tc.nativeAsyncNullableInt(-1);
+      expect(result, -1);
+    });
+    test('nativeAsyncNullableDouble: non-null round-trips', () async {
+      final result = await tc.nativeAsyncNullableDouble(3.14);
+      expect(result, closeTo(3.14, 1e-10));
+    });
+    test('nativeAsyncNullableDouble: null round-trips', () async {
+      final result = await tc.nativeAsyncNullableDouble(null);
+      expect(result, isNull);
+    });
+    // 0.0 must not be confused with null (NaN was the old wrong sentinel).
+    test('nativeAsyncNullableDouble: zero not confused with null', () async {
+      final result = await tc.nativeAsyncNullableDouble(0.0);
+      expect(result, closeTo(0.0, 1e-15));
+    });
+    // Negative values verify the 8-byte IEEE float is copied correctly.
+    test('nativeAsyncNullableDouble: negative value round-trips', () async {
+      final result = await tc.nativeAsyncNullableDouble(-3.14);
+      expect(result, closeTo(-3.14, 1e-10));
+    });
+    test('nativeAsyncNullableBool: non-null true round-trips', () async {
+      final result = await tc.nativeAsyncNullableBool(true);
+      expect(result, true);
+    });
+    test('nativeAsyncNullableBool: non-null false round-trips', () async {
+      // false=0 could be confused with null in an incorrect sentinel scheme.
+      // NitroOptBool [hasValue=1][value=0] must survive the round-trip.
+      final result = await tc.nativeAsyncNullableBool(false);
+      expect(result, false);
+    });
+    test('nativeAsyncNullableBool: null round-trips', () async {
+      final result = await tc.nativeAsyncNullableBool(null);
+      expect(result, isNull);
+    });
+  });
 }

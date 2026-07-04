@@ -9,6 +9,26 @@ part 'nitro_type_coverage.g.dart';
 // ignore: camel_case_types
 typedef uint64 = int;
 
+// ── N1: Narrow scalar typedefs (RN Nitro parity) ─────────────────────────────
+// These map to narrower C/JVM types on the native side:
+//   int8 → Int8/Byte, int16 → Int16/Short, int32 → Int32/Int
+//   uint8 → UInt8/Byte, uint16 → UInt16/Short, uint32 → UInt32/Int
+//   float → Float/Float (32-bit)
+// ignore: camel_case_types
+typedef int8 = int;
+// ignore: camel_case_types
+typedef int16 = int;
+// ignore: camel_case_types
+typedef int32 = int;
+// ignore: camel_case_types
+typedef uint8 = int;
+// ignore: camel_case_types
+typedef uint16 = int;
+// ignore: camel_case_types
+typedef uint32 = int;
+// ignore: camel_case_types
+typedef float = double;
+
 @NitroModule(
   ios: NativeImpl.swift,
   android: NativeImpl.kotlin,
@@ -231,6 +251,16 @@ abstract class NitroTypeCoverage extends HybridObject {
   @nitroNativeAsync
   Future<String> nativeAsyncString(String value);
 
+  // ── N3: @NitroNativeAsync with nullable returns ────────────────────────────
+  @nitroNativeAsync
+  Future<int?> nativeAsyncNullableInt(int? value);
+
+  @nitroNativeAsync
+  Future<double?> nativeAsyncNullableDouble(double? value);
+
+  @nitroNativeAsync
+  Future<bool?> nativeAsyncNullableBool(bool? value);
+
   // ── §35: Stream<String> — validates the kString emit path ────────────────
   @NitroStream(backpressure: Backpressure.dropLatest)
   Stream<String> stringStream();
@@ -420,6 +450,30 @@ abstract class NitroTypeCoverage extends HybridObject {
   @NitroStream(backpressure: Backpressure.dropLatest)
   Stream<uint64?> nullableUint64Stream();
   void configureNullableUint64Stream(int count);
+
+  // ── N1: Narrow scalar types (RN Nitro parity — HybridXxxSpec narrow int/float) ───
+  int8 echoInt8(int8 value);
+  int16 echoInt16(int16 value);
+  int32 echoInt32(int32 value);
+  uint8 echoUint8(uint8 value);
+  uint16 echoUint16(uint16 value);
+  uint32 echoUint32(uint32 value);
+  float echoFloat(float value);
+  int32? echoNullableInt32(int32? value);
+  float? echoNullableFloat(float? value);
+
+  // ── N2: Nullable primitive streams ──────────────────────────────────────────
+  @NitroStream(backpressure: Backpressure.dropLatest)
+  Stream<int?> nullableIntStream();
+  void configureNullableIntStream(int count);
+
+  @NitroStream(backpressure: Backpressure.dropLatest)
+  Stream<double?> nullableDoubleStream();
+  void configureNullableDoubleStream(int count);
+
+  @NitroStream(backpressure: Backpressure.dropLatest)
+  Stream<bool?> nullableBoolStream();
+  void configureNullableBoolStream(int count);
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
