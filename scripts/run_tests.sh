@@ -46,6 +46,21 @@ is_windows() { [[ "$HOST_OS" == MINGW* || "$HOST_OS" == MSYS* || "$HOST_OS" == C
 
 # ── Ensure build_runner is up to date and sync platform files ─────────────────
 regen() {
+  # Once example/ has been built for iOS/macOS/Windows/Linux, CocoaPods and
+  # Flutter tooling leave behind ephemeral symlink trees — critically,
+  # example/ios/.symlinks/plugins/<name> (and its macOS equivalent) point
+  # STRAIGHT BACK to the plugin root. build_runner's initial file-discovery
+  # walk follows symlinks by default with no cycle detection, so on any
+  # SECOND run (once these exist) it recurses forever: plugin root -> example
+  # -> ios -> .symlinks -> plugin root -> ... burning CPU/memory indefinitely
+  # with no error, no crash, and no log output (confirmed via `sample` on the
+  # hung process: stuck in dart:io's AsyncDirectoryLister). These directories
+  # are fully gitignored/untracked and get recreated by `flutter pub get` /
+  # `pod install`, so removing them here is always safe.
+  rm -rf "$EXAMPLE_DIR/ios/.symlinks" "$EXAMPLE_DIR/ios/Flutter/ephemeral" \
+         "$EXAMPLE_DIR/macos/.symlinks" "$EXAMPLE_DIR/macos/Flutter/ephemeral" \
+         "$EXAMPLE_DIR/windows/flutter/ephemeral" "$EXAMPLE_DIR/linux/flutter/ephemeral"
+
   log_info "Running build_runner in plugin root..."
   (cd "$PLUGIN_DIR" && dart run build_runner build --delete-conflicting-outputs)
   log_ok "Code generation complete"

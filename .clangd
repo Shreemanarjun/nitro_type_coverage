@@ -4,3 +4,4 @@ CompileFlags:
     - -I${PWD}/src/native
     - -I${PWD}/lib/src/generated/cpp
     - -I${PWD}/src/native/internal
+    - -I${PWD}/lib/src/generated/cpp/test

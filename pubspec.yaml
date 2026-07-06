@@ -12,14 +12,14 @@ dependencies:
     sdk: flutter
 
   plugin_platform_interface: ^2.0.2
-  nitro: ^0.4.6
+  nitro: ^0.5.5
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
   build_runner: ^2.4.0
-  nitro_generator: ^0.4.6
+  nitro_generator: ^0.5.5
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -49,6 +49,10 @@ flutter:
         ffiPlugin: true
       macos:
         pluginClass: SwiftNitroTypeCoveragePlugin
+        ffiPlugin: true
+      windows:
+        ffiPlugin: true
+      linux:
         ffiPlugin: true
   # To add assets to your plugin package, add an assets section, like this:
   # assets:
@@ -81,6 +85,8 @@ flutter:
   # For details regarding fonts in packages, see
   # https://flutter.dev/to/font-from-package
 
+# Temporary while nitro_generator 0.5.5 (desktop C++ fixes) is unpublished —
+# remove once 0.5.5 is on pub.dev.
 dependency_overrides:
   nitro:
     path: ../../flutter_package/nitro_ecosystem/packages/nitro

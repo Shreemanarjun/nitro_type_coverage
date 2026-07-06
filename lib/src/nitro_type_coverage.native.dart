@@ -32,6 +32,8 @@ typedef float = double;
   ios: NativeImpl.swift,
   android: NativeImpl.kotlin,
   macos: NativeImpl.swift,
+  windows: NativeImpl.cpp,
+  linux: NativeImpl.cpp,
 )
 abstract class NitroTypeCoverage extends HybridObject {
   // Default singleton — same as getInstance('default').

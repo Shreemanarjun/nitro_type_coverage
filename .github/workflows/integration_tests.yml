@@ -1,0 +1,122 @@
+# Runs the full type-coverage integration suite on every desktop platform.
+#
+# Each job drives the SAME Dart test file (example/integration_test/
+# type_coverage_test.dart) through a different native implementation:
+#   • Linux   → NativeImpl.cpp  (src/HybridNitroTypeCoverage.cpp, GCC/Clang)
+#   • Windows → NativeImpl.cpp  (same file, MSVC)
+#   • macOS   → NativeImpl.swift (reference implementation)
+#
+# The nitro_ecosystem repo is checked out alongside because the plugin (and
+# its example) use path dependency_overrides onto the local packages while
+# nitro_generator 0.5.5 (desktop C++ fixes) is unpublished. The directory
+# layout mirrors the local dev machine:
+#   <workspace>/nitro_plugins/nitro_type_coverage   (this repo)
+#   <workspace>/flutter_package/nitro_ecosystem     (generator + runtime)
+#
+# CI runs the same scripts/run_tests.sh used locally, so local and CI stay
+# in sync (it regenerates bindings with build_runner before testing — the
+# generator itself is exercised on every run).
+
+name: integration-tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PLUGIN_DIR: nitro_plugins/nitro_type_coverage
+
+jobs:
+  linux:
+    name: Linux desktop (NativeImpl.cpp)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: nitro_plugins/nitro_type_coverage
+
+      - uses: actions/checkout@v4
+        with:
+          repository: Shreemanarjun/nitro_ecosystem
+          path: flutter_package/nitro_ecosystem
+
+      - name: Install Linux desktop build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev xvfb
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Enable Linux desktop
+        run: flutter config --enable-linux-desktop
+
+      - name: Run integration tests (Linux)
+        working-directory: ${{ env.PLUGIN_DIR }}
+        run: xvfb-run -a ./scripts/run_tests.sh linux
+
+  windows:
+    name: Windows desktop (NativeImpl.cpp)
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      # The test runner is a bash script — keep LF endings on checkout.
+      - name: Disable autocrlf
+        run: git config --global core.autocrlf false
+
+      - uses: actions/checkout@v4
+        with:
+          path: nitro_plugins/nitro_type_coverage
+
+      - uses: actions/checkout@v4
+        with:
+          repository: Shreemanarjun/nitro_ecosystem
+          path: flutter_package/nitro_ecosystem
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Run integration tests (Windows)
+        working-directory: ${{ env.PLUGIN_DIR }}
+        shell: bash
+        run: ./scripts/run_tests.sh windows
+
+  macos:
+    name: macOS desktop (NativeImpl.swift)
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: nitro_plugins/nitro_type_coverage
+
+      - uses: actions/checkout@v4
+        with:
+          repository: Shreemanarjun/nitro_ecosystem
+          path: flutter_package/nitro_ecosystem
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Enable macOS desktop
+        run: flutter config --enable-macos-desktop
+
+      - name: Run integration tests (macOS)
+        working-directory: ${{ env.PLUGIN_DIR }}
+        run: ./scripts/run_tests.sh macos
