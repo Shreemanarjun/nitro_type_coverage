@@ -87,6 +87,18 @@ class MockNitroTypeCoverage : public HybridNitroTypeCoverage {
     MOCK_METHOD(int64_t, nativeAsyncNullableInt, (int64_t value), (override));
     MOCK_METHOD(double, nativeAsyncNullableDouble, (double value), (override));
     MOCK_METHOD(bool, nativeAsyncNullableBool, (bool value), (override));
+    MOCK_METHOD(TcStatus, nativeAsyncStatus, (TcStatus value), (override));
+    MOCK_METHOD(TcStatus, nativeAsyncNullableStatus, (TcStatus value), (override));
+    MOCK_METHOD(NitroCppBuffer, nativeAsyncConfig, (NitroCppBuffer value), (override));
+    MOCK_METHOD(NitroCppBuffer, nativeAsyncNullableConfig, (NitroCppBuffer value), (override));
+    MOCK_METHOD(void*, nativeAsyncEvent, (void* value), (override));
+    MOCK_METHOD(NitroCppBuffer, nativeAsyncConfigList, (NitroCppBuffer values), (override));
+    MOCK_METHOD(NitroCppBuffer, nativeAsyncStatusList, (NitroCppBuffer values), (override));
+    MOCK_METHOD(NitroCppBuffer, nativeAsyncEventList, (NitroCppBuffer values), (override));
+    MOCK_METHOD(NitroCppBuffer, nativeAsyncIntList, (NitroCppBuffer values), (override));
+    MOCK_METHOD(int64_t, nativeAsyncWithCallback, (int64_t value, void* callback), (override));
+    MOCK_METHOD(NitroCppBuffer, nativeAsyncCounts, (int64_t seed), (override));
+    MOCK_METHOD(void*, nativeAsyncNullableUint64, (void* value), (override));
     MOCK_METHOD(void, configureStringStream, (NitroCppBuffer values), (override));
     MOCK_METHOD(void, configureBatchStringStream, (NitroCppBuffer values), (override));
     MOCK_METHOD(void, configureBlockIntStream, (int64_t from, int64_t count), (override));

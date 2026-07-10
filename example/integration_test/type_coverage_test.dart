@@ -6081,6 +6081,116 @@ void main() {
   });
 
   // ══════════════════════════════════════════════════════════════════════════
+  // §67 @NitroNativeAsync param-decoding + return-dispatch coverage
+  //
+  // Regression coverage for the nitro_generator fix where @NitroNativeAsync's
+  // trampoline only decoded nullable-primitive params/returns and forwarded
+  // every other category (enum, record, variant, list-of-those, callback) as
+  // a raw undecoded bridge value — a Kotlin/Swift compile failure. Plus a
+  // handful of previously-broken return categories (bare variant, Map, and a
+  // List<@HybridEnum>/List<@NitroVariant> return regression).
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('§67 @NitroNativeAsync param decoding + returns', () {
+    test('nativeAsyncStatus: enum param+return round-trips', () async {
+      expect(await tc.nativeAsyncStatus(TcStatus.ok), TcStatus.ok);
+      expect(await tc.nativeAsyncStatus(TcStatus.error), TcStatus.error);
+      expect(await tc.nativeAsyncStatus(TcStatus.pending), TcStatus.pending);
+    });
+
+    test('nativeAsyncNullableStatus: nullable enum param+return round-trips', () async {
+      expect(await tc.nativeAsyncNullableStatus(TcStatus.error), TcStatus.error);
+      expect(await tc.nativeAsyncNullableStatus(null), isNull);
+    });
+
+    test('nativeAsyncConfig: @HybridRecord param+return round-trips', () async {
+      final cfg = TcConfig(name: 'native-async', count: 7, enabled: true, threshold: 1.5);
+      final result = await tc.nativeAsyncConfig(cfg);
+      expect(result.name, 'native-async');
+      expect(result.count, 7);
+      expect(result.enabled, isTrue);
+      expect(result.threshold, closeTo(1.5, 1e-12));
+    });
+
+    test('nativeAsyncNullableConfig: nullable @HybridRecord param+return round-trips', () async {
+      final cfg = TcConfig(name: 'maybe', count: 1, enabled: false, threshold: 0.0);
+      final result = await tc.nativeAsyncNullableConfig(cfg);
+      expect(result?.name, 'maybe');
+      expect(await tc.nativeAsyncNullableConfig(null), isNull);
+    });
+
+    test('nativeAsyncEvent: @NitroVariant param+return round-trips', () async {
+      const input = TcEventTap(x: 42, y: 100);
+      final result = await tc.nativeAsyncEvent(input);
+      expect(result, isA<TcEventTap>());
+      expect((result as TcEventTap).x, 42);
+      expect(result.y, 100);
+    });
+
+    test('nativeAsyncConfigList: List<@HybridRecord> param+return round-trips', () async {
+      final values = <TcConfig>[
+        TcConfig(name: 'a', count: 1, enabled: true, threshold: 1.0),
+        TcConfig(name: 'b', count: 2, enabled: false, threshold: 2.0),
+      ];
+      final result = await tc.nativeAsyncConfigList(values);
+      expect(result.length, 2);
+      expect(result[0].name, 'a');
+      expect(result[1].name, 'b');
+    });
+
+    test('nativeAsyncStatusList: List<@HybridEnum> param+return round-trips (regression)', () async {
+      // Regression: this used to be routed into the single-record fallback
+      // and call `.encode()` on a Kotlin List — a compile failure.
+      final result = await tc.nativeAsyncStatusList([TcStatus.ok, TcStatus.error, TcStatus.pending]);
+      expect(result, [TcStatus.ok, TcStatus.error, TcStatus.pending]);
+    });
+
+    test('nativeAsyncEventList: List<@NitroVariant> param+return round-trips (regression)', () async {
+      const values = [TcEventTap(x: 1, y: 2), TcEventScroll(delta: 3.5)];
+      final result = await tc.nativeAsyncEventList(values);
+      expect(result.length, 2);
+      expect(result[0], isA<TcEventTap>());
+      expect(result[1], isA<TcEventScroll>());
+    });
+
+    test('nativeAsyncIntList: List<primitive> param+return round-trips', () async {
+      final result = await tc.nativeAsyncIntList([1, 2, 3, 4, 5]);
+      expect(result, [1, 2, 3, 4, 5]);
+    });
+
+    test('nativeAsyncWithCallback: callback param is invocable from the native-async dispatch', () async {
+      int? received;
+      final result = await tc.nativeAsyncWithCallback(21, (v) => received = v);
+      expect(received, 21);
+      expect(result, 42);
+    });
+
+    test('nativeAsyncCounts: Map<String,int> return round-trips', () async {
+      final result = await tc.nativeAsyncCounts(10);
+      expect(result['a'], 10);
+      expect(result['b'], 20);
+    });
+
+    test('nativeAsyncNullableUint64: uint64? param+return round-trips (Swift silent-bug fix)', () async {
+      const big = 9000000000000000000; // large uint64 value that still fits in a signed int64 literal
+      expect(await tc.nativeAsyncNullableUint64(big), big);
+      expect(await tc.nativeAsyncNullableUint64(0), 0, reason: '0 must not be confused with null');
+      expect(await tc.nativeAsyncNullableUint64(null), isNull);
+    });
+
+    test('nativeAsyncStatus/Config/Event: parallel calls do not interfere', () async {
+      final results = await Future.wait([
+        tc.nativeAsyncStatus(TcStatus.ok),
+        tc.nativeAsyncConfig(TcConfig(name: 'p', count: 1, enabled: true, threshold: 1.0)),
+        tc.nativeAsyncEvent(const TcEventTap(x: 5, y: 6)),
+      ]);
+      expect(results[0], TcStatus.ok);
+      expect((results[1] as TcConfig).name, 'p');
+      expect((results[2] as TcEventTap).x, 5);
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
   // §L4 Map<String, @HybridRecord> and Map<String, @NitroVariant> (binary tag-5)
   // ══════════════════════════════════════════════════════════════════════════
 

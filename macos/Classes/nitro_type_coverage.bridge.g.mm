@@ -23,7 +23,7 @@ NITRO_EXPORT uint32_t nitro_type_coverage_nitro_abi_version(void) {
     return 1;
 }
 NITRO_EXPORT const char* nitro_type_coverage_nitro_bridge_checksum(void) {
-    return "e23f78aad00c4764";
+    return "25bef6326fda3aab";
 }
 NITRO_EXPORT intptr_t nitro_type_coverage_init_dart_api_dl(void* data) {
     return Dart_InitializeApiDL(data);
@@ -179,6 +179,18 @@ static jmethodID g_mid_nativeAsyncString_call = nullptr;
 static jmethodID g_mid_nativeAsyncNullableInt_call = nullptr;
 static jmethodID g_mid_nativeAsyncNullableDouble_call = nullptr;
 static jmethodID g_mid_nativeAsyncNullableBool_call = nullptr;
+static jmethodID g_mid_nativeAsyncStatus_call = nullptr;
+static jmethodID g_mid_nativeAsyncNullableStatus_call = nullptr;
+static jmethodID g_mid_nativeAsyncConfig_call = nullptr;
+static jmethodID g_mid_nativeAsyncNullableConfig_call = nullptr;
+static jmethodID g_mid_nativeAsyncEvent_call = nullptr;
+static jmethodID g_mid_nativeAsyncConfigList_call = nullptr;
+static jmethodID g_mid_nativeAsyncStatusList_call = nullptr;
+static jmethodID g_mid_nativeAsyncEventList_call = nullptr;
+static jmethodID g_mid_nativeAsyncIntList_call = nullptr;
+static jmethodID g_mid_nativeAsyncWithCallback_call = nullptr;
+static jmethodID g_mid_nativeAsyncCounts_call = nullptr;
+static jmethodID g_mid_nativeAsyncNullableUint64_call = nullptr;
 static jmethodID g_mid_configureStringStream_call = nullptr;
 static jmethodID g_mid_configureBatchStringStream_call = nullptr;
 static jmethodID g_mid_configureBlockIntStream_call = nullptr;
@@ -2378,6 +2390,219 @@ void nitro_type_coverage_native_async_nullable_bool(int64_t instanceId, const ui
     env->PopLocalFrame(nullptr);
 }
 
+void nitro_type_coverage_native_async_status(int64_t instanceId, int64_t value, int64_t dart_port) {
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return; }
+    jmethodID methodId = g_mid_nativeAsyncStatus_call;
+    if (methodId == nullptr) { LOGE("Method not found: nativeAsyncStatus_call sig=(JJJ)V"); return; }
+
+    nitro_type_coverage_clear_error();
+    if (env->PushLocalFrame(16) != 0) { return; }
+    env->CallStaticVoidMethod(g_bridgeClass, methodId, (jlong)instanceId, value, (jlong)dart_port);
+    if (env->ExceptionCheck()) {
+        nitro_report_jni_exception(env, env->ExceptionOccurred(), nullptr);
+    }
+    env->PopLocalFrame(nullptr);
+}
+
+void nitro_type_coverage_native_async_nullable_status(int64_t instanceId, int64_t value, int64_t dart_port) {
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return; }
+    jmethodID methodId = g_mid_nativeAsyncNullableStatus_call;
+    if (methodId == nullptr) { LOGE("Method not found: nativeAsyncNullableStatus_call sig=(JJJ)V"); return; }
+
+    nitro_type_coverage_clear_error();
+    if (env->PushLocalFrame(16) != 0) { return; }
+    env->CallStaticVoidMethod(g_bridgeClass, methodId, (jlong)instanceId, value, (jlong)dart_port);
+    if (env->ExceptionCheck()) {
+        nitro_report_jni_exception(env, env->ExceptionOccurred(), nullptr);
+    }
+    env->PopLocalFrame(nullptr);
+}
+
+void nitro_type_coverage_native_async_config(int64_t instanceId, void* value, int64_t dart_port) {
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return; }
+    jmethodID methodId = g_mid_nativeAsyncConfig_call;
+    if (methodId == nullptr) { LOGE("Method not found: nativeAsyncConfig_call sig=(J[BJ)V"); return; }
+
+    nitro_type_coverage_clear_error();
+    if (env->PushLocalFrame(16) != 0) { return; }
+    int32_t value_payload_len = *((const int32_t*)value);
+    int32_t value_total = value_payload_len + 4;
+    jbyteArray j_value = env->NewByteArray((jsize)value_total);
+    env->SetByteArrayRegion(j_value, 0, (jsize)value_total, (const jbyte*)value);
+    env->CallStaticVoidMethod(g_bridgeClass, methodId, (jlong)instanceId, j_value, (jlong)dart_port);
+    if (env->ExceptionCheck()) {
+        nitro_report_jni_exception(env, env->ExceptionOccurred(), nullptr);
+    }
+    env->PopLocalFrame(nullptr);
+}
+
+void nitro_type_coverage_native_async_nullable_config(int64_t instanceId, void* value, int64_t dart_port) {
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return; }
+    jmethodID methodId = g_mid_nativeAsyncNullableConfig_call;
+    if (methodId == nullptr) { LOGE("Method not found: nativeAsyncNullableConfig_call sig=(J[BJ)V"); return; }
+
+    nitro_type_coverage_clear_error();
+    if (env->PushLocalFrame(16) != 0) { return; }
+    jbyteArray j_value = nullptr;
+    if (value != nullptr) {
+        int32_t value_payload_len = *((const int32_t*)value);
+        int32_t value_total = value_payload_len + 4;
+        j_value = env->NewByteArray((jsize)value_total);
+        env->SetByteArrayRegion(j_value, 0, (jsize)value_total, (const jbyte*)value);
+    }
+    env->CallStaticVoidMethod(g_bridgeClass, methodId, (jlong)instanceId, j_value, (jlong)dart_port);
+    if (env->ExceptionCheck()) {
+        nitro_report_jni_exception(env, env->ExceptionOccurred(), nullptr);
+    }
+    env->PopLocalFrame(nullptr);
+}
+
+void nitro_type_coverage_native_async_event(int64_t instanceId, void* value, int64_t dart_port) {
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return; }
+    jmethodID methodId = g_mid_nativeAsyncEvent_call;
+    if (methodId == nullptr) { LOGE("Method not found: nativeAsyncEvent_call sig=(J[BJ)V"); return; }
+
+    nitro_type_coverage_clear_error();
+    if (env->PushLocalFrame(16) != 0) { return; }
+    int32_t value_var_len = *((const int32_t*)value);
+    int32_t value_var_total = value_var_len + 4;
+    jbyteArray j_value = env->NewByteArray((jsize)value_var_total);
+    env->SetByteArrayRegion(j_value, 0, (jsize)value_var_total, (const jbyte*)value);
+    env->CallStaticVoidMethod(g_bridgeClass, methodId, (jlong)instanceId, j_value, (jlong)dart_port);
+    if (env->ExceptionCheck()) {
+        nitro_report_jni_exception(env, env->ExceptionOccurred(), nullptr);
+    }
+    env->PopLocalFrame(nullptr);
+}
+
+void nitro_type_coverage_native_async_config_list(int64_t instanceId, void* values, int64_t dart_port) {
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return; }
+    jmethodID methodId = g_mid_nativeAsyncConfigList_call;
+    if (methodId == nullptr) { LOGE("Method not found: nativeAsyncConfigList_call sig=(J[BJ)V"); return; }
+
+    nitro_type_coverage_clear_error();
+    if (env->PushLocalFrame(16) != 0) { return; }
+    int32_t values_payload_len = *((const int32_t*)values);
+    int32_t values_total = values_payload_len + 4;
+    jbyteArray j_values = env->NewByteArray((jsize)values_total);
+    env->SetByteArrayRegion(j_values, 0, (jsize)values_total, (const jbyte*)values);
+    env->CallStaticVoidMethod(g_bridgeClass, methodId, (jlong)instanceId, j_values, (jlong)dart_port);
+    if (env->ExceptionCheck()) {
+        nitro_report_jni_exception(env, env->ExceptionOccurred(), nullptr);
+    }
+    env->PopLocalFrame(nullptr);
+}
+
+void nitro_type_coverage_native_async_status_list(int64_t instanceId, void* values, int64_t dart_port) {
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return; }
+    jmethodID methodId = g_mid_nativeAsyncStatusList_call;
+    if (methodId == nullptr) { LOGE("Method not found: nativeAsyncStatusList_call sig=(J[BJ)V"); return; }
+
+    nitro_type_coverage_clear_error();
+    if (env->PushLocalFrame(16) != 0) { return; }
+    int32_t values_payload_len = *((const int32_t*)values);
+    int32_t values_total = values_payload_len + 4;
+    jbyteArray j_values = env->NewByteArray((jsize)values_total);
+    env->SetByteArrayRegion(j_values, 0, (jsize)values_total, (const jbyte*)values);
+    env->CallStaticVoidMethod(g_bridgeClass, methodId, (jlong)instanceId, j_values, (jlong)dart_port);
+    if (env->ExceptionCheck()) {
+        nitro_report_jni_exception(env, env->ExceptionOccurred(), nullptr);
+    }
+    env->PopLocalFrame(nullptr);
+}
+
+void nitro_type_coverage_native_async_event_list(int64_t instanceId, void* values, int64_t dart_port) {
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return; }
+    jmethodID methodId = g_mid_nativeAsyncEventList_call;
+    if (methodId == nullptr) { LOGE("Method not found: nativeAsyncEventList_call sig=(J[BJ)V"); return; }
+
+    nitro_type_coverage_clear_error();
+    if (env->PushLocalFrame(16) != 0) { return; }
+    int32_t values_payload_len = *((const int32_t*)values);
+    int32_t values_total = values_payload_len + 4;
+    jbyteArray j_values = env->NewByteArray((jsize)values_total);
+    env->SetByteArrayRegion(j_values, 0, (jsize)values_total, (const jbyte*)values);
+    env->CallStaticVoidMethod(g_bridgeClass, methodId, (jlong)instanceId, j_values, (jlong)dart_port);
+    if (env->ExceptionCheck()) {
+        nitro_report_jni_exception(env, env->ExceptionOccurred(), nullptr);
+    }
+    env->PopLocalFrame(nullptr);
+}
+
+void nitro_type_coverage_native_async_int_list(int64_t instanceId, void* values, int64_t dart_port) {
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return; }
+    jmethodID methodId = g_mid_nativeAsyncIntList_call;
+    if (methodId == nullptr) { LOGE("Method not found: nativeAsyncIntList_call sig=(J[BJ)V"); return; }
+
+    nitro_type_coverage_clear_error();
+    if (env->PushLocalFrame(16) != 0) { return; }
+    int32_t values_payload_len = *((const int32_t*)values);
+    int32_t values_total = values_payload_len + 4;
+    jbyteArray j_values = env->NewByteArray((jsize)values_total);
+    env->SetByteArrayRegion(j_values, 0, (jsize)values_total, (const jbyte*)values);
+    env->CallStaticVoidMethod(g_bridgeClass, methodId, (jlong)instanceId, j_values, (jlong)dart_port);
+    if (env->ExceptionCheck()) {
+        nitro_report_jni_exception(env, env->ExceptionOccurred(), nullptr);
+    }
+    env->PopLocalFrame(nullptr);
+}
+
+void nitro_type_coverage_native_async_with_callback(int64_t instanceId, int64_t value, void (*callback)(int64_t), int64_t dart_port) {
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return; }
+    jmethodID methodId = g_mid_nativeAsyncWithCallback_call;
+    if (methodId == nullptr) { LOGE("Method not found: nativeAsyncWithCallback_call sig=(JJJJ)V"); return; }
+
+    nitro_type_coverage_clear_error();
+    if (env->PushLocalFrame(16) != 0) { return; }
+    env->CallStaticVoidMethod(g_bridgeClass, methodId, (jlong)instanceId, value, (jlong)callback, (jlong)dart_port);
+    if (env->ExceptionCheck()) {
+        nitro_report_jni_exception(env, env->ExceptionOccurred(), nullptr);
+    }
+    env->PopLocalFrame(nullptr);
+}
+
+void nitro_type_coverage_native_async_counts(int64_t instanceId, int64_t seed, int64_t dart_port) {
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return; }
+    jmethodID methodId = g_mid_nativeAsyncCounts_call;
+    if (methodId == nullptr) { LOGE("Method not found: nativeAsyncCounts_call sig=(JJJ)V"); return; }
+
+    nitro_type_coverage_clear_error();
+    if (env->PushLocalFrame(16) != 0) { return; }
+    env->CallStaticVoidMethod(g_bridgeClass, methodId, (jlong)instanceId, seed, (jlong)dart_port);
+    if (env->ExceptionCheck()) {
+        nitro_report_jni_exception(env, env->ExceptionOccurred(), nullptr);
+    }
+    env->PopLocalFrame(nullptr);
+}
+
+void nitro_type_coverage_native_async_nullable_uint64(int64_t instanceId, const uint8_t* value, int64_t dart_port) {
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return; }
+    jmethodID methodId = g_mid_nativeAsyncNullableUint64_call;
+    if (methodId == nullptr) { LOGE("Method not found: nativeAsyncNullableUint64_call sig=(J[BJ)V"); return; }
+
+    nitro_type_coverage_clear_error();
+    if (env->PushLocalFrame(16) != 0) { return; }
+    jbyteArray j_value = env->NewByteArray(9);
+    if (value != nullptr) { env->SetByteArrayRegion(j_value, 0, 9, (const jbyte*)value); }
+    env->CallStaticVoidMethod(g_bridgeClass, methodId, (jlong)instanceId, j_value, (jlong)dart_port);
+    if (env->ExceptionCheck()) {
+        nitro_report_jni_exception(env, env->ExceptionOccurred(), nullptr);
+    }
+    env->PopLocalFrame(nullptr);
+}
+
 void nitro_type_coverage_configure_string_stream(int64_t instanceId, void* values, NitroError* _nitro_err) {
     if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
     JNIEnv* env = GetEnv();
@@ -4261,6 +4486,11 @@ JNIEXPORT jlong JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCovera
     return (jlong)_ret;
 }
 
+JNIEXPORT void JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverageJniBridge__1invoke_1callback(JNIEnv* env, jobject thiz, jlong callbackPtr, jlong arg0) {
+    typedef void (*CB)(int64_t);
+    ((CB)callbackPtr)((int64_t)arg0);
+}
+
 JNIEXPORT void JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverageJniBridge__1invoke_1pointCb(JNIEnv* env, jobject thiz, jlong callbackPtr, jlong arg0_x, jlong arg0_y, jlong arg0_z) {
     typedef void (*CB)(int64_t, int64_t, int64_t);
     ((CB)callbackPtr)((int64_t)arg0_x, (int64_t)arg0_y, (int64_t)arg0_z);
@@ -4269,11 +4499,6 @@ JNIEXPORT void JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverag
 JNIEXPORT void JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverageJniBridge__1invoke_1detailCb(JNIEnv* env, jobject thiz, jlong callbackPtr, jlong arg0, jlong arg1) {
     typedef void (*CB)(int64_t, int64_t);
     ((CB)callbackPtr)((int64_t)arg0, (int64_t)arg1);
-}
-
-JNIEXPORT void JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverageJniBridge__1invoke_1callback(JNIEnv* env, jobject thiz, jlong callbackPtr, jlong arg0) {
-    typedef void (*CB)(int64_t);
-    ((CB)callbackPtr)((int64_t)arg0);
 }
 
 JNIEXPORT void JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverageJniBridge__1invoke_1handler(JNIEnv* env, jobject thiz, jlong callbackPtr, jbyteArray arg0) {
@@ -4455,6 +4680,30 @@ JNIEXPORT void JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverag
         if (!g_mid_nativeAsyncNullableDouble_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nativeAsyncNullableDouble_call sig=(J[BJ)V"); }
         g_mid_nativeAsyncNullableBool_call = env->GetStaticMethodID(g_bridgeClass, "nativeAsyncNullableBool_call", "(J[BJ)V");
         if (!g_mid_nativeAsyncNullableBool_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nativeAsyncNullableBool_call sig=(J[BJ)V"); }
+        g_mid_nativeAsyncStatus_call = env->GetStaticMethodID(g_bridgeClass, "nativeAsyncStatus_call", "(JJJ)V");
+        if (!g_mid_nativeAsyncStatus_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nativeAsyncStatus_call sig=(JJJ)V"); }
+        g_mid_nativeAsyncNullableStatus_call = env->GetStaticMethodID(g_bridgeClass, "nativeAsyncNullableStatus_call", "(JJJ)V");
+        if (!g_mid_nativeAsyncNullableStatus_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nativeAsyncNullableStatus_call sig=(JJJ)V"); }
+        g_mid_nativeAsyncConfig_call = env->GetStaticMethodID(g_bridgeClass, "nativeAsyncConfig_call", "(J[BJ)V");
+        if (!g_mid_nativeAsyncConfig_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nativeAsyncConfig_call sig=(J[BJ)V"); }
+        g_mid_nativeAsyncNullableConfig_call = env->GetStaticMethodID(g_bridgeClass, "nativeAsyncNullableConfig_call", "(J[BJ)V");
+        if (!g_mid_nativeAsyncNullableConfig_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nativeAsyncNullableConfig_call sig=(J[BJ)V"); }
+        g_mid_nativeAsyncEvent_call = env->GetStaticMethodID(g_bridgeClass, "nativeAsyncEvent_call", "(J[BJ)V");
+        if (!g_mid_nativeAsyncEvent_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nativeAsyncEvent_call sig=(J[BJ)V"); }
+        g_mid_nativeAsyncConfigList_call = env->GetStaticMethodID(g_bridgeClass, "nativeAsyncConfigList_call", "(J[BJ)V");
+        if (!g_mid_nativeAsyncConfigList_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nativeAsyncConfigList_call sig=(J[BJ)V"); }
+        g_mid_nativeAsyncStatusList_call = env->GetStaticMethodID(g_bridgeClass, "nativeAsyncStatusList_call", "(J[BJ)V");
+        if (!g_mid_nativeAsyncStatusList_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nativeAsyncStatusList_call sig=(J[BJ)V"); }
+        g_mid_nativeAsyncEventList_call = env->GetStaticMethodID(g_bridgeClass, "nativeAsyncEventList_call", "(J[BJ)V");
+        if (!g_mid_nativeAsyncEventList_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nativeAsyncEventList_call sig=(J[BJ)V"); }
+        g_mid_nativeAsyncIntList_call = env->GetStaticMethodID(g_bridgeClass, "nativeAsyncIntList_call", "(J[BJ)V");
+        if (!g_mid_nativeAsyncIntList_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nativeAsyncIntList_call sig=(J[BJ)V"); }
+        g_mid_nativeAsyncWithCallback_call = env->GetStaticMethodID(g_bridgeClass, "nativeAsyncWithCallback_call", "(JJJJ)V");
+        if (!g_mid_nativeAsyncWithCallback_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nativeAsyncWithCallback_call sig=(JJJJ)V"); }
+        g_mid_nativeAsyncCounts_call = env->GetStaticMethodID(g_bridgeClass, "nativeAsyncCounts_call", "(JJJ)V");
+        if (!g_mid_nativeAsyncCounts_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nativeAsyncCounts_call sig=(JJJ)V"); }
+        g_mid_nativeAsyncNullableUint64_call = env->GetStaticMethodID(g_bridgeClass, "nativeAsyncNullableUint64_call", "(J[BJ)V");
+        if (!g_mid_nativeAsyncNullableUint64_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: nativeAsyncNullableUint64_call sig=(J[BJ)V"); }
         g_mid_configureStringStream_call = env->GetStaticMethodID(g_bridgeClass, "configureStringStream_call", "(J[B)V");
         if (!g_mid_configureStringStream_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: configureStringStream_call sig=(J[B)V"); }
         g_mid_configureBatchStringStream_call = env->GetStaticMethodID(g_bridgeClass, "configureBatchStringStream_call", "(J[B)V");
@@ -4776,6 +5025,20 @@ JNIEXPORT void JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverag
     Dart_CObject obj;
     obj.type = Dart_CObject_kInt64;
     obj.value.as_int64 = (int64_t)(uintptr_t)buf;
+    Dart_PostCObject_DL((Dart_Port)dartPort, &obj);
+}
+
+JNIEXPORT void JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverageJniBridge_postBytesToPort(JNIEnv* env, jclass, jlong dartPort, jbyteArray value) {
+    Dart_CObject obj;
+    obj.type = Dart_CObject_kInt64;
+    if (value == nullptr) {
+        obj.value.as_int64 = 0;
+    } else {
+        jsize len = env->GetArrayLength(value);
+        uint8_t* buf = (uint8_t*)malloc(len);
+        env->GetByteArrayRegion(value, 0, len, (jbyte*)buf);
+        obj.value.as_int64 = (int64_t)(uintptr_t)buf;
+    }
     Dart_PostCObject_DL((Dart_Port)dartPort, &obj);
 }
 
@@ -6543,6 +6806,78 @@ extern void _nitro_type_coverage_call_nativeAsyncNullableBool(const uint8_t* val
 void nitro_type_coverage_native_async_nullable_bool(int64_t instanceId, const uint8_t* value, int64_t dart_port) {
     nitro_type_coverage_clear_error();
     _nitro_type_coverage_call_nativeAsyncNullableBool(value, dart_port);
+}
+
+extern void _nitro_type_coverage_call_nativeAsyncStatus(int64_t value, int64_t dart_port);
+void nitro_type_coverage_native_async_status(int64_t instanceId, int64_t value, int64_t dart_port) {
+    nitro_type_coverage_clear_error();
+    _nitro_type_coverage_call_nativeAsyncStatus(value, dart_port);
+}
+
+extern void _nitro_type_coverage_call_nativeAsyncNullableStatus(int64_t value, int64_t dart_port);
+void nitro_type_coverage_native_async_nullable_status(int64_t instanceId, int64_t value, int64_t dart_port) {
+    nitro_type_coverage_clear_error();
+    _nitro_type_coverage_call_nativeAsyncNullableStatus(value, dart_port);
+}
+
+extern void _nitro_type_coverage_call_nativeAsyncConfig(void* value, int64_t dart_port);
+void nitro_type_coverage_native_async_config(int64_t instanceId, void* value, int64_t dart_port) {
+    nitro_type_coverage_clear_error();
+    _nitro_type_coverage_call_nativeAsyncConfig(value, dart_port);
+}
+
+extern void _nitro_type_coverage_call_nativeAsyncNullableConfig(void* value, int64_t dart_port);
+void nitro_type_coverage_native_async_nullable_config(int64_t instanceId, void* value, int64_t dart_port) {
+    nitro_type_coverage_clear_error();
+    _nitro_type_coverage_call_nativeAsyncNullableConfig(value, dart_port);
+}
+
+extern void _nitro_type_coverage_call_nativeAsyncEvent(void* value, int64_t dart_port);
+void nitro_type_coverage_native_async_event(int64_t instanceId, void* value, int64_t dart_port) {
+    nitro_type_coverage_clear_error();
+    _nitro_type_coverage_call_nativeAsyncEvent(value, dart_port);
+}
+
+extern void _nitro_type_coverage_call_nativeAsyncConfigList(void* values, int64_t dart_port);
+void nitro_type_coverage_native_async_config_list(int64_t instanceId, void* values, int64_t dart_port) {
+    nitro_type_coverage_clear_error();
+    _nitro_type_coverage_call_nativeAsyncConfigList(values, dart_port);
+}
+
+extern void _nitro_type_coverage_call_nativeAsyncStatusList(void* values, int64_t dart_port);
+void nitro_type_coverage_native_async_status_list(int64_t instanceId, void* values, int64_t dart_port) {
+    nitro_type_coverage_clear_error();
+    _nitro_type_coverage_call_nativeAsyncStatusList(values, dart_port);
+}
+
+extern void _nitro_type_coverage_call_nativeAsyncEventList(void* values, int64_t dart_port);
+void nitro_type_coverage_native_async_event_list(int64_t instanceId, void* values, int64_t dart_port) {
+    nitro_type_coverage_clear_error();
+    _nitro_type_coverage_call_nativeAsyncEventList(values, dart_port);
+}
+
+extern void _nitro_type_coverage_call_nativeAsyncIntList(void* values, int64_t dart_port);
+void nitro_type_coverage_native_async_int_list(int64_t instanceId, void* values, int64_t dart_port) {
+    nitro_type_coverage_clear_error();
+    _nitro_type_coverage_call_nativeAsyncIntList(values, dart_port);
+}
+
+extern void _nitro_type_coverage_call_nativeAsyncWithCallback(int64_t value, void (*callback)(int64_t), int64_t dart_port);
+void nitro_type_coverage_native_async_with_callback(int64_t instanceId, int64_t value, void (*callback)(int64_t), int64_t dart_port) {
+    nitro_type_coverage_clear_error();
+    _nitro_type_coverage_call_nativeAsyncWithCallback(value, callback, dart_port);
+}
+
+extern void _nitro_type_coverage_call_nativeAsyncCounts(int64_t seed, int64_t dart_port);
+void nitro_type_coverage_native_async_counts(int64_t instanceId, int64_t seed, int64_t dart_port) {
+    nitro_type_coverage_clear_error();
+    _nitro_type_coverage_call_nativeAsyncCounts(seed, dart_port);
+}
+
+extern void _nitro_type_coverage_call_nativeAsyncNullableUint64(const uint8_t* value, int64_t dart_port);
+void nitro_type_coverage_native_async_nullable_uint64(int64_t instanceId, const uint8_t* value, int64_t dart_port) {
+    nitro_type_coverage_clear_error();
+    _nitro_type_coverage_call_nativeAsyncNullableUint64(value, dart_port);
 }
 
 extern void _nitro_type_coverage_call_configureStringStream(void* values);
@@ -9959,6 +10294,114 @@ void nitro_type_coverage_native_async_nullable_bool(int64_t instanceId, const ui
         return;
     }
     g_impl->nativeAsyncNullableBool((value == nullptr || value[0] == 0) ? std::optional<bool>(std::nullopt) : std::make_optional(value[1] != 0), dart_port);
+}
+
+void nitro_type_coverage_native_async_status(int64_t instanceId, int64_t value, int64_t dart_port) {
+    if (!g_impl) {
+        Dart_CObject _err = { Dart_CObject_kNull };
+        Dart_PostCObject_DL(dart_port, &_err);
+        return;
+    }
+    g_impl->nativeAsyncStatus(static_cast<TcStatus>(value), dart_port);
+}
+
+void nitro_type_coverage_native_async_nullable_status(int64_t instanceId, int64_t value, int64_t dart_port) {
+    if (!g_impl) {
+        Dart_CObject _err = { Dart_CObject_kNull };
+        Dart_PostCObject_DL(dart_port, &_err);
+        return;
+    }
+    g_impl->nativeAsyncNullableStatus(value == -1 ? std::optional<TcStatus>(std::nullopt) : std::make_optional(static_cast<TcStatus>(value)), dart_port);
+}
+
+void nitro_type_coverage_native_async_config(int64_t instanceId, void* value, int64_t dart_port) {
+    if (!g_impl) {
+        Dart_CObject _err = { Dart_CObject_kNull };
+        Dart_PostCObject_DL(dart_port, &_err);
+        return;
+    }
+    g_impl->nativeAsyncConfig(NitroCppBuffer{ (const uint8_t*)value + 4, (size_t)*(int32_t*)value }, dart_port);
+}
+
+void nitro_type_coverage_native_async_nullable_config(int64_t instanceId, void* value, int64_t dart_port) {
+    if (!g_impl) {
+        Dart_CObject _err = { Dart_CObject_kNull };
+        Dart_PostCObject_DL(dart_port, &_err);
+        return;
+    }
+    g_impl->nativeAsyncNullableConfig(NitroCppBuffer{ (const uint8_t*)value + 4, (size_t)*(int32_t*)value }, dart_port);
+}
+
+void nitro_type_coverage_native_async_event(int64_t instanceId, void* value, int64_t dart_port) {
+    if (!g_impl) {
+        Dart_CObject _err = { Dart_CObject_kNull };
+        Dart_PostCObject_DL(dart_port, &_err);
+        return;
+    }
+    g_impl->nativeAsyncEvent(NitroCppBuffer{ (const uint8_t*)value + 4, (size_t)*(int32_t*)value }, dart_port);
+}
+
+void nitro_type_coverage_native_async_config_list(int64_t instanceId, void* values, int64_t dart_port) {
+    if (!g_impl) {
+        Dart_CObject _err = { Dart_CObject_kNull };
+        Dart_PostCObject_DL(dart_port, &_err);
+        return;
+    }
+    g_impl->nativeAsyncConfigList(values, dart_port);
+}
+
+void nitro_type_coverage_native_async_status_list(int64_t instanceId, void* values, int64_t dart_port) {
+    if (!g_impl) {
+        Dart_CObject _err = { Dart_CObject_kNull };
+        Dart_PostCObject_DL(dart_port, &_err);
+        return;
+    }
+    g_impl->nativeAsyncStatusList(values, dart_port);
+}
+
+void nitro_type_coverage_native_async_event_list(int64_t instanceId, void* values, int64_t dart_port) {
+    if (!g_impl) {
+        Dart_CObject _err = { Dart_CObject_kNull };
+        Dart_PostCObject_DL(dart_port, &_err);
+        return;
+    }
+    g_impl->nativeAsyncEventList(values, dart_port);
+}
+
+void nitro_type_coverage_native_async_int_list(int64_t instanceId, void* values, int64_t dart_port) {
+    if (!g_impl) {
+        Dart_CObject _err = { Dart_CObject_kNull };
+        Dart_PostCObject_DL(dart_port, &_err);
+        return;
+    }
+    g_impl->nativeAsyncIntList(values, dart_port);
+}
+
+void nitro_type_coverage_native_async_with_callback(int64_t instanceId, int64_t value, void* callback, int64_t dart_port) {
+    if (!g_impl) {
+        Dart_CObject _err = { Dart_CObject_kNull };
+        Dart_PostCObject_DL(dart_port, &_err);
+        return;
+    }
+    g_impl->nativeAsyncWithCallback(value, callback, dart_port);
+}
+
+void nitro_type_coverage_native_async_counts(int64_t instanceId, int64_t seed, int64_t dart_port) {
+    if (!g_impl) {
+        Dart_CObject _err = { Dart_CObject_kNull };
+        Dart_PostCObject_DL(dart_port, &_err);
+        return;
+    }
+    g_impl->nativeAsyncCounts(seed, dart_port);
+}
+
+void nitro_type_coverage_native_async_nullable_uint64(int64_t instanceId, const uint8_t* value, int64_t dart_port) {
+    if (!g_impl) {
+        Dart_CObject _err = { Dart_CObject_kNull };
+        Dart_PostCObject_DL(dart_port, &_err);
+        return;
+    }
+    g_impl->nativeAsyncNullableUint64((value == nullptr || value[0] == 0) ? std::optional<uint64_t>(std::nullopt) : std::make_optional(*reinterpret_cast<const uint64_t*>(value + 1)), dart_port);
 }
 
 void nitro_type_coverage_configure_string_stream(int64_t instanceId, void* values, NitroError* _nitro_err) {

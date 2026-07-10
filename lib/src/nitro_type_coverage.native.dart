@@ -262,6 +262,50 @@ abstract class NitroTypeCoverage extends HybridObject {
   @nitroNativeAsync
   Future<bool?> nativeAsyncNullableBool(bool? value);
 
+  // ── §67: @NitroNativeAsync param-decoding + return-dispatch coverage ─────
+  // Regression coverage for the nitro_generator fix where @NitroNativeAsync's
+  // trampoline only decoded nullable-primitive params/returns and forwarded
+  // every other category (enum, record, variant, list-of-those, callback) as
+  // a raw undecoded bridge value — a Kotlin/Swift compile failure. Plus a
+  // handful of previously-broken return categories (bare variant, Map, and a
+  // fresh List<@HybridEnum>/List<@NitroVariant> return regression that same
+  // record-return fix introduced).
+  @nitroNativeAsync
+  Future<TcStatus> nativeAsyncStatus(TcStatus value);
+
+  @nitroNativeAsync
+  Future<TcStatus?> nativeAsyncNullableStatus(TcStatus? value);
+
+  @nitroNativeAsync
+  Future<TcConfig> nativeAsyncConfig(TcConfig value);
+
+  @nitroNativeAsync
+  Future<TcConfig?> nativeAsyncNullableConfig(TcConfig? value);
+
+  @nitroNativeAsync
+  Future<TcEvent> nativeAsyncEvent(TcEvent value);
+
+  @nitroNativeAsync
+  Future<List<TcConfig>> nativeAsyncConfigList(List<TcConfig> values);
+
+  @nitroNativeAsync
+  Future<List<TcStatus>> nativeAsyncStatusList(List<TcStatus> values);
+
+  @nitroNativeAsync
+  Future<List<TcEvent>> nativeAsyncEventList(List<TcEvent> values);
+
+  @nitroNativeAsync
+  Future<List<int>> nativeAsyncIntList(List<int> values);
+
+  @nitroNativeAsync
+  Future<int> nativeAsyncWithCallback(int value, void Function(int) callback);
+
+  @nitroNativeAsync
+  Future<Map<String, int>> nativeAsyncCounts(int seed);
+
+  @nitroNativeAsync
+  Future<uint64?> nativeAsyncNullableUint64(uint64? value);
+
   // ── §35: Stream<String> — validates the kString emit path ────────────────
   @NitroStream(backpressure: Backpressure.dropLatest)
   Stream<String> stringStream();

@@ -467,6 +467,66 @@ public:
         throw std::runtime_error("Not implemented: nativeAsyncNullableBool");
     }
 
+    void nativeAsyncStatus(TcStatus value, int64_t dartPort) override {
+        // TODO: post result via Dart_PostCObject_DL(dartPort, ...)
+        throw std::runtime_error("Not implemented: nativeAsyncStatus");
+    }
+
+    void nativeAsyncNullableStatus(std::optional<TcStatus> value, int64_t dartPort) override {
+        // TODO: post result via Dart_PostCObject_DL(dartPort, ...)
+        throw std::runtime_error("Not implemented: nativeAsyncNullableStatus");
+    }
+
+    void nativeAsyncConfig(NitroCppBuffer value, int64_t dartPort) override {
+        // TODO: post result via Dart_PostCObject_DL(dartPort, ...)
+        throw std::runtime_error("Not implemented: nativeAsyncConfig");
+    }
+
+    void nativeAsyncNullableConfig(NitroCppBuffer value, int64_t dartPort) override {
+        // TODO: post result via Dart_PostCObject_DL(dartPort, ...)
+        throw std::runtime_error("Not implemented: nativeAsyncNullableConfig");
+    }
+
+    void nativeAsyncEvent(NitroCppBuffer value, int64_t dartPort) override {
+        // TODO: post result via Dart_PostCObject_DL(dartPort, ...)
+        throw std::runtime_error("Not implemented: nativeAsyncEvent");
+    }
+
+    void nativeAsyncConfigList(NitroCppBuffer values, int64_t dartPort) override {
+        // TODO: post result via Dart_PostCObject_DL(dartPort, ...)
+        throw std::runtime_error("Not implemented: nativeAsyncConfigList");
+    }
+
+    void nativeAsyncStatusList(NitroCppBuffer values, int64_t dartPort) override {
+        // TODO: post result via Dart_PostCObject_DL(dartPort, ...)
+        throw std::runtime_error("Not implemented: nativeAsyncStatusList");
+    }
+
+    void nativeAsyncEventList(NitroCppBuffer values, int64_t dartPort) override {
+        // TODO: post result via Dart_PostCObject_DL(dartPort, ...)
+        throw std::runtime_error("Not implemented: nativeAsyncEventList");
+    }
+
+    void nativeAsyncIntList(NitroCppBuffer values, int64_t dartPort) override {
+        // TODO: post result via Dart_PostCObject_DL(dartPort, ...)
+        throw std::runtime_error("Not implemented: nativeAsyncIntList");
+    }
+
+    void nativeAsyncWithCallback(int64_t value, std::function<void(int64_t)> callback, int64_t dartPort) override {
+        // TODO: post result via Dart_PostCObject_DL(dartPort, ...)
+        throw std::runtime_error("Not implemented: nativeAsyncWithCallback");
+    }
+
+    void nativeAsyncCounts(int64_t seed, int64_t dartPort) override {
+        // TODO: post result via Dart_PostCObject_DL(dartPort, ...)
+        throw std::runtime_error("Not implemented: nativeAsyncCounts");
+    }
+
+    void nativeAsyncNullableUint64(std::optional<uint64_t> value, int64_t dartPort) override {
+        // TODO: post result via Dart_PostCObject_DL(dartPort, ...)
+        throw std::runtime_error("Not implemented: nativeAsyncNullableUint64");
+    }
+
     void configureStringStream(NitroCppBuffer values) override {
         // TODO: implement configureStringStream
         throw std::runtime_error("Not implemented: configureStringStream");

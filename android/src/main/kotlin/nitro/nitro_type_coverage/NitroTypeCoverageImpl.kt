@@ -541,6 +541,23 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     override suspend fun nativeAsyncNullableDouble(value: Double?): Double? = value
     override suspend fun nativeAsyncNullableBool(value: Boolean?): Boolean? = value
 
+    // ── §67: @NitroNativeAsync param-decoding + return-dispatch coverage ─────
+    override suspend fun nativeAsyncStatus(value: TcStatus): TcStatus = value
+    override suspend fun nativeAsyncNullableStatus(value: TcStatus?): TcStatus? = value
+    override suspend fun nativeAsyncConfig(value: TcConfig): TcConfig = value
+    override suspend fun nativeAsyncNullableConfig(value: TcConfig?): TcConfig? = value
+    override suspend fun nativeAsyncEvent(value: TcEvent): TcEvent = value
+    override suspend fun nativeAsyncConfigList(values: List<TcConfig>): List<TcConfig> = values
+    override suspend fun nativeAsyncStatusList(values: List<TcStatus>): List<TcStatus> = values
+    override suspend fun nativeAsyncEventList(values: List<TcEvent>): List<TcEvent> = values
+    override suspend fun nativeAsyncIntList(values: List<Long>): List<Long> = values
+    override suspend fun nativeAsyncWithCallback(value: Long, callback: (Long) -> Unit): Long {
+        callback(value)
+        return value * 2
+    }
+    override suspend fun nativeAsyncCounts(seed: Long): Map<String, Long> = mapOf("a" to seed, "b" to seed * 2)
+    override suspend fun nativeAsyncNullableUint64(value: Long?): Long? = value
+
     companion object {
         // ART's Unsafe.allocateMemory/freeMemory wrap malloc/free, so pointers
         // returned here are freed by the C bridge's _release function via free().

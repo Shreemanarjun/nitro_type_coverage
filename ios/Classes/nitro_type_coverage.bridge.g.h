@@ -154,6 +154,18 @@ NITRO_EXPORT void nitro_type_coverage_native_async_string(int64_t instanceId, co
 NITRO_EXPORT void nitro_type_coverage_native_async_nullable_int(int64_t instanceId, const uint8_t* value, int64_t dart_port);
 NITRO_EXPORT void nitro_type_coverage_native_async_nullable_double(int64_t instanceId, const uint8_t* value, int64_t dart_port);
 NITRO_EXPORT void nitro_type_coverage_native_async_nullable_bool(int64_t instanceId, const uint8_t* value, int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_native_async_status(int64_t instanceId, int64_t value, int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_native_async_nullable_status(int64_t instanceId, int64_t value, int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_native_async_config(int64_t instanceId, void* value, int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_native_async_nullable_config(int64_t instanceId, void* value, int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_native_async_event(int64_t instanceId, void* value, int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_native_async_config_list(int64_t instanceId, void* values, int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_native_async_status_list(int64_t instanceId, void* values, int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_native_async_event_list(int64_t instanceId, void* values, int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_native_async_int_list(int64_t instanceId, void* values, int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_native_async_with_callback(int64_t instanceId, int64_t value, void (*callback)(int64_t), int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_native_async_counts(int64_t instanceId, int64_t seed, int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_native_async_nullable_uint64(int64_t instanceId, const uint8_t* value, int64_t dart_port);
 NITRO_EXPORT void nitro_type_coverage_configure_string_stream(int64_t instanceId, void* values, NitroError* _nitro_err);
 NITRO_EXPORT void nitro_type_coverage_configure_batch_string_stream(int64_t instanceId, void* values, NitroError* _nitro_err);
 NITRO_EXPORT void nitro_type_coverage_configure_block_int_stream(int64_t instanceId, int64_t from, int64_t count, NitroError* _nitro_err);

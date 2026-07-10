@@ -803,109 +803,133 @@ public:
     virtual void nativeAsyncNullableDouble(std::optional<double> value, int64_t dartPort) = 0;
     // source: nitro_type_coverage.native.dart:263
     virtual void nativeAsyncNullableBool(std::optional<bool> value, int64_t dartPort) = 0;
-    // source: nitro_type_coverage.native.dart:268
-    virtual void configureStringStream(NitroCppBuffer values) = 0;
-    // source: nitro_type_coverage.native.dart:273
-    virtual void configureBatchStringStream(NitroCppBuffer values) = 0;
-    // source: nitro_type_coverage.native.dart:278
-    virtual void configureBlockIntStream(int64_t from, int64_t count) = 0;
-    // source: nitro_type_coverage.native.dart:281
-    virtual void onPointEvent(std::function<void(const TcPoint&)> pointCb) = 0;
-    // source: nitro_type_coverage.native.dart:282
-    virtual void onDetailEvent(std::function<void(int64_t, double)> detailCb) = 0;
-    // source: nitro_type_coverage.native.dart:285
-    virtual void onIntEvent(std::function<void(int64_t)> callback) = 0;
-    // source: nitro_type_coverage.native.dart:291
-    virtual void onBoolEvent(std::function<void(bool)> boolCb) = 0;
+    // source: nitro_type_coverage.native.dart:274
+    virtual void nativeAsyncStatus(TcStatus value, int64_t dartPort) = 0;
+    // source: nitro_type_coverage.native.dart:277
+    virtual void nativeAsyncNullableStatus(std::optional<TcStatus> value, int64_t dartPort) = 0;
+    // source: nitro_type_coverage.native.dart:280
+    virtual void nativeAsyncConfig(NitroCppBuffer value, int64_t dartPort) = 0;
+    // source: nitro_type_coverage.native.dart:283
+    virtual void nativeAsyncNullableConfig(NitroCppBuffer value, int64_t dartPort) = 0;
+    // source: nitro_type_coverage.native.dart:286
+    virtual void nativeAsyncEvent(NitroCppBuffer value, int64_t dartPort) = 0;
+    // source: nitro_type_coverage.native.dart:289
+    virtual void nativeAsyncConfigList(NitroCppBuffer values, int64_t dartPort) = 0;
     // source: nitro_type_coverage.native.dart:292
-    virtual void onDoubleEvent(std::function<void(double)> doubleCb) = 0;
-    // source: nitro_type_coverage.native.dart:334
-    virtual void configureStream(int64_t from, int64_t count) = 0;
+    virtual void nativeAsyncStatusList(NitroCppBuffer values, int64_t dartPort) = 0;
+    // source: nitro_type_coverage.native.dart:295
+    virtual void nativeAsyncEventList(NitroCppBuffer values, int64_t dartPort) = 0;
+    // source: nitro_type_coverage.native.dart:298
+    virtual void nativeAsyncIntList(NitroCppBuffer values, int64_t dartPort) = 0;
+    // source: nitro_type_coverage.native.dart:301
+    virtual void nativeAsyncWithCallback(int64_t value, std::function<void(int64_t)> callback, int64_t dartPort) = 0;
+    // source: nitro_type_coverage.native.dart:304
+    virtual void nativeAsyncCounts(int64_t seed, int64_t dartPort) = 0;
+    // source: nitro_type_coverage.native.dart:307
+    virtual void nativeAsyncNullableUint64(std::optional<uint64_t> value, int64_t dartPort) = 0;
+    // source: nitro_type_coverage.native.dart:312
+    virtual void configureStringStream(NitroCppBuffer values) = 0;
+    // source: nitro_type_coverage.native.dart:317
+    virtual void configureBatchStringStream(NitroCppBuffer values) = 0;
+    // source: nitro_type_coverage.native.dart:322
+    virtual void configureBlockIntStream(int64_t from, int64_t count) = 0;
+    // source: nitro_type_coverage.native.dart:325
+    virtual void onPointEvent(std::function<void(const TcPoint&)> pointCb) = 0;
+    // source: nitro_type_coverage.native.dart:326
+    virtual void onDetailEvent(std::function<void(int64_t, double)> detailCb) = 0;
+    // source: nitro_type_coverage.native.dart:329
+    virtual void onIntEvent(std::function<void(int64_t)> callback) = 0;
     // source: nitro_type_coverage.native.dart:335
-    virtual void configureDoubleStream(double start, int64_t count) = 0;
+    virtual void onBoolEvent(std::function<void(bool)> boolCb) = 0;
     // source: nitro_type_coverage.native.dart:336
-    virtual void configureStatusStream(int64_t count) = 0;
-    // source: nitro_type_coverage.native.dart:339
-    virtual void throwNative(const std::string& message) = 0;
-    // source: nitro_type_coverage.native.dart:342
-    virtual void throwNativeAsync(const std::string& message) = 0;
-    // source: nitro_type_coverage.native.dart:347
-    virtual void* acquireBuffer(int64_t size) = 0;
-    // source: nitro_type_coverage.native.dart:351
-    virtual NitroCppBuffer echoEvent(NitroCppBuffer event) = 0;
-    // source: nitro_type_coverage.native.dart:356
-    virtual double safeDiv(double a, double b) = 0;
-    // source: nitro_type_coverage.native.dart:361
-    virtual std::string validateLabel(const std::string& label) = 0;
-    // source: nitro_type_coverage.native.dart:367
-    virtual int64_t slowAsync(int64_t delayMs) = 0;
-    // source: nitro_type_coverage.native.dart:371
-    virtual NitroCppBuffer echoDeepRecord(NitroCppBuffer value) = 0;
-    // source: nitro_type_coverage.native.dart:374
-    virtual NitroCppBuffer asyncDeepRecord(NitroCppBuffer value) = 0;
+    virtual void onDoubleEvent(std::function<void(double)> doubleCb) = 0;
+    // source: nitro_type_coverage.native.dart:378
+    virtual void configureStream(int64_t from, int64_t count) = 0;
+    // source: nitro_type_coverage.native.dart:379
+    virtual void configureDoubleStream(double start, int64_t count) = 0;
     // source: nitro_type_coverage.native.dart:380
-    virtual void* asyncAcquireBuffer(int64_t size) = 0;
-    // source: nitro_type_coverage.native.dart:384
-    virtual NitroCppBuffer asyncEchoEvent(NitroCppBuffer event) = 0;
-    // source: nitro_type_coverage.native.dart:389
-    virtual double asyncSafeDiv(double a, double b) = 0;
-    // source: nitro_type_coverage.native.dart:394
-    virtual std::string asyncValidateLabel(const std::string& label) = 0;
-    // source: nitro_type_coverage.native.dart:397
-    virtual TcPriority echoPriority(TcPriority value) = 0;
-    // source: nitro_type_coverage.native.dart:402
-    virtual void configureBufferDropIntStream(int64_t from, int64_t count) = 0;
+    virtual void configureStatusStream(int64_t count) = 0;
+    // source: nitro_type_coverage.native.dart:383
+    virtual void throwNative(const std::string& message) = 0;
+    // source: nitro_type_coverage.native.dart:386
+    virtual void throwNativeAsync(const std::string& message) = 0;
+    // source: nitro_type_coverage.native.dart:391
+    virtual void* acquireBuffer(int64_t size) = 0;
+    // source: nitro_type_coverage.native.dart:395
+    virtual NitroCppBuffer echoEvent(NitroCppBuffer event) = 0;
+    // source: nitro_type_coverage.native.dart:400
+    virtual double safeDiv(double a, double b) = 0;
     // source: nitro_type_coverage.native.dart:405
-    virtual void onEventCallback(std::function<void(NitroCppBuffer)> handler) = 0;
-    // source: nitro_type_coverage.native.dart:410
-    virtual void configureEventStream(int64_t count) = 0;
-    // source: nitro_type_coverage.native.dart:413
-    virtual NitroCppBuffer getStatusList() = 0;
-    // source: nitro_type_coverage.native.dart:414
-    virtual NitroCppBuffer echoStatusList(NitroCppBuffer values) = 0;
-    // source: nitro_type_coverage.native.dart:417
-    virtual NitroCppBuffer getEventList() = 0;
+    virtual std::string validateLabel(const std::string& label) = 0;
+    // source: nitro_type_coverage.native.dart:411
+    virtual int64_t slowAsync(int64_t delayMs) = 0;
+    // source: nitro_type_coverage.native.dart:415
+    virtual NitroCppBuffer echoDeepRecord(NitroCppBuffer value) = 0;
     // source: nitro_type_coverage.native.dart:418
-    virtual NitroCppBuffer echoEventList(NitroCppBuffer values) = 0;
-    // source: nitro_type_coverage.native.dart:427
-    virtual void configureNullableStatusStream(int64_t count) = 0;
-    // source: nitro_type_coverage.native.dart:431
-    virtual void configureNullableStringStream(int64_t count) = 0;
-    // source: nitro_type_coverage.native.dart:437
-    virtual NitroCppBuffer echoPair(NitroCppBuffer value) = 0;
+    virtual NitroCppBuffer asyncDeepRecord(NitroCppBuffer value) = 0;
+    // source: nitro_type_coverage.native.dart:424
+    virtual void* asyncAcquireBuffer(int64_t size) = 0;
+    // source: nitro_type_coverage.native.dart:428
+    virtual NitroCppBuffer asyncEchoEvent(NitroCppBuffer event) = 0;
+    // source: nitro_type_coverage.native.dart:433
+    virtual double asyncSafeDiv(double a, double b) = 0;
     // source: nitro_type_coverage.native.dart:438
-    virtual NitroCppBuffer echoNullablePair(NitroCppBuffer value) = 0;
-    // source: nitro_type_coverage.native.dart:443
-    virtual uint64_t echoUint64(uint64_t value) = 0;
-    // source: nitro_type_coverage.native.dart:444
-    virtual std::optional<uint64_t> echoNullableUint64(std::optional<uint64_t> value) = 0;
+    virtual std::string asyncValidateLabel(const std::string& label) = 0;
+    // source: nitro_type_coverage.native.dart:441
+    virtual TcPriority echoPriority(TcPriority value) = 0;
+    // source: nitro_type_coverage.native.dart:446
+    virtual void configureBufferDropIntStream(int64_t from, int64_t count) = 0;
     // source: nitro_type_coverage.native.dart:449
-    virtual void configureUint64Stream(int64_t from, int64_t count) = 0;
-    // source: nitro_type_coverage.native.dart:453
-    virtual void configureNullableUint64Stream(int64_t count) = 0;
-    // source: nitro_type_coverage.native.dart:456
-    virtual int64_t echoInt8(int64_t value) = 0;
+    virtual void onEventCallback(std::function<void(NitroCppBuffer)> handler) = 0;
+    // source: nitro_type_coverage.native.dart:454
+    virtual void configureEventStream(int64_t count) = 0;
     // source: nitro_type_coverage.native.dart:457
-    virtual int64_t echoInt16(int64_t value) = 0;
+    virtual NitroCppBuffer getStatusList() = 0;
     // source: nitro_type_coverage.native.dart:458
-    virtual int64_t echoInt32(int64_t value) = 0;
-    // source: nitro_type_coverage.native.dart:459
-    virtual int64_t echoUint8(int64_t value) = 0;
-    // source: nitro_type_coverage.native.dart:460
-    virtual int64_t echoUint16(int64_t value) = 0;
+    virtual NitroCppBuffer echoStatusList(NitroCppBuffer values) = 0;
     // source: nitro_type_coverage.native.dart:461
-    virtual int64_t echoUint32(int64_t value) = 0;
+    virtual NitroCppBuffer getEventList() = 0;
     // source: nitro_type_coverage.native.dart:462
+    virtual NitroCppBuffer echoEventList(NitroCppBuffer values) = 0;
+    // source: nitro_type_coverage.native.dart:471
+    virtual void configureNullableStatusStream(int64_t count) = 0;
+    // source: nitro_type_coverage.native.dart:475
+    virtual void configureNullableStringStream(int64_t count) = 0;
+    // source: nitro_type_coverage.native.dart:481
+    virtual NitroCppBuffer echoPair(NitroCppBuffer value) = 0;
+    // source: nitro_type_coverage.native.dart:482
+    virtual NitroCppBuffer echoNullablePair(NitroCppBuffer value) = 0;
+    // source: nitro_type_coverage.native.dart:487
+    virtual uint64_t echoUint64(uint64_t value) = 0;
+    // source: nitro_type_coverage.native.dart:488
+    virtual std::optional<uint64_t> echoNullableUint64(std::optional<uint64_t> value) = 0;
+    // source: nitro_type_coverage.native.dart:493
+    virtual void configureUint64Stream(int64_t from, int64_t count) = 0;
+    // source: nitro_type_coverage.native.dart:497
+    virtual void configureNullableUint64Stream(int64_t count) = 0;
+    // source: nitro_type_coverage.native.dart:500
+    virtual int64_t echoInt8(int64_t value) = 0;
+    // source: nitro_type_coverage.native.dart:501
+    virtual int64_t echoInt16(int64_t value) = 0;
+    // source: nitro_type_coverage.native.dart:502
+    virtual int64_t echoInt32(int64_t value) = 0;
+    // source: nitro_type_coverage.native.dart:503
+    virtual int64_t echoUint8(int64_t value) = 0;
+    // source: nitro_type_coverage.native.dart:504
+    virtual int64_t echoUint16(int64_t value) = 0;
+    // source: nitro_type_coverage.native.dart:505
+    virtual int64_t echoUint32(int64_t value) = 0;
+    // source: nitro_type_coverage.native.dart:506
     virtual double echoFloat(double value) = 0;
-    // source: nitro_type_coverage.native.dart:463
+    // source: nitro_type_coverage.native.dart:507
     virtual std::optional<int64_t> echoNullableInt32(std::optional<int64_t> value) = 0;
-    // source: nitro_type_coverage.native.dart:464
+    // source: nitro_type_coverage.native.dart:508
     virtual std::optional<double> echoNullableFloat(std::optional<double> value) = 0;
-    // source: nitro_type_coverage.native.dart:469
+    // source: nitro_type_coverage.native.dart:513
     virtual void configureNullableIntStream(int64_t count) = 0;
-    // source: nitro_type_coverage.native.dart:473
+    // source: nitro_type_coverage.native.dart:517
     virtual void configureNullableDoubleStream(int64_t count) = 0;
-    // source: nitro_type_coverage.native.dart:477
+    // source: nitro_type_coverage.native.dart:521
     virtual void configureNullableBoolStream(int64_t count) = 0;
 
     // ── Properties ───────────────────────────────────────────────────────

@@ -480,4 +480,21 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     public func nativeAsyncNullableInt(value: Int64?) async throws -> Int64? { value }
     public func nativeAsyncNullableDouble(value: Double?) async throws -> Double? { value }
     public func nativeAsyncNullableBool(value: Bool?) async throws -> Bool? { value }
+
+    // ── §67: @NitroNativeAsync param-decoding + return-dispatch coverage ─────
+    public func nativeAsyncStatus(value: TcStatus) async throws -> TcStatus { value }
+    public func nativeAsyncNullableStatus(value: TcStatus?) async throws -> TcStatus? { value }
+    public func nativeAsyncConfig(value: TcConfig) async throws -> TcConfig { value }
+    public func nativeAsyncNullableConfig(value: TcConfig?) async throws -> TcConfig? { value }
+    public func nativeAsyncEvent(value: TcEvent) async throws -> TcEvent { value }
+    public func nativeAsyncConfigList(values: [TcConfig]) async throws -> [TcConfig] { values }
+    public func nativeAsyncStatusList(values: [TcStatus]) async throws -> [TcStatus] { values }
+    public func nativeAsyncEventList(values: [TcEvent]) async throws -> [TcEvent] { values }
+    public func nativeAsyncIntList(values: [Int64]) async throws -> [Int64] { values }
+    public func nativeAsyncWithCallback(value: Int64, callback: @escaping (Int64) -> Void) async throws -> Int64 {
+        callback(value)
+        return value * 2
+    }
+    public func nativeAsyncCounts(seed: Int64) async throws -> Any { ["a": seed, "b": seed * 2] }
+    public func nativeAsyncNullableUint64(value: UInt64?) async throws -> UInt64? { value }
 }

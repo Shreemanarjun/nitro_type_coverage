@@ -4,7 +4,7 @@ project(nitro_type_coverage_library VERSION 0.0.1 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(NITRO_NATIVE "${CMAKE_CURRENT_SOURCE_DIR}/native")
-# NITRO_LINK_SPEC_CHECKSUM eba705e6bbf72fe7
+# NITRO_LINK_SPEC_CHECKSUM ba8624308890f461
 set(GENERATED_CPP "${CMAKE_CURRENT_SOURCE_DIR}/../lib/src/generated/cpp")
 
 add_library(nitro_type_coverage SHARED

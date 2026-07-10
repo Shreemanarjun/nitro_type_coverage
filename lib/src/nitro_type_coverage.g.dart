@@ -499,7 +499,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     }
     NitroRuntime.checkLinkChecksum(
       'nitro_type_coverage',
-      'e23f78aad00c4764',
+      '25bef6326fda3aab',
       () => _dylib
           .lookupFunction<Pointer<Utf8> Function(), Pointer<Utf8> Function()>(
             'nitro_type_coverage_nitro_bridge_checksum',
@@ -1299,6 +1299,84 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
         Void Function(Int64, Pointer<NitroOptBool>, Int64),
         void Function(int, Pointer<NitroOptBool>, int)
       >('nitro_type_coverage_native_async_nullable_bool');
+  late final void Function(int, int, int) _nativeAsyncStatusPtr = _dylib
+      .lookupFunction<
+        Void Function(Int64, Int64, Int64),
+        void Function(int, int, int)
+      >('nitro_type_coverage_native_async_status');
+  late final void Function(int, int, int) _nativeAsyncNullableStatusPtr = _dylib
+      .lookupFunction<
+        Void Function(Int64, Int64, Int64),
+        void Function(int, int, int)
+      >('nitro_type_coverage_native_async_nullable_status');
+  late final void Function(int, Pointer<Uint8>, int) _nativeAsyncConfigPtr =
+      _dylib.lookupFunction<
+        Void Function(Int64, Pointer<Uint8>, Int64),
+        void Function(int, Pointer<Uint8>, int)
+      >('nitro_type_coverage_native_async_config');
+  late final void Function(int, Pointer<Uint8>, int)
+  _nativeAsyncNullableConfigPtr = _dylib
+      .lookupFunction<
+        Void Function(Int64, Pointer<Uint8>, Int64),
+        void Function(int, Pointer<Uint8>, int)
+      >('nitro_type_coverage_native_async_nullable_config');
+  late final void Function(int, Pointer<Uint8>, int) _nativeAsyncEventPtr =
+      _dylib.lookupFunction<
+        Void Function(Int64, Pointer<Uint8>, Int64),
+        void Function(int, Pointer<Uint8>, int)
+      >('nitro_type_coverage_native_async_event');
+  late final void Function(int, Pointer<Uint8>, int) _nativeAsyncConfigListPtr =
+      _dylib.lookupFunction<
+        Void Function(Int64, Pointer<Uint8>, Int64),
+        void Function(int, Pointer<Uint8>, int)
+      >('nitro_type_coverage_native_async_config_list');
+  late final void Function(int, Pointer<Uint8>, int) _nativeAsyncStatusListPtr =
+      _dylib.lookupFunction<
+        Void Function(Int64, Pointer<Uint8>, Int64),
+        void Function(int, Pointer<Uint8>, int)
+      >('nitro_type_coverage_native_async_status_list');
+  late final void Function(int, Pointer<Uint8>, int) _nativeAsyncEventListPtr =
+      _dylib.lookupFunction<
+        Void Function(Int64, Pointer<Uint8>, Int64),
+        void Function(int, Pointer<Uint8>, int)
+      >('nitro_type_coverage_native_async_event_list');
+  late final void Function(int, Pointer<Uint8>, int) _nativeAsyncIntListPtr =
+      _dylib.lookupFunction<
+        Void Function(Int64, Pointer<Uint8>, Int64),
+        void Function(int, Pointer<Uint8>, int)
+      >('nitro_type_coverage_native_async_int_list');
+  late final void Function(
+    int,
+    int,
+    Pointer<NativeFunction<Void Function(Int64)>>,
+    int,
+  )
+  _nativeAsyncWithCallbackPtr = _dylib
+      .lookupFunction<
+        Void Function(
+          Int64,
+          Int64,
+          Pointer<NativeFunction<Void Function(Int64)>>,
+          Int64,
+        ),
+        void Function(
+          int,
+          int,
+          Pointer<NativeFunction<Void Function(Int64)>>,
+          int,
+        )
+      >('nitro_type_coverage_native_async_with_callback');
+  late final void Function(int, int, int) _nativeAsyncCountsPtr = _dylib
+      .lookupFunction<
+        Void Function(Int64, Int64, Int64),
+        void Function(int, int, int)
+      >('nitro_type_coverage_native_async_counts');
+  late final void Function(int, Pointer<NitroOptInt64>, int)
+  _nativeAsyncNullableUint64Ptr = _dylib
+      .lookupFunction<
+        Void Function(Int64, Pointer<NitroOptInt64>, Int64),
+        void Function(int, Pointer<NitroOptInt64>, int)
+      >('nitro_type_coverage_native_async_nullable_uint64');
   late final void Function(int, Pointer<Uint8>, Pointer<NitroErrorFfi>)
   _configureStringStreamPtr = _dylib
       .lookupFunction<
@@ -2241,6 +2319,18 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     final nc = NativeCallable<Int64 Function(Int64)>.isolateLocal((int arg0) {
       return callback(arg0).nativeValue;
     }, exceptionalReturn: 0);
+    final old = _nativeCallbackCache[key];
+    _nativeCallbackCache[key] = nc;
+    NitroRuntime.deferredClose(old);
+    return nc;
+  }
+
+  NativeCallable<Void Function(Int64)>
+  _nativeCallbackNativeAsyncWithCallbackCallback(void Function(int) callback) {
+    const key = 'nativeAsyncWithCallback.callback';
+    final nc = NativeCallable<Void Function(Int64)>.listener((int arg0) {
+      callback(arg0);
+    });
     final old = _nativeCallbackCache[key];
     _nativeCallbackCache[key] = nc;
     NitroRuntime.deferredClose(old);
@@ -3885,6 +3975,276 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
           return v;
         },
         methodName: 'nativeAsyncNullableBool',
+      );
+    } finally {
+      arena.releaseAll();
+    }
+  }
+
+  @override
+  Future<TcStatus> nativeAsyncStatus(TcStatus value) {
+    checkDisposed();
+    return NitroRuntime.openNativeAsync<TcStatus>(
+      call: (port) =>
+          _nativeAsyncStatusPtr(_instanceId, value.nativeValue, port),
+      unpack: (raw) => (raw as int).toTcStatus(),
+      methodName: 'nativeAsyncStatus',
+    );
+  }
+
+  @override
+  Future<TcStatus?> nativeAsyncNullableStatus(TcStatus? value) {
+    checkDisposed();
+    return NitroRuntime.openNativeAsync<TcStatus?>(
+      call: (port) => _nativeAsyncNullableStatusPtr(
+        _instanceId,
+        value == null ? -1 : value.nativeValue,
+        port,
+      ),
+      unpack: (raw) {
+        final v = raw as int;
+        return v == -1 ? null : v.toTcStatus();
+      },
+      methodName: 'nativeAsyncNullableStatus',
+    );
+  }
+
+  @override
+  Future<TcConfig> nativeAsyncConfig(TcConfig value) {
+    checkDisposed();
+    final arena = Arena();
+    try {
+      return NitroRuntime.openNativeAsync<TcConfig>(
+        call: (port) =>
+            _nativeAsyncConfigPtr(_instanceId, value.toNative(arena), port),
+        unpack: (raw) {
+          final rawPtr = Pointer<Uint8>.fromAddress(raw as int);
+          try {
+            return TcConfigRecordExt.fromNative(rawPtr);
+          } finally {
+            malloc.free(rawPtr);
+          }
+        },
+        methodName: 'nativeAsyncConfig',
+      );
+    } finally {
+      arena.releaseAll();
+    }
+  }
+
+  @override
+  Future<TcConfig?> nativeAsyncNullableConfig(TcConfig? value) {
+    checkDisposed();
+    final arena = Arena();
+    try {
+      return NitroRuntime.openNativeAsync<TcConfig?>(
+        call: (port) => _nativeAsyncNullableConfigPtr(
+          _instanceId,
+          value != null ? value.toNative(arena) : nullptr,
+          port,
+        ),
+        unpack: (raw) {
+          final rawPtr = Pointer<Uint8>.fromAddress(raw as int);
+          if (rawPtr == nullptr) return null;
+          try {
+            return TcConfigRecordExt.fromNative(rawPtr);
+          } finally {
+            malloc.free(rawPtr);
+          }
+        },
+        methodName: 'nativeAsyncNullableConfig',
+      );
+    } finally {
+      arena.releaseAll();
+    }
+  }
+
+  @override
+  Future<TcEvent> nativeAsyncEvent(TcEvent value) {
+    checkDisposed();
+    final arena = Arena();
+    try {
+      return NitroRuntime.openNativeAsync<TcEvent>(
+        call: (port) =>
+            _nativeAsyncEventPtr(_instanceId, value.toNative(arena), port),
+        unpack: (raw) {
+          final rawPtr = Pointer<Uint8>.fromAddress(raw as int);
+          try {
+            return TcEventVariantExt.fromNative(rawPtr);
+          } finally {
+            malloc.free(rawPtr);
+          }
+        },
+        methodName: 'nativeAsyncEvent',
+      );
+    } finally {
+      arena.releaseAll();
+    }
+  }
+
+  @override
+  Future<List<TcConfig>> nativeAsyncConfigList(List<TcConfig> values) {
+    checkDisposed();
+    final arena = Arena();
+    try {
+      return NitroRuntime.openNativeAsync<List<TcConfig>>(
+        call: (port) => _nativeAsyncConfigListPtr(
+          _instanceId,
+          RecordWriter.encodeIndexedList(
+            values,
+            (w, e) => e.writeFields(w),
+            arena,
+          ),
+          port,
+        ),
+        unpack: (raw) {
+          final rawPtr = Pointer<Uint8>.fromAddress(raw as int);
+          return LazyRecordList.decode(
+            rawPtr,
+            (r) => TcConfigRecordExt.fromReader(r),
+          );
+        },
+        methodName: 'nativeAsyncConfigList',
+      );
+    } finally {
+      arena.releaseAll();
+    }
+  }
+
+  @override
+  Future<List<TcStatus>> nativeAsyncStatusList(List<TcStatus> values) {
+    checkDisposed();
+    final arena = Arena();
+    try {
+      return NitroRuntime.openNativeAsync<List<TcStatus>>(
+        call: (port) => _nativeAsyncStatusListPtr(
+          _instanceId,
+          RecordWriter.encodeList(
+            values,
+            (w, e) => w.writeInt(e.nativeValue),
+            arena,
+          ),
+          port,
+        ),
+        unpack: (raw) {
+          final rawPtr = Pointer<Uint8>.fromAddress(raw as int);
+          return RecordReader.decodeList(
+            rawPtr,
+            (r) => r.readInt().toTcStatus(),
+          );
+        },
+        methodName: 'nativeAsyncStatusList',
+      );
+    } finally {
+      arena.releaseAll();
+    }
+  }
+
+  @override
+  Future<List<TcEvent>> nativeAsyncEventList(List<TcEvent> values) {
+    checkDisposed();
+    final arena = Arena();
+    try {
+      return NitroRuntime.openNativeAsync<List<TcEvent>>(
+        call: (port) => _nativeAsyncEventListPtr(
+          _instanceId,
+          RecordWriter.encodeList(values, (w, v) => v.writeFields(w), arena),
+          port,
+        ),
+        unpack: (raw) {
+          final rawPtr = Pointer<Uint8>.fromAddress(raw as int);
+          return RecordReader.decodeList(
+            rawPtr,
+            (r) => TcEventVariantExt.fromReader(r),
+          );
+        },
+        methodName: 'nativeAsyncEventList',
+      );
+    } finally {
+      arena.releaseAll();
+    }
+  }
+
+  @override
+  Future<List<int>> nativeAsyncIntList(List<int> values) {
+    checkDisposed();
+    final arena = Arena();
+    try {
+      return NitroRuntime.openNativeAsync<List<int>>(
+        call: (port) => _nativeAsyncIntListPtr(
+          _instanceId,
+          RecordWriter.encodeIndexedPrimitiveList(
+            values,
+            (w, e) => w.writeInt(e),
+            arena,
+          ),
+          port,
+        ),
+        unpack: (raw) {
+          final rawPtr = Pointer<Uint8>.fromAddress(raw as int);
+          try {
+            return RecordReader.decodePrimitiveList(rawPtr, (r) => r.readInt());
+          } finally {
+            malloc.free(rawPtr);
+          }
+        },
+        methodName: 'nativeAsyncIntList',
+      );
+    } finally {
+      arena.releaseAll();
+    }
+  }
+
+  @override
+  Future<int> nativeAsyncWithCallback(int value, void Function(int) callback) {
+    checkDisposed();
+    return NitroRuntime.openNativeAsync<int>(
+      call: (port) => _nativeAsyncWithCallbackPtr(
+        _instanceId,
+        value,
+        _nativeCallbackNativeAsyncWithCallbackCallback(callback).nativeFunction,
+        port,
+      ),
+      unpack: (raw) => raw as int,
+      methodName: 'nativeAsyncWithCallback',
+    );
+  }
+
+  @override
+  Future<Map<String, int>> nativeAsyncCounts(int seed) {
+    checkDisposed();
+    return NitroRuntime.openNativeAsync<Map<String, int>>(
+      call: (port) => _nativeAsyncCountsPtr(_instanceId, seed, port),
+      unpack: (raw) {
+        final rawPtr = Pointer<Uint8>.fromAddress(raw as int);
+        try {
+          return _nitroDecodeMapBinaryInt(rawPtr);
+        } finally {
+          malloc.free(rawPtr);
+        }
+      },
+      methodName: 'nativeAsyncCounts',
+    );
+  }
+
+  @override
+  Future<uint64?> nativeAsyncNullableUint64(uint64? value) {
+    checkDisposed();
+    final arena = Arena();
+    try {
+      return NitroRuntime.openNativeAsync<uint64?>(
+        call: (port) => _nativeAsyncNullableUint64Ptr(
+          _instanceId,
+          arena.packInt(value),
+          port,
+        ),
+        unpack: (raw) {
+          final ptr = Pointer<NitroOptInt64>.fromAddress(raw as int);
+          final v = ptr.decoded;
+          malloc.free(ptr);
+          return v;
+        },
+        methodName: 'nativeAsyncNullableUint64',
       );
     } finally {
       arena.releaseAll();
