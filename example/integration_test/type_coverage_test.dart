@@ -6191,6 +6191,62 @@ void main() {
   });
 
   // ══════════════════════════════════════════════════════════════════════════
+  // §68 @NitroNativeAsync — Map/AnyMap params, struct returns, AnyMap
+  //
+  // Follow-up coverage for the gaps closed after §67: Map<String,V> and
+  // NitroAnyMap native-async params (previously deferred), bare
+  // @HybridStruct native-async returns on Kotlin (previously no wire format
+  // existed at all), and NitroAnyMap as a whole on Swift (previously
+  // unimplemented on every dispatch path, not just native-async).
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('§68 @NitroNativeAsync — Map/AnyMap params, struct returns, AnyMap', () {
+    test('nativeAsyncEchoIntMap: Map<String,int> param+return round-trips', () async {
+      final result = await tc.nativeAsyncEchoIntMap({'a': 1, 'b': 2});
+      expect(result['a'], 1);
+      expect(result['b'], 2);
+    });
+
+    test('nativeAsyncEchoIntMap: empty map round-trips', () async {
+      final result = await tc.nativeAsyncEchoIntMap({});
+      expect(result, isEmpty);
+    });
+
+    test('nativeAsyncEchoPoint: @HybridStruct param+return round-trips (Kotlin previously had no wire format for this)', () async {
+      final result = await tc.nativeAsyncEchoPoint(TcPoint(x: 1.5, y: -2.5, z: 3.0));
+      expect(result.x, closeTo(1.5, 1e-12));
+      expect(result.y, closeTo(-2.5, 1e-12));
+      expect(result.z, closeTo(3.0, 1e-12));
+    });
+
+    test('nativeAsyncEchoAnyMap: NitroAnyMap param+return round-trips (Swift previously had no AnyMap codec at all)', () async {
+      final input = NitroAnyMap.fromDynamic({
+        'name': 'test',
+        'count': 42,
+        'ratio': 3.14,
+        'enabled': true,
+        'missing': null,
+        'tags': ['a', 'b', 'c'],
+        'nested': {'inner': 1},
+      });
+      final result = await tc.nativeAsyncEchoAnyMap(input);
+      final out = result.toDynamic();
+      expect(out['name'], 'test');
+      expect(out['count'], 42);
+      expect(out['ratio'], closeTo(3.14, 1e-12));
+      expect(out['enabled'], isTrue);
+      expect(out['missing'], isNull);
+      expect(out['tags'], ['a', 'b', 'c']);
+      expect(out['nested'], {'inner': 1});
+    });
+
+    test('nativeAsyncEchoAnyMap: empty map round-trips', () async {
+      final result = await tc.nativeAsyncEchoAnyMap(NitroAnyMap());
+      expect(result.toDynamic(), isEmpty);
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
   // §L4 Map<String, @HybridRecord> and Map<String, @NitroVariant> (binary tag-5)
   // ══════════════════════════════════════════════════════════════════════════
 

@@ -558,6 +558,11 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     override suspend fun nativeAsyncCounts(seed: Long): Map<String, Long> = mapOf("a" to seed, "b" to seed * 2)
     override suspend fun nativeAsyncNullableUint64(value: Long?): Long? = value
 
+    // ── §68: @NitroNativeAsync — Map/AnyMap params, struct returns, AnyMap ───
+    override suspend fun nativeAsyncEchoIntMap(value: Map<String, Long>): Map<String, Long> = value
+    override suspend fun nativeAsyncEchoPoint(value: TcPoint): TcPoint = value
+    override suspend fun nativeAsyncEchoAnyMap(value: Map<String, Any?>): Map<String, Any?> = value
+
     companion object {
         // ART's Unsafe.allocateMemory/freeMemory wrap malloc/free, so pointers
         // returned here are freed by the C bridge's _release function via free().

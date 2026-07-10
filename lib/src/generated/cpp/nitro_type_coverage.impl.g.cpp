@@ -527,6 +527,21 @@ public:
         throw std::runtime_error("Not implemented: nativeAsyncNullableUint64");
     }
 
+    void nativeAsyncEchoIntMap(NitroCppBuffer value, int64_t dartPort) override {
+        // TODO: post result via Dart_PostCObject_DL(dartPort, ...)
+        throw std::runtime_error("Not implemented: nativeAsyncEchoIntMap");
+    }
+
+    void nativeAsyncEchoPoint(const TcPoint& value, int64_t dartPort) override {
+        // TODO: post result via Dart_PostCObject_DL(dartPort, ...)
+        throw std::runtime_error("Not implemented: nativeAsyncEchoPoint");
+    }
+
+    void nativeAsyncEchoAnyMap(void* value, int64_t dartPort) override {
+        // TODO: post result via Dart_PostCObject_DL(dartPort, ...)
+        throw std::runtime_error("Not implemented: nativeAsyncEchoAnyMap");
+    }
+
     void configureStringStream(NitroCppBuffer values) override {
         // TODO: implement configureStringStream
         throw std::runtime_error("Not implemented: configureStringStream");

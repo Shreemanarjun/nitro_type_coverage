@@ -497,4 +497,9 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     }
     public func nativeAsyncCounts(seed: Int64) async throws -> Any { ["a": seed, "b": seed * 2] }
     public func nativeAsyncNullableUint64(value: UInt64?) async throws -> UInt64? { value }
+
+    // ── §68: @NitroNativeAsync — Map/AnyMap params, struct returns, AnyMap ───
+    public func nativeAsyncEchoIntMap(value: Any) async throws -> Any { value }
+    public func nativeAsyncEchoPoint(value: TcPoint) async throws -> TcPoint { value }
+    public func nativeAsyncEchoAnyMap(value: Any) async throws -> Any { value }
 }

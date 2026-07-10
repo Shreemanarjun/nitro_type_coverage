@@ -306,6 +306,21 @@ abstract class NitroTypeCoverage extends HybridObject {
   @nitroNativeAsync
   Future<uint64?> nativeAsyncNullableUint64(uint64? value);
 
+  // ── §68: @NitroNativeAsync — Map/AnyMap params, struct returns, AnyMap ───
+  // Follow-up coverage for the gaps closed after §67: Map<String,V> and
+  // NitroAnyMap native-async params (previously deferred), bare
+  // @HybridStruct native-async returns on Kotlin (previously no wire format
+  // existed at all), and NitroAnyMap as a whole on Swift (previously
+  // unimplemented on every dispatch path, not just native-async).
+  @nitroNativeAsync
+  Future<Map<String, int>> nativeAsyncEchoIntMap(Map<String, int> value);
+
+  @nitroNativeAsync
+  Future<TcPoint> nativeAsyncEchoPoint(TcPoint value);
+
+  @nitroNativeAsync
+  Future<NitroAnyMap> nativeAsyncEchoAnyMap(NitroAnyMap value);
+
   // ── §35: Stream<String> — validates the kString emit path ────────────────
   @NitroStream(backpressure: Backpressure.dropLatest)
   Stream<String> stringStream();

@@ -166,6 +166,9 @@ NITRO_EXPORT void nitro_type_coverage_native_async_int_list(int64_t instanceId, 
 NITRO_EXPORT void nitro_type_coverage_native_async_with_callback(int64_t instanceId, int64_t value, void (*callback)(int64_t), int64_t dart_port);
 NITRO_EXPORT void nitro_type_coverage_native_async_counts(int64_t instanceId, int64_t seed, int64_t dart_port);
 NITRO_EXPORT void nitro_type_coverage_native_async_nullable_uint64(int64_t instanceId, const uint8_t* value, int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_native_async_echo_int_map(int64_t instanceId, uint8_t* value, int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_native_async_echo_point(int64_t instanceId, void* value, int64_t dart_port);
+NITRO_EXPORT void nitro_type_coverage_native_async_echo_any_map(int64_t instanceId, uint8_t* value, int64_t dart_port);
 NITRO_EXPORT void nitro_type_coverage_configure_string_stream(int64_t instanceId, void* values, NitroError* _nitro_err);
 NITRO_EXPORT void nitro_type_coverage_configure_batch_string_stream(int64_t instanceId, void* values, NitroError* _nitro_err);
 NITRO_EXPORT void nitro_type_coverage_configure_block_int_stream(int64_t instanceId, int64_t from, int64_t count, NitroError* _nitro_err);
