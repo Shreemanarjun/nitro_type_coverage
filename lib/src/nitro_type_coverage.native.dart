@@ -400,6 +400,13 @@ abstract class NitroTypeCoverage extends HybridObject {
   @nitroAsync
   Future<void> throwNativeAsync(String message);
 
+  // §69: @nitroNativeAsync error propagation — previously a thrown native
+  // exception was silently discarded and the Future resolved successfully
+  // with null (invisible for void methods entirely). Now propagates as a
+  // real HybridException, mirroring throwNative/throwNativeAsync above.
+  @nitroNativeAsync
+  Future<void> throwNativeNativeAsync(String message);
+
   // ── §36: @NitroOwned — returns an opaque handle ──────────────────────────
   // acquireBuffer returns an opaque native handle via @NitroOwned.
   @NitroOwned()

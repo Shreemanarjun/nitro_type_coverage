@@ -288,6 +288,10 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
         throw NSError(domain: "NativeTestError", code: 1, userInfo: [NSLocalizedDescriptionKey: message])
     }
 
+    public func throwNativeNativeAsync(message: String) async throws {
+        throw NSError(domain: "NativeTestError", code: 1, userInfo: [NSLocalizedDescriptionKey: message])
+    }
+
     // ── §36: @NitroOwned ─────────────────────────────────────────────────────
     public func acquireBuffer(size: Int64) -> UnsafeMutableRawPointer? {
         // Allocate a raw buffer of `size` bytes; Dart side wraps it in NativeHandle + finalizer.

@@ -342,6 +342,10 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
         throw RuntimeException(message)
     }
 
+    override suspend fun throwNativeNativeAsync(message: String) {
+        throw RuntimeException(message)
+    }
+
     // ── §36: @NitroOwned ─────────────────────────────────────────────────────
     // acquireBuffer: allocate `size` bytes on the native heap and return the address.
     // ART's Unsafe.allocateMemory calls malloc internally, so the C bridge _release

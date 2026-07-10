@@ -6247,6 +6247,34 @@ void main() {
   });
 
   // ══════════════════════════════════════════════════════════════════════════
+  // §69 @NitroNativeAsync — error propagation
+  //
+  // Previously a thrown native exception on a @nitroNativeAsync method was
+  // silently discarded and the Future resolved successfully with null —
+  // invisible for a void-returning method entirely (throwsA never fired).
+  // Now propagates as a real HybridException, mirroring throwNative/
+  // throwNativeAsync (sync / @nitroAsync) above.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('§69 @NitroNativeAsync — error propagation', () {
+    test('throwNativeNativeAsync: rejects with HybridException instead of silently succeeding', () async {
+      await expectLater(
+        tc.throwNativeNativeAsync('native-async boom'),
+        throwsA(isA<HybridException>()),
+      );
+    });
+
+    test('throwNativeNativeAsync: exception message is preserved', () async {
+      try {
+        await tc.throwNativeNativeAsync('specific message 123');
+        fail('should have thrown');
+      } on HybridException catch (e) {
+        expect(e.message, contains('specific message 123'));
+      }
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
   // §L4 Map<String, @HybridRecord> and Map<String, @NitroVariant> (binary tag-5)
   // ══════════════════════════════════════════════════════════════════════════
 
