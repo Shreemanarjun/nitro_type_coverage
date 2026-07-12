@@ -8,6 +8,7 @@
 //   flutter test integration_test/type_coverage_test.dart -d <device-id>
 
 import 'dart:async';
+import 'dart:io' show ProcessInfo;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -6783,6 +6784,120 @@ void main() {
     test('nativeAsyncNullableBool: null round-trips', () async {
       final result = await tc.nativeAsyncNullableBool(null);
       expect(result, isNull);
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // §M MEMORY-LEAK SOAK — RSS growth bounds
+  //
+  // Each test hammers one ownership-transfer path with kilobyte-sized
+  // payloads so that a leak of even one allocation per iteration adds tens
+  // of MB — far above the generous threshold — while normal allocator noise
+  // stays well below it. This is the cross-platform leak net (it runs on
+  // Windows, where LeakSanitizer doesn't exist); the Linux ASan/LSan
+  // native harness (scripts/native_leak_check.sh) gives allocation-exact
+  // verdicts on the same paths.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('§M memory-leak soak — RSS growth bounds', () {
+    // A leaked iteration ≈ payload size; thresholds sized so leaks are loud.
+    const rssBudgetBytes = 48 << 20; // 48 MB slack for GC/allocator noise
+    final kbString = 'x' * 2048;
+
+    Future<int> settledRss() async {
+      // Give finalizers/GC and native frees a few turns to run.
+      for (var i = 0; i < 6; i++) {
+        await Future.delayed(const Duration(milliseconds: 40));
+      }
+      return ProcessInfo.currentRss;
+    }
+
+    Future<void> expectBoundedGrowth(
+      String label,
+      int iterations,
+      FutureOr<void> Function(int i) body,
+    ) async {
+      // Warm-up primes caches/pools so steady-state growth is what's measured.
+      for (var i = 0; i < 200; i++) {
+        await body(i);
+      }
+      final before = await settledRss();
+      for (var i = 0; i < iterations; i++) {
+        await body(i);
+      }
+      final after = await settledRss();
+      final grown = after - before;
+      expect(
+        grown,
+        lessThan(rssBudgetBytes),
+        reason:
+            '$label: RSS grew by ${(grown / (1 << 20)).toStringAsFixed(1)} MB '
+            'over $iterations iterations — a per-iteration native leak.',
+      );
+    }
+
+    testWidgets('echoString: 20k × 2KB string returns', (t) async {
+      // Return path: native strdup → Dart copies → <lib>_nitro_free.
+      await expectBoundedGrowth('echoString', 20000, (i) {
+        final r = tc.echoString(kbString);
+        expect(r.length, kbString.length);
+      });
+    });
+
+    testWidgets('echoConfig: 20k × 2KB record round-trips', (t) async {
+      // Param: Dart arena-encoded; return: native [4B len][payload] block
+      // decoded then freed via <lib>_nitro_free.
+      final cfg = TcConfig(name: kbString, count: 7, enabled: true, threshold: 0.5);
+      await expectBoundedGrowth('echoConfig', 20000, (i) {
+        final r = tc.echoConfig(cfg);
+        expect(r.name.length, kbString.length);
+      });
+    });
+
+    testWidgets('echoConfigMap: 5k × two-entry record-map round-trips', (t) async {
+      final m = {
+        'a': TcConfig(name: kbString, count: 1, enabled: true, threshold: 0.5),
+        'b': TcConfig(name: kbString, count: 2, enabled: false, threshold: 1.5),
+      };
+      await expectBoundedGrowth('echoConfigMap', 5000, (i) {
+        final r = tc.echoConfigMap(m);
+        expect(r.length, 2);
+      });
+    });
+
+    testWidgets('onStringTransform: 10k × 2KB callback returns', (t) async {
+      // Dart trampoline allocates the returned string via the module's
+      // nitro_alloc; the native wrapper copies it and frees it with free().
+      await expectBoundedGrowth('onStringTransform', 10000, (i) {
+        tc.onStringTransform((v) => kbString);
+      });
+    });
+
+    testWidgets('configStream: 200 × 30-item 2KB record emissions', (t) async {
+      // Stream emit ownership transfer: each item is a native heap block
+      // posted per subscriber and freed by Dart after decode.
+      final seed = TcConfig(name: kbString, count: 0, enabled: true, threshold: 0.5);
+      await expectBoundedGrowth('configStream', 200, (i) async {
+        final received = <TcConfig>[];
+        final done = Completer<void>();
+        final sub = tc.configStream().listen((c) {
+          received.add(c);
+          if (received.length >= 30 && !done.isCompleted) done.complete();
+        });
+        await Future.delayed(const Duration(milliseconds: 10));
+        tc.configureConfigStream(seed, 30);
+        await done.future.timeout(const Duration(seconds: 10));
+        await sub.cancel();
+      });
+    });
+
+    testWidgets('nativeAsyncConfig: 3k × 2KB native-async record round-trips', (t) async {
+      // Posted result blob + fresh-per-call NitroError slot both freed per call.
+      final cfg = TcConfig(name: kbString, count: 9, enabled: true, threshold: 2.5);
+      await expectBoundedGrowth('nativeAsyncConfig', 3000, (i) async {
+        final r = await tc.nativeAsyncConfig(cfg);
+        expect(r.name.length, kbString.length);
+      });
     });
   });
 }
