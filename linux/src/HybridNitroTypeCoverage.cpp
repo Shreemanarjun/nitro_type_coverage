@@ -443,25 +443,39 @@ public:
     }
     NitroCppBuffer echoConfigMap(NitroCppBuffer value) override {
         auto entries = nitro_decode_map_param<TcConfig>(value, [](NitroRecordReader& r) -> TcConfig {
-            r.readInt32(); // nested record's own [4B len] prefix — skip, fromReader reads fields directly
+            // Wire per value: [4B blobLen][4B recordLen][fields] — the Dart
+            // encoder writes an outer blob length AND the record's own
+            // self-describing prefix. Both must be consumed before the
+            // fields; skipping only one made fromReader read the inner
+            // prefix as the first field (buffer underflow on decode).
+            r.readInt32(); // outer blob length (recordLen + 4)
+            r.readInt32(); // record's own [4B len] prefix
             return TcConfig::fromReader(r);
         });
         return nitro_encode_map<TcConfig>(entries, 5, [](NitroRecordWriter& w, const TcConfig& v) {
+            // Mirror of the decode above: [4B blobLen][4B recordLen][fields].
+            // Dart's map decoder slices blobLen bytes and hands them to
+            // fromNative, which reads the record's own prefix first.
             NitroRecordWriter inner;
             v.encodeInto(inner);
-            w.writeInt32((int32_t)inner._buf.size());
+            w.writeInt32((int32_t)inner._buf.size() + 4); // outer blob length
+            w.writeInt32((int32_t)inner._buf.size());     // record's own prefix
             w.writeBytes(inner._buf.data(), inner._buf.size());
         });
     }
     NitroCppBuffer echoEventMap(NitroCppBuffer value) override {
         auto entries = nitro_decode_map_param<TcEvent>(value, [](NitroRecordReader& r) -> TcEvent {
-            r.readInt32(); // nested variant's own [4B len] prefix — skip
+            // Same double-prefix wire as the record map above.
+            r.readInt32(); // outer blob length (variantLen + 4)
+            r.readInt32(); // variant's own [4B len] prefix
             return nitro_decode_TcEvent_fromReader(r);
         });
         return nitro_encode_map<TcEvent>(entries, 5, [](NitroRecordWriter& w, const TcEvent& v) {
+            // Mirror of the decode above: [4B blobLen][4B variantLen][tag+fields].
             NitroRecordWriter inner;
             nitro_encode_TcEvent(v, inner);
-            w.writeInt32((int32_t)inner._buf.size());
+            w.writeInt32((int32_t)inner._buf.size() + 4); // outer blob length
+            w.writeInt32((int32_t)inner._buf.size());     // variant's own prefix
             w.writeBytes(inner._buf.data(), inner._buf.size());
         });
     }

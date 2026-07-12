@@ -10,7 +10,8 @@
 //   4. Call nitro_type_coverage_register_impl(nullptr) in teardown.
 //
 // Ownership conventions:
-//   • Record/variant/tuple RETURNS **and emit_* stream items**: pass
+//   • Record/variant/tuple RETURNS, **emit_* stream items**, and record/
+//     variant CALLBACK arguments you invoke a callback with: pass
 //     writer.toNativeBuffer() (or nitro_<Variant>_to_native) — a malloc'd
 //     [4B len][payload] block whose ownership transfers to the bridge/Dart.
 //     Returning or emitting a non-owning writer.toBuffer() view is wrong:

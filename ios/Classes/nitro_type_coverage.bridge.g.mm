@@ -8860,27 +8860,41 @@ NITRO_EXPORT void nitro_type_coverage_nitro_free(void* ptr) { if (ptr) { free(pt
 #elif defined(_WIN32) || defined(__linux__)  // Windows/Linux: NativeImpl.cpp — direct C++ dispatch
 #include "nitro_type_coverage.native.g.h"
 
-static int64_t g_port_configStream = 0;
-static int64_t g_port_batchIntStream = 0;
-static int64_t g_port_batchDoubleStream = 0;
-static int64_t g_port_batchBoolStream = 0;
-static int64_t g_port_stringStream = 0;
-static int64_t g_port_batchStringStream = 0;
-static int64_t g_port_blockIntStream = 0;
-static int64_t g_port_intStream = 0;
-static int64_t g_port_pointStream = 0;
-static int64_t g_port_boolStream = 0;
-static int64_t g_port_doubleStream = 0;
-static int64_t g_port_statusStream = 0;
-static int64_t g_port_bufferDropIntStream = 0;
-static int64_t g_port_eventStream = 0;
-static int64_t g_port_nullableStatusStream = 0;
-static int64_t g_port_nullableStringStream = 0;
-static int64_t g_port_uint64Stream = 0;
-static int64_t g_port_nullableUint64Stream = 0;
-static int64_t g_port_nullableIntStream = 0;
-static int64_t g_port_nullableDoubleStream = 0;
-static int64_t g_port_nullableBoolStream = 0;
+#include <algorithm>
+#include <mutex>
+#include <vector>
+
+// One registry per stream: every concurrent Dart subscriber registers
+// its own ReceivePort. Guarded by a mutex — register/release run on the
+// Dart isolate thread while emits may come from any impl thread.
+struct _NitroStreamPorts {
+    std::mutex mtx;
+    std::vector<int64_t> ports;
+    void add(int64_t p) { std::lock_guard<std::mutex> l(mtx); ports.push_back(p); }
+    void remove(int64_t p) { std::lock_guard<std::mutex> l(mtx); ports.erase(std::remove(ports.begin(), ports.end(), p), ports.end()); }
+    std::vector<int64_t> snapshot() { std::lock_guard<std::mutex> l(mtx); return ports; }
+};
+static _NitroStreamPorts g_ports_configStream;
+static _NitroStreamPorts g_ports_batchIntStream;
+static _NitroStreamPorts g_ports_batchDoubleStream;
+static _NitroStreamPorts g_ports_batchBoolStream;
+static _NitroStreamPorts g_ports_stringStream;
+static _NitroStreamPorts g_ports_batchStringStream;
+static _NitroStreamPorts g_ports_blockIntStream;
+static _NitroStreamPorts g_ports_intStream;
+static _NitroStreamPorts g_ports_pointStream;
+static _NitroStreamPorts g_ports_boolStream;
+static _NitroStreamPorts g_ports_doubleStream;
+static _NitroStreamPorts g_ports_statusStream;
+static _NitroStreamPorts g_ports_bufferDropIntStream;
+static _NitroStreamPorts g_ports_eventStream;
+static _NitroStreamPorts g_ports_nullableStatusStream;
+static _NitroStreamPorts g_ports_nullableStringStream;
+static _NitroStreamPorts g_ports_uint64Stream;
+static _NitroStreamPorts g_ports_nullableUint64Stream;
+static _NitroStreamPorts g_ports_nullableIntStream;
+static _NitroStreamPorts g_ports_nullableDoubleStream;
+static _NitroStreamPorts g_ports_nullableBoolStream;
 
 static bool _nitro_desktop_post_batch(int64_t port, const int64_t* items, int32_t count) {
     const int32_t total = count + 1;
@@ -8899,292 +8913,309 @@ static bool _nitro_desktop_post_batch(int64_t port, const int64_t* items, int32_
 }
 
 void HybridNitroTypeCoverage::emit_configStream(NitroCppBuffer item) {
-    int64_t port = g_port_configStream;
-    if (port == 0) { if (item.data) { free((void*)item.data); } return; }
+    auto _ports = g_ports_configStream.snapshot();
+    if (_ports.empty()) { if (item.data) { free((void*)item.data); } return; }
     Dart_CObject obj;
     if (item.data == nullptr) {
         obj.type = Dart_CObject_kNull;
-        if (!Dart_PostCObject_DL(port, &obj)) { g_port_configStream = 0; }
+        for (int64_t _port : _ports) {
+            if (!Dart_PostCObject_DL(_port, &obj)) { g_ports_configStream.remove(_port); }
+        }
         return;
     }
-    obj.type = Dart_CObject_kInt64;
-    obj.value.as_int64 = (intptr_t)item.data;
-    if (!Dart_PostCObject_DL(port, &obj)) {
-        g_port_configStream = 0;
-        free((void*)item.data);
-        return;
+    for (int64_t _port : _ports) {
+        uint8_t* _copy = (uint8_t*)malloc(item.size);
+        if (!_copy) { break; }
+        memcpy(_copy, item.data, item.size);
+        obj.type = Dart_CObject_kInt64;
+        obj.value.as_int64 = (intptr_t)_copy;
+        if (!Dart_PostCObject_DL(_port, &obj)) {
+            free(_copy);
+            g_ports_configStream.remove(_port);
+        }
     }
+    free((void*)item.data);
 }
 
 void HybridNitroTypeCoverage::emit_batchIntStream(int64_t item) {
-    int64_t port = g_port_batchIntStream;
-    if (port == 0) { return; }
+    auto _ports = g_ports_batchIntStream.snapshot();
+    if (_ports.empty()) { return; }
     int64_t _bits = item;
-    if (!_nitro_desktop_post_batch(port, &_bits, 1)) { g_port_batchIntStream = 0; }
+    for (int64_t _port : _ports) {
+        if (!_nitro_desktop_post_batch(_port, &_bits, 1)) { g_ports_batchIntStream.remove(_port); }
+    }
 }
 
 void HybridNitroTypeCoverage::emit_batchDoubleStream(double item) {
-    int64_t port = g_port_batchDoubleStream;
-    if (port == 0) { return; }
+    auto _ports = g_ports_batchDoubleStream.snapshot();
+    if (_ports.empty()) { return; }
     int64_t _bits; { double _d = item; memcpy(&_bits, &_d, 8); }
-    if (!_nitro_desktop_post_batch(port, &_bits, 1)) { g_port_batchDoubleStream = 0; }
+    for (int64_t _port : _ports) {
+        if (!_nitro_desktop_post_batch(_port, &_bits, 1)) { g_ports_batchDoubleStream.remove(_port); }
+    }
 }
 
 void HybridNitroTypeCoverage::emit_batchBoolStream(bool item) {
-    int64_t port = g_port_batchBoolStream;
-    if (port == 0) { return; }
+    auto _ports = g_ports_batchBoolStream.snapshot();
+    if (_ports.empty()) { return; }
     int64_t _bits = item ? 1 : 0;
-    if (!_nitro_desktop_post_batch(port, &_bits, 1)) { g_port_batchBoolStream = 0; }
+    for (int64_t _port : _ports) {
+        if (!_nitro_desktop_post_batch(_port, &_bits, 1)) { g_ports_batchBoolStream.remove(_port); }
+    }
 }
 
 void HybridNitroTypeCoverage::emit_stringStream(std::string item) {
-    int64_t port = g_port_stringStream;
-    if (port == 0) { return; }
+    auto _ports = g_ports_stringStream.snapshot();
+    if (_ports.empty()) { return; }
     Dart_CObject obj;
     obj.type = Dart_CObject_kString;
     obj.value.as_string = (char*)item.c_str();
-    if (!Dart_PostCObject_DL(port, &obj)) {
-        g_port_stringStream = 0;
-        return;
+    for (int64_t _port : _ports) {
+        if (!Dart_PostCObject_DL(_port, &obj)) { g_ports_stringStream.remove(_port); }
     }
 }
 
 void HybridNitroTypeCoverage::emit_batchStringStream(std::string item) {
-    int64_t port = g_port_batchStringStream;
-    if (port == 0) { return; }
+    auto _ports = g_ports_batchStringStream.snapshot();
+    if (_ports.empty()) { return; }
     Dart_CObject obj;
     obj.type = Dart_CObject_kString;
     obj.value.as_string = (char*)item.c_str();
-    if (!Dart_PostCObject_DL(port, &obj)) {
-        g_port_batchStringStream = 0;
-        return;
+    for (int64_t _port : _ports) {
+        if (!Dart_PostCObject_DL(_port, &obj)) { g_ports_batchStringStream.remove(_port); }
     }
 }
 
 void HybridNitroTypeCoverage::emit_blockIntStream(int64_t item) {
-    int64_t port = g_port_blockIntStream;
-    if (port == 0) { return; }
+    auto _ports = g_ports_blockIntStream.snapshot();
+    if (_ports.empty()) { return; }
     Dart_CObject obj;
     obj.type = Dart_CObject_kInt64;
     obj.value.as_int64 = item;
-    if (!Dart_PostCObject_DL(port, &obj)) {
-        g_port_blockIntStream = 0;
-        return;
+    for (int64_t _port : _ports) {
+        if (!Dart_PostCObject_DL(_port, &obj)) { g_ports_blockIntStream.remove(_port); }
     }
 }
 
 void HybridNitroTypeCoverage::emit_intStream(int64_t item) {
-    int64_t port = g_port_intStream;
-    if (port == 0) { return; }
+    auto _ports = g_ports_intStream.snapshot();
+    if (_ports.empty()) { return; }
     Dart_CObject obj;
     obj.type = Dart_CObject_kInt64;
     obj.value.as_int64 = item;
-    if (!Dart_PostCObject_DL(port, &obj)) {
-        g_port_intStream = 0;
-        return;
+    for (int64_t _port : _ports) {
+        if (!Dart_PostCObject_DL(_port, &obj)) { g_ports_intStream.remove(_port); }
     }
 }
 
 void HybridNitroTypeCoverage::emit_pointStream(TcPoint item) {
-    int64_t port = g_port_pointStream;
-    if (port == 0) { return; }
-    TcPoint* st_ptr = nullptr;
+    auto _ports = g_ports_pointStream.snapshot();
+    if (_ports.empty()) { return; }
     Dart_CObject obj;
-    st_ptr = (TcPoint*)malloc(sizeof(TcPoint));
-    if (!st_ptr) { return; }
-    *st_ptr = item;
-    obj.type = Dart_CObject_kInt64;
-    obj.value.as_int64 = (intptr_t)st_ptr;
-    if (!Dart_PostCObject_DL(port, &obj)) {
-        g_port_pointStream = 0;
-        free(st_ptr);
-        return;
+    for (int64_t _port : _ports) {
+        TcPoint* st_ptr = (TcPoint*)malloc(sizeof(TcPoint));
+        if (!st_ptr) { break; }
+        *st_ptr = item;
+        obj.type = Dart_CObject_kInt64;
+        obj.value.as_int64 = (intptr_t)st_ptr;
+        if (!Dart_PostCObject_DL(_port, &obj)) {
+            free(st_ptr);
+            g_ports_pointStream.remove(_port);
+        }
     }
 }
 
 void HybridNitroTypeCoverage::emit_boolStream(bool item) {
-    int64_t port = g_port_boolStream;
-    if (port == 0) { return; }
+    auto _ports = g_ports_boolStream.snapshot();
+    if (_ports.empty()) { return; }
     Dart_CObject obj;
     obj.type = Dart_CObject_kInt64;
     obj.value.as_int64 = item ? 1 : 0;
-    if (!Dart_PostCObject_DL(port, &obj)) {
-        g_port_boolStream = 0;
-        return;
+    for (int64_t _port : _ports) {
+        if (!Dart_PostCObject_DL(_port, &obj)) { g_ports_boolStream.remove(_port); }
     }
 }
 
 void HybridNitroTypeCoverage::emit_doubleStream(double item) {
-    int64_t port = g_port_doubleStream;
-    if (port == 0) { return; }
+    auto _ports = g_ports_doubleStream.snapshot();
+    if (_ports.empty()) { return; }
     Dart_CObject obj;
     obj.type = Dart_CObject_kDouble;
     obj.value.as_double = item;
-    if (!Dart_PostCObject_DL(port, &obj)) {
-        g_port_doubleStream = 0;
-        return;
+    for (int64_t _port : _ports) {
+        if (!Dart_PostCObject_DL(_port, &obj)) { g_ports_doubleStream.remove(_port); }
     }
 }
 
 void HybridNitroTypeCoverage::emit_statusStream(TcStatus item) {
-    int64_t port = g_port_statusStream;
-    if (port == 0) { return; }
+    auto _ports = g_ports_statusStream.snapshot();
+    if (_ports.empty()) { return; }
     Dart_CObject obj;
     obj.type = Dart_CObject_kInt64;
     obj.value.as_int64 = static_cast<int64_t>(item);
-    if (!Dart_PostCObject_DL(port, &obj)) {
-        g_port_statusStream = 0;
-        return;
+    for (int64_t _port : _ports) {
+        if (!Dart_PostCObject_DL(_port, &obj)) { g_ports_statusStream.remove(_port); }
     }
 }
 
 void HybridNitroTypeCoverage::emit_bufferDropIntStream(int64_t item) {
-    int64_t port = g_port_bufferDropIntStream;
-    if (port == 0) { return; }
+    auto _ports = g_ports_bufferDropIntStream.snapshot();
+    if (_ports.empty()) { return; }
     Dart_CObject obj;
     obj.type = Dart_CObject_kInt64;
     obj.value.as_int64 = item;
-    if (!Dart_PostCObject_DL(port, &obj)) {
-        g_port_bufferDropIntStream = 0;
-        return;
+    for (int64_t _port : _ports) {
+        if (!Dart_PostCObject_DL(_port, &obj)) { g_ports_bufferDropIntStream.remove(_port); }
     }
 }
 
 void HybridNitroTypeCoverage::emit_eventStream(NitroCppBuffer item) {
-    int64_t port = g_port_eventStream;
-    if (port == 0) { if (item.data) { free((void*)item.data); } return; }
+    auto _ports = g_ports_eventStream.snapshot();
+    if (_ports.empty()) { if (item.data) { free((void*)item.data); } return; }
     Dart_CObject obj;
     if (item.data == nullptr) {
         obj.type = Dart_CObject_kNull;
-        if (!Dart_PostCObject_DL(port, &obj)) { g_port_eventStream = 0; }
+        for (int64_t _port : _ports) {
+            if (!Dart_PostCObject_DL(_port, &obj)) { g_ports_eventStream.remove(_port); }
+        }
         return;
     }
-    obj.type = Dart_CObject_kInt64;
-    obj.value.as_int64 = (intptr_t)item.data;
-    if (!Dart_PostCObject_DL(port, &obj)) {
-        g_port_eventStream = 0;
-        free((void*)item.data);
-        return;
+    for (int64_t _port : _ports) {
+        uint8_t* _copy = (uint8_t*)malloc(item.size);
+        if (!_copy) { break; }
+        memcpy(_copy, item.data, item.size);
+        obj.type = Dart_CObject_kInt64;
+        obj.value.as_int64 = (intptr_t)_copy;
+        if (!Dart_PostCObject_DL(_port, &obj)) {
+            free(_copy);
+            g_ports_eventStream.remove(_port);
+        }
     }
+    free((void*)item.data);
 }
 
 void HybridNitroTypeCoverage::emit_nullableStatusStream(std::optional<TcStatus> item) {
-    int64_t port = g_port_nullableStatusStream;
-    if (port == 0) { return; }
+    auto _ports = g_ports_nullableStatusStream.snapshot();
+    if (_ports.empty()) { return; }
     if (!item.has_value()) {
         Dart_CObject _null_obj;
         _null_obj.type = Dart_CObject_kNull;
-        if (!Dart_PostCObject_DL(port, &_null_obj)) { g_port_nullableStatusStream = 0; }
+        for (int64_t _port : _ports) {
+            if (!Dart_PostCObject_DL(_port, &_null_obj)) { g_ports_nullableStatusStream.remove(_port); }
+        }
         return;
     }
     Dart_CObject obj;
     obj.type = Dart_CObject_kInt64;
     obj.value.as_int64 = static_cast<int64_t>((*item));
-    if (!Dart_PostCObject_DL(port, &obj)) {
-        g_port_nullableStatusStream = 0;
-        return;
+    for (int64_t _port : _ports) {
+        if (!Dart_PostCObject_DL(_port, &obj)) { g_ports_nullableStatusStream.remove(_port); }
     }
 }
 
 void HybridNitroTypeCoverage::emit_nullableStringStream(std::optional<std::string> item) {
-    int64_t port = g_port_nullableStringStream;
-    if (port == 0) { return; }
+    auto _ports = g_ports_nullableStringStream.snapshot();
+    if (_ports.empty()) { return; }
     if (!item.has_value()) {
         Dart_CObject _null_obj;
         _null_obj.type = Dart_CObject_kNull;
-        if (!Dart_PostCObject_DL(port, &_null_obj)) { g_port_nullableStringStream = 0; }
+        for (int64_t _port : _ports) {
+            if (!Dart_PostCObject_DL(_port, &_null_obj)) { g_ports_nullableStringStream.remove(_port); }
+        }
         return;
     }
     Dart_CObject obj;
     obj.type = Dart_CObject_kString;
     obj.value.as_string = (char*)(*item).c_str();
-    if (!Dart_PostCObject_DL(port, &obj)) {
-        g_port_nullableStringStream = 0;
-        return;
+    for (int64_t _port : _ports) {
+        if (!Dart_PostCObject_DL(_port, &obj)) { g_ports_nullableStringStream.remove(_port); }
     }
 }
 
 void HybridNitroTypeCoverage::emit_uint64Stream(uint64_t item) {
-    int64_t port = g_port_uint64Stream;
-    if (port == 0) { return; }
+    auto _ports = g_ports_uint64Stream.snapshot();
+    if (_ports.empty()) { return; }
     Dart_CObject obj;
     obj.type = Dart_CObject_kInt64;
     obj.value.as_int64 = (int64_t)item;
-    if (!Dart_PostCObject_DL(port, &obj)) {
-        g_port_uint64Stream = 0;
-        return;
+    for (int64_t _port : _ports) {
+        if (!Dart_PostCObject_DL(_port, &obj)) { g_ports_uint64Stream.remove(_port); }
     }
 }
 
 void HybridNitroTypeCoverage::emit_nullableUint64Stream(std::optional<uint64_t> item) {
-    int64_t port = g_port_nullableUint64Stream;
-    if (port == 0) { return; }
+    auto _ports = g_ports_nullableUint64Stream.snapshot();
+    if (_ports.empty()) { return; }
     if (!item.has_value()) {
         Dart_CObject _null_obj;
         _null_obj.type = Dart_CObject_kNull;
-        if (!Dart_PostCObject_DL(port, &_null_obj)) { g_port_nullableUint64Stream = 0; }
+        for (int64_t _port : _ports) {
+            if (!Dart_PostCObject_DL(_port, &_null_obj)) { g_ports_nullableUint64Stream.remove(_port); }
+        }
         return;
     }
     Dart_CObject obj;
     obj.type = Dart_CObject_kInt64;
     obj.value.as_int64 = (int64_t)(*item);
-    if (!Dart_PostCObject_DL(port, &obj)) {
-        g_port_nullableUint64Stream = 0;
-        return;
+    for (int64_t _port : _ports) {
+        if (!Dart_PostCObject_DL(_port, &obj)) { g_ports_nullableUint64Stream.remove(_port); }
     }
 }
 
 void HybridNitroTypeCoverage::emit_nullableIntStream(std::optional<int64_t> item) {
-    int64_t port = g_port_nullableIntStream;
-    if (port == 0) { return; }
+    auto _ports = g_ports_nullableIntStream.snapshot();
+    if (_ports.empty()) { return; }
     if (!item.has_value()) {
         Dart_CObject _null_obj;
         _null_obj.type = Dart_CObject_kNull;
-        if (!Dart_PostCObject_DL(port, &_null_obj)) { g_port_nullableIntStream = 0; }
+        for (int64_t _port : _ports) {
+            if (!Dart_PostCObject_DL(_port, &_null_obj)) { g_ports_nullableIntStream.remove(_port); }
+        }
         return;
     }
     Dart_CObject obj;
     obj.type = Dart_CObject_kInt64;
     obj.value.as_int64 = (*item);
-    if (!Dart_PostCObject_DL(port, &obj)) {
-        g_port_nullableIntStream = 0;
-        return;
+    for (int64_t _port : _ports) {
+        if (!Dart_PostCObject_DL(_port, &obj)) { g_ports_nullableIntStream.remove(_port); }
     }
 }
 
 void HybridNitroTypeCoverage::emit_nullableDoubleStream(std::optional<double> item) {
-    int64_t port = g_port_nullableDoubleStream;
-    if (port == 0) { return; }
+    auto _ports = g_ports_nullableDoubleStream.snapshot();
+    if (_ports.empty()) { return; }
     if (!item.has_value()) {
         Dart_CObject _null_obj;
         _null_obj.type = Dart_CObject_kNull;
-        if (!Dart_PostCObject_DL(port, &_null_obj)) { g_port_nullableDoubleStream = 0; }
+        for (int64_t _port : _ports) {
+            if (!Dart_PostCObject_DL(_port, &_null_obj)) { g_ports_nullableDoubleStream.remove(_port); }
+        }
         return;
     }
     Dart_CObject obj;
     obj.type = Dart_CObject_kDouble;
     obj.value.as_double = (*item);
-    if (!Dart_PostCObject_DL(port, &obj)) {
-        g_port_nullableDoubleStream = 0;
-        return;
+    for (int64_t _port : _ports) {
+        if (!Dart_PostCObject_DL(_port, &obj)) { g_ports_nullableDoubleStream.remove(_port); }
     }
 }
 
 void HybridNitroTypeCoverage::emit_nullableBoolStream(std::optional<bool> item) {
-    int64_t port = g_port_nullableBoolStream;
-    if (port == 0) { return; }
+    auto _ports = g_ports_nullableBoolStream.snapshot();
+    if (_ports.empty()) { return; }
     if (!item.has_value()) {
         Dart_CObject _null_obj;
         _null_obj.type = Dart_CObject_kNull;
-        if (!Dart_PostCObject_DL(port, &_null_obj)) { g_port_nullableBoolStream = 0; }
+        for (int64_t _port : _ports) {
+            if (!Dart_PostCObject_DL(_port, &_null_obj)) { g_ports_nullableBoolStream.remove(_port); }
+        }
         return;
     }
     Dart_CObject obj;
     obj.type = Dart_CObject_kInt64;
     obj.value.as_int64 = (*item) ? 1 : 0;
-    if (!Dart_PostCObject_DL(port, &obj)) {
-        g_port_nullableBoolStream = 0;
-        return;
+    for (int64_t _port : _ports) {
+        if (!Dart_PostCObject_DL(_port, &obj)) { g_ports_nullableBoolStream.remove(_port); }
     }
 }
 
@@ -11393,11 +11424,7 @@ void nitro_type_coverage_on_event_callback(int64_t instanceId, void (*handler)(v
         auto _rawfn_handler = reinterpret_cast<void (*)(const uint8_t*)>(handler);
         std::function<void(NitroCppBuffer)> _fn_handler =
             [_rawfn_handler](NitroCppBuffer _a0) -> void {
-            uint8_t* _blob0 = (uint8_t*)malloc(4 + _a0.size);
-            int32_t _bl0 = (int32_t)_a0.size;
-            memcpy(_blob0, &_bl0, 4);
-            if (_a0.size > 0) { memcpy(_blob0 + 4, _a0.data, _a0.size); }
-            _rawfn_handler(_blob0);
+            _rawfn_handler(_a0.data);
             };
         g_impl->onEventCallback(_fn_handler);
     } catch (const std::exception& e) {
@@ -11995,150 +12022,150 @@ void nitro_type_coverage_set_current_event(int64_t instanceId, const uint8_t* va
 }
 
 void nitro_type_coverage_register_config_stream_stream(int64_t instanceId, int64_t dart_port) {
-    g_port_configStream = dart_port;
+    g_ports_configStream.add(dart_port);
 }
 void nitro_type_coverage_release_config_stream_stream(int64_t dart_port) {
-    if (g_port_configStream == dart_port) { g_port_configStream = 0; }
+    g_ports_configStream.remove(dart_port);
 }
 
 void nitro_type_coverage_register_batch_int_stream_stream(int64_t instanceId, int64_t dart_port) {
-    g_port_batchIntStream = dart_port;
+    g_ports_batchIntStream.add(dart_port);
 }
 void nitro_type_coverage_release_batch_int_stream_stream(int64_t dart_port) {
-    if (g_port_batchIntStream == dart_port) { g_port_batchIntStream = 0; }
+    g_ports_batchIntStream.remove(dart_port);
 }
 
 void nitro_type_coverage_register_batch_double_stream_stream(int64_t instanceId, int64_t dart_port) {
-    g_port_batchDoubleStream = dart_port;
+    g_ports_batchDoubleStream.add(dart_port);
 }
 void nitro_type_coverage_release_batch_double_stream_stream(int64_t dart_port) {
-    if (g_port_batchDoubleStream == dart_port) { g_port_batchDoubleStream = 0; }
+    g_ports_batchDoubleStream.remove(dart_port);
 }
 
 void nitro_type_coverage_register_batch_bool_stream_stream(int64_t instanceId, int64_t dart_port) {
-    g_port_batchBoolStream = dart_port;
+    g_ports_batchBoolStream.add(dart_port);
 }
 void nitro_type_coverage_release_batch_bool_stream_stream(int64_t dart_port) {
-    if (g_port_batchBoolStream == dart_port) { g_port_batchBoolStream = 0; }
+    g_ports_batchBoolStream.remove(dart_port);
 }
 
 void nitro_type_coverage_register_string_stream_stream(int64_t instanceId, int64_t dart_port) {
-    g_port_stringStream = dart_port;
+    g_ports_stringStream.add(dart_port);
 }
 void nitro_type_coverage_release_string_stream_stream(int64_t dart_port) {
-    if (g_port_stringStream == dart_port) { g_port_stringStream = 0; }
+    g_ports_stringStream.remove(dart_port);
 }
 
 void nitro_type_coverage_register_batch_string_stream_stream(int64_t instanceId, int64_t dart_port) {
-    g_port_batchStringStream = dart_port;
+    g_ports_batchStringStream.add(dart_port);
 }
 void nitro_type_coverage_release_batch_string_stream_stream(int64_t dart_port) {
-    if (g_port_batchStringStream == dart_port) { g_port_batchStringStream = 0; }
+    g_ports_batchStringStream.remove(dart_port);
 }
 
 void nitro_type_coverage_register_block_int_stream_stream(int64_t instanceId, int64_t dart_port) {
-    g_port_blockIntStream = dart_port;
+    g_ports_blockIntStream.add(dart_port);
 }
 void nitro_type_coverage_release_block_int_stream_stream(int64_t dart_port) {
-    if (g_port_blockIntStream == dart_port) { g_port_blockIntStream = 0; }
+    g_ports_blockIntStream.remove(dart_port);
 }
 
 void nitro_type_coverage_register_int_stream_stream(int64_t instanceId, int64_t dart_port) {
-    g_port_intStream = dart_port;
+    g_ports_intStream.add(dart_port);
 }
 void nitro_type_coverage_release_int_stream_stream(int64_t dart_port) {
-    if (g_port_intStream == dart_port) { g_port_intStream = 0; }
+    g_ports_intStream.remove(dart_port);
 }
 
 void nitro_type_coverage_register_point_stream_stream(int64_t instanceId, int64_t dart_port) {
-    g_port_pointStream = dart_port;
+    g_ports_pointStream.add(dart_port);
 }
 void nitro_type_coverage_release_point_stream_stream(int64_t dart_port) {
-    if (g_port_pointStream == dart_port) { g_port_pointStream = 0; }
+    g_ports_pointStream.remove(dart_port);
 }
 
 void nitro_type_coverage_register_bool_stream_stream(int64_t instanceId, int64_t dart_port) {
-    g_port_boolStream = dart_port;
+    g_ports_boolStream.add(dart_port);
 }
 void nitro_type_coverage_release_bool_stream_stream(int64_t dart_port) {
-    if (g_port_boolStream == dart_port) { g_port_boolStream = 0; }
+    g_ports_boolStream.remove(dart_port);
 }
 
 void nitro_type_coverage_register_double_stream_stream(int64_t instanceId, int64_t dart_port) {
-    g_port_doubleStream = dart_port;
+    g_ports_doubleStream.add(dart_port);
 }
 void nitro_type_coverage_release_double_stream_stream(int64_t dart_port) {
-    if (g_port_doubleStream == dart_port) { g_port_doubleStream = 0; }
+    g_ports_doubleStream.remove(dart_port);
 }
 
 void nitro_type_coverage_register_status_stream_stream(int64_t instanceId, int64_t dart_port) {
-    g_port_statusStream = dart_port;
+    g_ports_statusStream.add(dart_port);
 }
 void nitro_type_coverage_release_status_stream_stream(int64_t dart_port) {
-    if (g_port_statusStream == dart_port) { g_port_statusStream = 0; }
+    g_ports_statusStream.remove(dart_port);
 }
 
 void nitro_type_coverage_register_buffer_drop_int_stream_stream(int64_t instanceId, int64_t dart_port) {
-    g_port_bufferDropIntStream = dart_port;
+    g_ports_bufferDropIntStream.add(dart_port);
 }
 void nitro_type_coverage_release_buffer_drop_int_stream_stream(int64_t dart_port) {
-    if (g_port_bufferDropIntStream == dart_port) { g_port_bufferDropIntStream = 0; }
+    g_ports_bufferDropIntStream.remove(dart_port);
 }
 
 void nitro_type_coverage_register_event_stream_stream(int64_t instanceId, int64_t dart_port) {
-    g_port_eventStream = dart_port;
+    g_ports_eventStream.add(dart_port);
 }
 void nitro_type_coverage_release_event_stream_stream(int64_t dart_port) {
-    if (g_port_eventStream == dart_port) { g_port_eventStream = 0; }
+    g_ports_eventStream.remove(dart_port);
 }
 
 void nitro_type_coverage_register_nullable_status_stream_stream(int64_t instanceId, int64_t dart_port) {
-    g_port_nullableStatusStream = dart_port;
+    g_ports_nullableStatusStream.add(dart_port);
 }
 void nitro_type_coverage_release_nullable_status_stream_stream(int64_t dart_port) {
-    if (g_port_nullableStatusStream == dart_port) { g_port_nullableStatusStream = 0; }
+    g_ports_nullableStatusStream.remove(dart_port);
 }
 
 void nitro_type_coverage_register_nullable_string_stream_stream(int64_t instanceId, int64_t dart_port) {
-    g_port_nullableStringStream = dart_port;
+    g_ports_nullableStringStream.add(dart_port);
 }
 void nitro_type_coverage_release_nullable_string_stream_stream(int64_t dart_port) {
-    if (g_port_nullableStringStream == dart_port) { g_port_nullableStringStream = 0; }
+    g_ports_nullableStringStream.remove(dart_port);
 }
 
 void nitro_type_coverage_register_uint64_stream_stream(int64_t instanceId, int64_t dart_port) {
-    g_port_uint64Stream = dart_port;
+    g_ports_uint64Stream.add(dart_port);
 }
 void nitro_type_coverage_release_uint64_stream_stream(int64_t dart_port) {
-    if (g_port_uint64Stream == dart_port) { g_port_uint64Stream = 0; }
+    g_ports_uint64Stream.remove(dart_port);
 }
 
 void nitro_type_coverage_register_nullable_uint64_stream_stream(int64_t instanceId, int64_t dart_port) {
-    g_port_nullableUint64Stream = dart_port;
+    g_ports_nullableUint64Stream.add(dart_port);
 }
 void nitro_type_coverage_release_nullable_uint64_stream_stream(int64_t dart_port) {
-    if (g_port_nullableUint64Stream == dart_port) { g_port_nullableUint64Stream = 0; }
+    g_ports_nullableUint64Stream.remove(dart_port);
 }
 
 void nitro_type_coverage_register_nullable_int_stream_stream(int64_t instanceId, int64_t dart_port) {
-    g_port_nullableIntStream = dart_port;
+    g_ports_nullableIntStream.add(dart_port);
 }
 void nitro_type_coverage_release_nullable_int_stream_stream(int64_t dart_port) {
-    if (g_port_nullableIntStream == dart_port) { g_port_nullableIntStream = 0; }
+    g_ports_nullableIntStream.remove(dart_port);
 }
 
 void nitro_type_coverage_register_nullable_double_stream_stream(int64_t instanceId, int64_t dart_port) {
-    g_port_nullableDoubleStream = dart_port;
+    g_ports_nullableDoubleStream.add(dart_port);
 }
 void nitro_type_coverage_release_nullable_double_stream_stream(int64_t dart_port) {
-    if (g_port_nullableDoubleStream == dart_port) { g_port_nullableDoubleStream = 0; }
+    g_ports_nullableDoubleStream.remove(dart_port);
 }
 
 void nitro_type_coverage_register_nullable_bool_stream_stream(int64_t instanceId, int64_t dart_port) {
-    g_port_nullableBoolStream = dart_port;
+    g_ports_nullableBoolStream.add(dart_port);
 }
 void nitro_type_coverage_release_nullable_bool_stream_stream(int64_t dart_port) {
-    if (g_port_nullableBoolStream == dart_port) { g_port_nullableBoolStream = 0; }
+    g_ports_nullableBoolStream.remove(dart_port);
 }
 
 } // extern "C"
