@@ -287,22 +287,31 @@ public:
         return NitroCppBuffer{ copy, value_length };
     }
     NitroCppBuffer echoFloats(const float* value, size_t value_length) override {
+        // NitroCppBuffer.size is in BYTES, not elements — Dart computes the
+        // element count as size / sizeof(float). Returning value_length here
+        // silently truncated the list (10k floats -> 2500; 3 -> 0).
         size_t bytes = value_length * sizeof(float);
         uint8_t* copy = (uint8_t*)malloc(bytes);
         if (bytes > 0) memcpy(copy, value, bytes);
-        return NitroCppBuffer{ copy, value_length };
+        return NitroCppBuffer{ copy, bytes };
     }
     NitroCppBuffer echoFloat64s(const double* value, size_t value_length) override {
+        // NitroCppBuffer.size is in BYTES, not elements — Dart computes the
+        // element count as size / sizeof(double). Returning value_length here
+        // silently truncated the list (10k floats -> 2500; 3 -> 0).
         size_t bytes = value_length * sizeof(double);
         uint8_t* copy = (uint8_t*)malloc(bytes);
         if (bytes > 0) memcpy(copy, value, bytes);
-        return NitroCppBuffer{ copy, value_length };
+        return NitroCppBuffer{ copy, bytes };
     }
     NitroCppBuffer echoInt32s(const int32_t* value, size_t value_length) override {
+        // NitroCppBuffer.size is in BYTES, not elements — Dart computes the
+        // element count as size / sizeof(int32_t). Returning value_length here
+        // silently truncated the list (10k floats -> 2500; 3 -> 0).
         size_t bytes = value_length * sizeof(int32_t);
         uint8_t* copy = (uint8_t*)malloc(bytes);
         if (bytes > 0) memcpy(copy, value, bytes);
-        return NitroCppBuffer{ copy, value_length };
+        return NitroCppBuffer{ copy, bytes };
     }
     NitroCppBuffer echoInt8s(const int8_t* value, size_t value_length) override {
         uint8_t* copy = (uint8_t*)malloc(value_length);
@@ -310,16 +319,22 @@ public:
         return NitroCppBuffer{ copy, value_length };
     }
     NitroCppBuffer echoInt16s(const int16_t* value, size_t value_length) override {
+        // NitroCppBuffer.size is in BYTES, not elements — Dart computes the
+        // element count as size / sizeof(int16_t). Returning value_length here
+        // silently truncated the list (10k floats -> 2500; 3 -> 0).
         size_t bytes = value_length * sizeof(int16_t);
         uint8_t* copy = (uint8_t*)malloc(bytes);
         if (bytes > 0) memcpy(copy, value, bytes);
-        return NitroCppBuffer{ copy, value_length };
+        return NitroCppBuffer{ copy, bytes };
     }
     NitroCppBuffer echoInt64s(const int64_t* value, size_t value_length) override {
+        // NitroCppBuffer.size is in BYTES, not elements — Dart computes the
+        // element count as size / sizeof(int64_t). Returning value_length here
+        // silently truncated the list (10k floats -> 2500; 3 -> 0).
         size_t bytes = value_length * sizeof(int64_t);
         uint8_t* copy = (uint8_t*)malloc(bytes);
         if (bytes > 0) memcpy(copy, value, bytes);
-        return NitroCppBuffer{ copy, value_length };
+        return NitroCppBuffer{ copy, bytes };
     }
 
     // ── Lists (async) ────────────────────────────────────────────────────────

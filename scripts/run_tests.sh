@@ -106,7 +106,9 @@ run_on_device() {
 
   log_info "Running integration tests on: $label"
 
-  if (cd "$EXAMPLE_DIR" && flutter test "$TEST_FILE" -d "$target" 2>&1) | tee "$log_file"; then
+  # --timeout: a single hung test (e.g. a stream that never emits) fails in
+  # 2 minutes instead of hanging the whole CI job until its 45-60 min limit.
+  if (cd "$EXAMPLE_DIR" && flutter test "$TEST_FILE" -d "$target" --timeout 120s 2>&1) | tee "$log_file"; then
     log_ok "PASSED — $label"
     rm -f "$log_file"
     return 0

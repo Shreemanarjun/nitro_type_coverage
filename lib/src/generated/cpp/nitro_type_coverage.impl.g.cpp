@@ -10,11 +10,16 @@
 //   4. Call nitro_type_coverage_register_impl(nullptr) in teardown.
 //
 // Ownership conventions:
-//   • Record/variant/tuple RETURNS: return writer.toNativeBuffer() (or
-//     nitro_<Variant>_to_native) — a malloc'd [4B len][payload] block that
-//     Dart frees after decoding. Returning a view of a local buffer dangles.
-//   • Record/variant PARAMS and emit_* stream items are non-owning payload
-//     views (no length prefix) — copy if you need them after the call.
+//   • Record/variant/tuple RETURNS **and emit_* stream items**: pass
+//     writer.toNativeBuffer() (or nitro_<Variant>_to_native) — a malloc'd
+//     [4B len][payload] block whose ownership transfers to the bridge/Dart.
+//     Returning or emitting a non-owning writer.toBuffer() view is wrong:
+//     Dart would decode-and-free a live local buffer.
+//   • Record/variant PARAMS are non-owning payload views (no length prefix)
+//     — copy if you need them after the call.
+//   • TypedData RETURNS use NitroCppBuffer{ data, size } where size is in
+//     BYTES, not elements (Float32List: count * sizeof(float)). A wrong
+//     unit silently truncates the list Dart sees (bytes / elemSize).
 //   • @zeroCopy TypedData returns are NOT copied by the bridge: the pointed-to
 //     bytes must stay alive until Dart is done (e.g. store them in a member).
 
@@ -955,6 +960,9 @@ public:
     // ── Streams ──────────────────────────────────────────────────────────────
     // Call emit_<name>(item) from any thread to push items to Dart.
     // emit_* helpers are defined in the generated bridge.
+    // Record/variant items: pass record.toNativeBuffer() — ownership of the
+    // heap [4B len][payload] block transfers to the bridge (same convention
+    // as record returns). Never emit a non-owning writer.toBuffer() view.
     // Example — start emitting from a background thread:
     //
     //   std::thread([this]{ emit_configStream(/* NitroCppBuffer value */); }).detach();

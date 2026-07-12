@@ -1424,7 +1424,7 @@ object NitroTypeCoverageJniBridge {
     @JvmStatic external fun postBoolToPort(dartPort: Long, value: Boolean)
     @JvmStatic external fun postStringToPort(dartPort: Long, value: String)
     // Nullable prim helpers: malloc NitroOptXxx on native heap, post address as kInt64.
-    // Dart decodes via Pointer<NitroOptXxx>.fromAddress and frees with malloc.free.
+    // Dart decodes via Pointer<NitroOptXxx>.fromAddress and frees via the <lib>_nitro_free export.
     @JvmStatic external fun postOptInt64ToPort(dartPort: Long, value: Long, hasValue: Boolean)
     @JvmStatic external fun postOptFloat64ToPort(dartPort: Long, value: Double, hasValue: Boolean)
     @JvmStatic external fun postOptBoolToPort(dartPort: Long, value: Boolean, hasValue: Boolean)

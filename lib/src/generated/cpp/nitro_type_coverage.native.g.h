@@ -56,10 +56,13 @@ struct NitroRecordWriter {
         return out;
     }
     /// Non-owning view of the payload (no length prefix). Valid while this writer lives.
+    /// For encoding NESTED payloads only — never return it or pass it to an
+    /// emit_* stream helper (both transfer ownership; use toNativeBuffer()).
     NitroCppBuffer toBuffer() const { return { _buf.data(), _buf.size() }; }
     /// Heap-allocated [4B length][payload] wrapped in a buffer whose size
-    /// includes the prefix. Use as the return value of record/variant methods:
-    /// ownership transfers to Dart (Dart frees it after decoding).
+    /// includes the prefix. Use as the return value of record/variant methods
+    /// AND as the item passed to emit_* stream helpers: ownership transfers
+    /// to Dart (freed after decoding via the <lib>_nitro_free export).
     NitroCppBuffer toNativeBuffer() const { return { toNative(), sizeof(int32_t) + _buf.size() }; }
 };
 
@@ -965,6 +968,9 @@ public:
     // ── Streams ──────────────────────────────────────────────────────────
     // Call the emit_* helpers below to push items to Dart from any thread.
     /// Emit a value on the configStream stream.
+    /// Pass record.toNativeBuffer() (or nitro_Xxx_to_native(...)) — a heap
+    /// [4B len][payload] block. Ownership transfers: the bridge/Dart frees
+    /// it. Never pass a non-owning writer.toBuffer() view.
     void emit_configStream(NitroCppBuffer item);
     /// Emit a value on the batchIntStream stream.
     void emit_batchIntStream(int64_t item);
@@ -991,6 +997,9 @@ public:
     /// Emit a value on the bufferDropIntStream stream.
     void emit_bufferDropIntStream(int64_t item);
     /// Emit a value on the eventStream stream.
+    /// Pass record.toNativeBuffer() (or nitro_Xxx_to_native(...)) — a heap
+    /// [4B len][payload] block. Ownership transfers: the bridge/Dart frees
+    /// it. Never pass a non-owning writer.toBuffer() view.
     void emit_eventStream(NitroCppBuffer item);
     /// Emit a value on the nullableStatusStream stream.
     void emit_nullableStatusStream(std::optional<TcStatus> item);
