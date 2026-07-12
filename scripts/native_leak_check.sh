@@ -22,7 +22,8 @@ CXX="${CXX:-clang++}"
 # dart_api_dl.c satisfies the Dart_* symbol references in the bridge; the
 # harness never initializes it — sync paths don't touch Dart ports.
 # (It lives in src/, its headers in src/native/ — same layout src/CMakeLists.txt uses.)
-"$CXX" -std=c++17 -g -fsanitize=address -fno-omit-frame-pointer \
+# C file → C standard; -std=c++17 with -x c is a hard error on Linux clang.
+"$CXX" -std=c11 -g -fsanitize=address -fno-omit-frame-pointer \
   -I"$GEN" \
   -I"$PLUGIN_DIR/src/native" \
   -x c "$PLUGIN_DIR/src/dart_api_dl.c" -c -o "$OUT_DIR/dart_api_dl.o"
