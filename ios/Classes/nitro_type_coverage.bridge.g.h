@@ -70,6 +70,7 @@ NITRO_EXPORT void nitro_type_coverage_clear_error(void);
 NITRO_EXPORT int64_t nitro_type_coverage_create_instance(const char* key);
 NITRO_EXPORT void nitro_type_coverage_destroy_instance(int64_t instanceId);
 NITRO_EXPORT void nitro_type_coverage_nitro_free(void* ptr);
+NITRO_EXPORT void* nitro_type_coverage_nitro_alloc(size_t size);
 NITRO_EXPORT void nitro_type_coverage_release_typed_data_return(void* ptr);
 /// Release the handle returned by acquireBuffer(). Called by Dart NativeFinalizer.
 /// Release the handle returned by asyncAcquireBuffer(). Called by Dart NativeFinalizer.

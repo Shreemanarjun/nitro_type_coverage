@@ -466,6 +466,15 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
   late final Pointer<NativeFinalizerFunction> _nitroFreeFinalizer = _dylib
       .lookup<NativeFinalizerFunction>('nitro_type_coverage_nitro_free')
       .cast();
+  late final Pointer<Void> Function(int) _nitroAllocPtr = _dylib
+      .lookupFunction<
+        Pointer<Void> Function(IntPtr),
+        Pointer<Void> Function(int)
+      >('nitro_type_coverage_nitro_alloc');
+  late final NitroNativeAllocator _nitroNativeAllocator = NitroNativeAllocator(
+    _nitroAllocPtr,
+    _nitroFreePtr,
+  );
 
   static DynamicLibrary _loadSupportedLibrary() {
     return NitroRuntime.loadLibForTargets(
@@ -2397,7 +2406,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     final nc = NativeCallable<Pointer<Utf8> Function(Int64)>.isolateLocal((
       int arg0,
     ) {
-      return callback(arg0).toNativeUtf8();
+      return callback(arg0).toNativeUtf8(allocator: _nitroNativeAllocator);
     });
     final old = _nativeCallbackCache[key];
     _nativeCallbackCache[key] = nc;

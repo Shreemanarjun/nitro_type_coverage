@@ -420,6 +420,7 @@ NITRO_EXPORT void nitro_type_coverage_release_typed_data_return(void* ptr) {
 }
 
 NITRO_EXPORT void nitro_type_coverage_nitro_free(void* ptr) { if (ptr) { free(ptr); } }
+NITRO_EXPORT void* nitro_type_coverage_nitro_alloc(size_t size) { return malloc(size); }
 
 NITRO_EXPORT int64_t nitro_type_coverage_create_instance(const char* key) {
     JNIEnv* env = GetEnv();
@@ -8855,6 +8856,7 @@ static int64_t nitro_type_coverage_g_next_instance_id = 0;
 NITRO_EXPORT int64_t nitro_type_coverage_create_instance(const char* key) { (void)key; return nitro_type_coverage_g_next_instance_id++; }
 NITRO_EXPORT void nitro_type_coverage_destroy_instance(int64_t instanceId) { (void)instanceId; }
 NITRO_EXPORT void nitro_type_coverage_nitro_free(void* ptr) { if (ptr) { free(ptr); } }
+NITRO_EXPORT void* nitro_type_coverage_nitro_alloc(size_t size) { return malloc(size); }
 
 } // extern "C"
 #elif defined(_WIN32) || defined(__linux__)  // Windows/Linux: NativeImpl.cpp — direct C++ dispatch
@@ -9254,6 +9256,7 @@ HybridNitroTypeCoverage* nitro_type_coverage_get_impl() { return g_impl; }
 NITRO_EXPORT int64_t nitro_type_coverage_create_instance(const char* key) { (void)key; return g_next_instance_id++; }
 NITRO_EXPORT void nitro_type_coverage_destroy_instance(int64_t instanceId) { (void)instanceId; }
 NITRO_EXPORT void nitro_type_coverage_nitro_free(void* ptr) { if (ptr) { free(ptr); } }
+NITRO_EXPORT void* nitro_type_coverage_nitro_alloc(size_t size) { return malloc(size); }
 NITRO_EXPORT void nitro_type_coverage_release_typed_data_return(void* ptr) {
     if (!ptr) { return; }
     free(ptr);
