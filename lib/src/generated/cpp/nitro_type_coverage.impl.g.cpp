@@ -21,8 +21,10 @@
 //   • TypedData RETURNS use NitroCppBuffer{ data, size } where size is in
 //     BYTES, not elements (Float32List: count * sizeof(float)). A wrong
 //     unit silently truncates the list Dart sees (bytes / elemSize).
-//   • @zeroCopy TypedData returns are NOT copied by the bridge: the pointed-to
-//     bytes must stay alive until Dart is done (e.g. store them in a member).
+//   • @zeroCopy TypedData returns are NOT copied by the bridge: return a
+//     malloc'd buffer — ownership transfers, and the bridge frees it (via
+//     <lib>_release_typed_data_return) when Dart's view is GC'd. Never
+//     return a pointer to a member or stack buffer: it would be free()d.
 
 #include "nitro_type_coverage.native.g.h"
 #include <stdexcept>

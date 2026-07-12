@@ -6899,5 +6899,19 @@ void main() {
         expect(r.name.length, kbString.length);
       });
     });
+
+    testWidgets('echoBytes: 20k × 4KB zero-copy round-trips', (t) async {
+      // @zeroCopy return: the impl's malloc'd payload transfers to Dart and
+      // must be freed (payload AND envelope) when the view's NativeFinalizer
+      // runs — the exact leak the ASan harness caught on its first CI run.
+      // GC pressure from the loop itself drives the finalizers.
+      // 20k × 4KB ≈ 82MB if payloads leak — well above the 48MB budget even
+      // with finalizer lag (externalSize hints keep the GC ahead of it).
+      final data = Uint8List.fromList(List.filled(4096, 7));
+      await expectBoundedGrowth('echoBytes', 20000, (i) {
+        final r = tc.echoBytes(data);
+        expect(r.length, 4096);
+      });
+    });
   });
 }

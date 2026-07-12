@@ -9259,6 +9259,9 @@ NITRO_EXPORT void nitro_type_coverage_nitro_free(void* ptr) { if (ptr) { free(pt
 NITRO_EXPORT void* nitro_type_coverage_nitro_alloc(size_t size) { return malloc(size); }
 NITRO_EXPORT void nitro_type_coverage_release_typed_data_return(void* ptr) {
     if (!ptr) { return; }
+    int64_t* words = (int64_t*)ptr;
+    void* payload = (void*)(intptr_t)words[1];
+    if (payload && payload != ptr) { free(payload); }
     free(ptr);
 }
 

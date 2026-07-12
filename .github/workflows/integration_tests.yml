@@ -24,10 +24,11 @@
 
 name: integration-tests
 
+# On-demand only — the full 5-platform matrix is expensive (emulator/simulator
+# boots, 4 desktop builds). Run it from the Actions tab (workflow_dispatch)
+# before releases or after native-layer changes. The memory-leak checks in
+# memory_leak.yml run on every push instead.
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_dispatch:
 
 concurrency:
@@ -210,38 +211,3 @@ jobs:
           working-directory: nitro_plugins/nitro_type_coverage
           script: ./scripts/run_tests.sh android
 
-  native-leak-check:
-    name: Native leak check (ASan/LSan)
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          path: nitro_plugins/nitro_type_coverage
-
-      - uses: actions/checkout@v4
-        with:
-          repository: Shreemanarjun/nitro_ecosystem
-          path: flutter_package/nitro_ecosystem
-
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-
-      - name: Install clang
-        run: sudo apt-get update && sudo apt-get install -y clang
-
-      # Regenerate so the harness compiles the same bridge the other jobs test.
-      - name: Regenerate bindings
-        working-directory: ${{ env.PLUGIN_DIR }}
-        run: dart run build_runner build --delete-conflicting-outputs
-
-      # Compiles the REAL generated bridge + Linux impl with AddressSanitizer,
-      # drives the sync dispatch paths through the C ABI while playing Dart's
-      # role exactly (frees Dart-owned returns via <lib>_nitro_free, allocates
-      # callback returns via <lib>_nitro_alloc). LeakSanitizer reports any
-      # genuine leak in generated or impl code at exit — zero engine noise.
-      - name: Run native leak check
-        working-directory: ${{ env.PLUGIN_DIR }}
-        run: ./scripts/native_leak_check.sh

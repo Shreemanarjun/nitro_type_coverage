@@ -1,0 +1,99 @@
+# Memory-leak checks — run on EVERY push (cheap, minutes, no emulators).
+#
+# The full 5-platform integration matrix lives in integration_tests.yml and
+# runs on demand (workflow_dispatch) only; this workflow is the per-push
+# safety net for the memory contracts:
+#
+#   • native-leak-check: compiles the REAL generated bridge + Linux impl with
+#     AddressSanitizer and drives the sync dispatch paths through the C ABI,
+#     playing Dart's role exactly (frees Dart-owned returns via
+#     <lib>_nitro_free, allocates callback returns via <lib>_nitro_alloc).
+#     LeakSanitizer's exit report is allocation-exact and covers only
+#     generated/impl code — zero Flutter engine noise. Its very first run
+#     caught a real leak (zero-copy return payloads were never freed).
+#
+#   • rss-soak (Linux desktop): the §M integration group — each ownership-
+#     transfer path hammered with 2KB payloads × thousands of iterations,
+#     asserting ProcessInfo.currentRss growth stays bounded. Catches leaks
+#     LSan can't see from the harness (streams, native-async, Dart-side).
+
+name: memory-leak
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PLUGIN_DIR: nitro_plugins/nitro_type_coverage
+
+jobs:
+  native-leak-check:
+    name: Native leak check (ASan/LSan)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: nitro_plugins/nitro_type_coverage
+
+      - uses: actions/checkout@v4
+        with:
+          repository: Shreemanarjun/nitro_ecosystem
+          path: flutter_package/nitro_ecosystem
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install clang
+        run: sudo apt-get update && sudo apt-get install -y clang
+
+      # Regenerate so the harness compiles the same bridge the suite tests.
+      - name: Regenerate bindings
+        working-directory: ${{ env.PLUGIN_DIR }}
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Run native leak check
+        working-directory: ${{ env.PLUGIN_DIR }}
+        run: ./scripts/native_leak_check.sh
+
+  rss-soak:
+    name: RSS soak (§M, Linux desktop)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: nitro_plugins/nitro_type_coverage
+
+      - uses: actions/checkout@v4
+        with:
+          repository: Shreemanarjun/nitro_ecosystem
+          path: flutter_package/nitro_ecosystem
+
+      - name: Install Linux desktop build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev xvfb
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Enable Linux desktop
+        run: flutter config --enable-linux-desktop
+
+      - name: Regenerate bindings
+        working-directory: ${{ env.PLUGIN_DIR }}
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Run §M memory-leak soak tests
+        working-directory: ${{ env.PLUGIN_DIR }}/example
+        run: xvfb-run -a flutter test integration_test/type_coverage_test.dart -d linux --plain-name '§M' --timeout 300s

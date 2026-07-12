@@ -28,7 +28,8 @@
 #endif
 
 /// Lightweight read-only view over a binary payload.
-/// For @zeroCopy returns, native code must keep data alive while Dart uses it.
+/// For @zeroCopy returns: return a malloc'd buffer — ownership transfers,
+/// and the bridge frees it when Dart's view is GC'd (never a member/stack ptr).
 struct NitroCppBuffer {
     const uint8_t* data;
     size_t size;
