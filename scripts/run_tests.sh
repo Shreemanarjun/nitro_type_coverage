@@ -84,11 +84,16 @@ regen() {
 # ── Device discovery helpers ──────────────────────────────────────────────────
 
 # Returns newline-separated device IDs for a given platform keyword (case-insensitive).
+# `flutter devices` lines look like:
+#   iPhone 16 (mobile) • ABC-123-UDID • ios • com.apple.CoreSimulator...
+# The ID is the SECOND bullet-separated column — `awk '{print $1}'` would
+# yield "iPhone"/"sdk" (the first word of the display name), which only
+# worked by accident through flutter's substring device matching.
 _devices_for() {
   local keyword="$1"
   flutter devices 2>/dev/null \
     | grep -i "$keyword" \
-    | awk '{print $1}' \
+    | awk -F'•' 'NF >= 3 { gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2 }' \
     | grep -v '^$' \
     || true
 }

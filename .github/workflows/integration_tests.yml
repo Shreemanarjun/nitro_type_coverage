@@ -1,13 +1,15 @@
-# Runs the full type-coverage integration suite on every desktop platform.
+# Runs the full type-coverage integration suite on every supported platform.
 #
 # Each job drives the SAME Dart test file (example/integration_test/
 # type_coverage_test.dart) through a different native implementation:
-#   • Linux   → NativeImpl.cpp  (linux/src/HybridNitroTypeCoverage.cpp, GCC/Clang)
-#   • Windows → NativeImpl.cpp  (windows/src/HybridNitroTypeCoverage.cpp, MSVC —
-#                                 its own file, not shared with Linux; each
-#                                 platform's CMakeLists.txt sets its own
-#                                 NITRO_IMPL_SRC_nitro_type_coverage override)
-#   • macOS   → NativeImpl.swift (reference implementation)
+#   • Linux   → NativeImpl.cpp    (linux/src/HybridNitroTypeCoverage.cpp, GCC/Clang)
+#   • Windows → NativeImpl.cpp    (windows/src/HybridNitroTypeCoverage.cpp, MSVC —
+#                                   its own file, not shared with Linux; each
+#                                   platform's CMakeLists.txt sets its own
+#                                   NITRO_IMPL_SRC_nitro_type_coverage override)
+#   • macOS   → NativeImpl.swift  (reference implementation)
+#   • iOS     → NativeImpl.swift  (simulator, same Swift impl via ios/Classes)
+#   • Android → NativeImpl.kotlin (x86_64 emulator, JNI bridge)
 #
 # The nitro_ecosystem repo is checked out alongside because the plugin (and
 # its example) use path dependency_overrides onto the local packages while
@@ -123,3 +125,87 @@ jobs:
       - name: Run integration tests (macOS)
         working-directory: ${{ env.PLUGIN_DIR }}
         run: ./scripts/run_tests.sh macos
+
+  ios:
+    name: iOS simulator (NativeImpl.swift)
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: nitro_plugins/nitro_type_coverage
+
+      - uses: actions/checkout@v4
+        with:
+          repository: Shreemanarjun/nitro_ecosystem
+          path: flutter_package/nitro_ecosystem
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Boot iOS simulator
+        run: |
+          UDID=$(xcrun simctl list devices available --json | python3 -c "
+          import json, sys
+          devices = json.load(sys.stdin)['devices']
+          # Newest iOS runtime first; pick the first available iPhone.
+          for runtime in sorted(devices.keys(), reverse=True):
+              if 'iOS' not in runtime:
+                  continue
+              for dev in devices[runtime]:
+                  if dev['name'].startswith('iPhone'):
+                      print(dev['udid'])
+                      sys.exit(0)
+          sys.exit(1)
+          ")
+          echo "Booting simulator $UDID"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+
+      - name: Run integration tests (iOS simulator)
+        working-directory: ${{ env.PLUGIN_DIR }}
+        run: ./scripts/run_tests.sh ios
+
+  android:
+    name: Android emulator (NativeImpl.kotlin)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: nitro_plugins/nitro_type_coverage
+
+      - uses: actions/checkout@v4
+        with:
+          repository: Shreemanarjun/nitro_ecosystem
+          path: flutter_package/nitro_ecosystem
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      # Hardware acceleration for the emulator on Linux runners.
+      - name: Enable KVM group perms
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run integration tests (Android emulator)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          working-directory: nitro_plugins/nitro_type_coverage
+          script: ./scripts/run_tests.sh android
