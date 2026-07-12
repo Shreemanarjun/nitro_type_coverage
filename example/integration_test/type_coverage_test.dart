@@ -6275,6 +6275,56 @@ void main() {
   });
 
   // ══════════════════════════════════════════════════════════════════════════
+  // §70 desktop C-bridge fixes (GitHub #9)
+  //
+  // This module targets windows/linux: NativeImpl.cpp, so these methods
+  // exercise the exact generator code path both bugs were found in
+  // (_emitAppleCppDispatch's "Windows/Linux: NativeImpl.cpp" branch).
+  // Android/iOS/macOS never had these bugs, but round-tripping here still
+  // locks in that the fix didn't regress the shared record wire format or
+  // native-async param decoding on the platforms this suite can exercise.
+  // The desktop-C++ dispatch itself was verified separately: real generated
+  // code from lib/src/generated/cpp/nitro_type_coverage.bridge.g.cpp was
+  // compiled standalone with clang++ -fsanitize=address and confirmed both
+  // the record round-trip and the null-guard are memory-safe (this repo's
+  // hand-maintained src/HybridNitroTypeCoverage.cpp is a pre-existing,
+  // unrelated stub that doesn't implement any pure-virtuals yet, so a full
+  // Windows/Linux app build isn't possible here regardless of this fix).
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('§70 desktop C-bridge fixes (GitHub #9)', () {
+    test('getConfigOrFail: @NitroResult<record> returns NitroOk with the record', () {
+      final result = tc.getConfigOrFail(false);
+      expect(result, isA<NitroOk<TcConfig>>());
+      final config = (result as NitroOk<TcConfig>).value;
+      expect(config.name, 'desktop-fix');
+      expect(config.count, 9);
+      expect(config.enabled, isTrue);
+      expect(config.threshold, closeTo(1.5, 1e-12));
+    });
+
+    test('getConfigOrFail: @NitroResult<record> returns NitroErr on failure (record success path did not break the error path)', () {
+      final result = tc.getConfigOrFail(true);
+      expect(result, isA<NitroErr<TcConfig>>());
+    });
+
+    test('nativeAsyncEchoOptionalConfig: non-null config round-trips', () async {
+      final input = TcConfig(name: 'round-trip', count: 42, enabled: false, threshold: -3.5);
+      final result = await tc.nativeAsyncEchoOptionalConfig(input);
+      expect(result, isNotNull);
+      expect(result!.name, 'round-trip');
+      expect(result.count, 42);
+      expect(result.enabled, isFalse);
+      expect(result.threshold, closeTo(-3.5, 1e-12));
+    });
+
+    test('nativeAsyncEchoOptionalConfig: omitted (null) config round-trips to null, not a crash', () async {
+      final result = await tc.nativeAsyncEchoOptionalConfig(null);
+      expect(result, isNull);
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
   // §L4 Map<String, @HybridRecord> and Map<String, @NitroVariant> (binary tag-5)
   // ══════════════════════════════════════════════════════════════════════════
 

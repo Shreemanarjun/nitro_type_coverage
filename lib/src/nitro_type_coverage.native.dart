@@ -407,6 +407,26 @@ abstract class NitroTypeCoverage extends HybridObject {
   @nitroNativeAsync
   Future<void> throwNativeNativeAsync(String message);
 
+  // §70: desktop C-bridge fixes (GitHub #9) — this module targets
+  // windows/linux: NativeImpl.cpp, so it exercises the exact
+  // _emitAppleCppDispatch "Windows/Linux: NativeImpl.cpp" branch both bugs
+  // were found in.
+  //
+  // Bug 1 — @NitroResult<record> desktop dispatch didn't compile: the
+  // interface declared the virtual as returning NitroCppBuffer, but the
+  // dispatch fell through to `std::string _val = g_impl->fn(...)` for any
+  // non-double/int/bool @NitroResult return.
+  @NitroResult()
+  NitroResultValue<TcConfig> getConfigOrFail(bool shouldFail);
+
+  // Bug 2 — an omitted optional record/variant param on a @nitroNativeAsync
+  // method arrived as nullptr, but the desktop dispatch unconditionally did
+  // `*(int32_t*)ptr` to read the length prefix — segfault before the impl
+  // ever ran. Round-tripping the value (rather than a void method) proves
+  // the non-null case decodes correctly too, not just "didn't crash".
+  @nitroNativeAsync
+  Future<TcConfig?> nativeAsyncEchoOptionalConfig(TcConfig? config);
+
   // ── §36: @NitroOwned — returns an opaque handle ──────────────────────────
   // acquireBuffer returns an opaque native handle via @NitroOwned.
   @NitroOwned()

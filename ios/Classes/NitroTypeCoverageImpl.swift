@@ -292,6 +292,19 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
         throw NSError(domain: "NativeTestError", code: 1, userInfo: [NSLocalizedDescriptionKey: message])
     }
 
+    // ── §70: desktop C-bridge fixes (GitHub #9) ───────────────────────────────
+    // Swift/Kotlin/JNI never had these bugs — the fixes were entirely in the
+    // Windows/Linux desktop-C++ dispatch generator — but these methods are
+    // still exercised on Android/iOS/macOS to lock in the round-trip.
+    public func getConfigOrFail(shouldFail: Bool) throws -> TcConfig {
+        if shouldFail { throw NSError(domain: "NitroTypeCoverage", code: 3, userInfo: [NSLocalizedDescriptionKey: "getConfigOrFail: shouldFail was true"]) }
+        return TcConfig(name: "desktop-fix", count: 9, enabled: true, threshold: 1.5)
+    }
+
+    public func nativeAsyncEchoOptionalConfig(config: TcConfig?) async throws -> TcConfig? {
+        return config
+    }
+
     // ── §36: @NitroOwned ─────────────────────────────────────────────────────
     public func acquireBuffer(size: Int64) -> UnsafeMutableRawPointer? {
         // Allocate a raw buffer of `size` bytes; Dart side wraps it in NativeHandle + finalizer.

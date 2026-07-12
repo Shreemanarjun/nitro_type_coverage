@@ -635,6 +635,18 @@ public:
         throw std::runtime_error("Not implemented: throwNativeNativeAsync");
     }
 
+    NitroCppBuffer getConfigOrFail(bool shouldFail) override {
+        // TODO: implement getConfigOrFail
+        throw std::runtime_error("Not implemented: getConfigOrFail");
+        // return { nullptr, 0 };
+    }
+
+    void nativeAsyncEchoOptionalConfig(NitroCppBuffer config, NitroError* _nitro_err, int64_t dartPort) override {
+        // TODO: on error, populate _nitro_err (hasError/name/message via strdup) before posting.
+        // TODO: post result via Dart_PostCObject_DL(dartPort, ...)
+        throw std::runtime_error("Not implemented: nativeAsyncEchoOptionalConfig");
+    }
+
     void* acquireBuffer(int64_t size) override {
         // TODO: implement acquireBuffer
         throw std::runtime_error("Not implemented: acquireBuffer");

@@ -346,6 +346,14 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
         throw RuntimeException(message)
     }
 
+    // ── §70: desktop C-bridge fixes (GitHub #9) ───────────────────────────────
+    override fun getConfigOrFail(shouldFail: Boolean): TcConfig {
+        if (shouldFail) throw RuntimeException("getConfigOrFail: shouldFail was true")
+        return TcConfig(name = "desktop-fix", count = 9, enabled = true, threshold = 1.5)
+    }
+
+    override suspend fun nativeAsyncEchoOptionalConfig(config: TcConfig?): TcConfig? = config
+
     // ── §36: @NitroOwned ─────────────────────────────────────────────────────
     // acquireBuffer: allocate `size` bytes on the native heap and return the address.
     // ART's Unsafe.allocateMemory calls malloc internally, so the C bridge _release
