@@ -21,10 +21,11 @@ CXX="${CXX:-clang++}"
 
 # dart_api_dl.c satisfies the Dart_* symbol references in the bridge; the
 # harness never initializes it — sync paths don't touch Dart ports.
+# (It lives in src/, its headers in src/native/ — same layout src/CMakeLists.txt uses.)
 "$CXX" -std=c++17 -g -fsanitize=address -fno-omit-frame-pointer \
   -I"$GEN" \
   -I"$PLUGIN_DIR/src/native" \
-  -x c "$PLUGIN_DIR/src/native/dart_api_dl.c" -c -o "$OUT_DIR/dart_api_dl.o"
+  -x c "$PLUGIN_DIR/src/dart_api_dl.c" -c -o "$OUT_DIR/dart_api_dl.o"
 
 "$CXX" -std=c++17 -g -fsanitize=address -fno-omit-frame-pointer \
   -I"$GEN" \
@@ -33,6 +34,7 @@ CXX="${CXX:-clang++}"
   "$PLUGIN_DIR/linux/src/HybridNitroTypeCoverage.cpp" \
   "$SCRIPT_DIR/native_leak_check/main.cpp" \
   "$OUT_DIR/dart_api_dl.o" \
+  -pthread \
   -o "$OUT_DIR/native_leak_check"
 
 # detect_leaks is on by default under Linux ASan; be explicit so the intent
