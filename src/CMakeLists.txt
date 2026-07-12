@@ -4,7 +4,7 @@ project(nitro_type_coverage_library VERSION 0.0.1 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(NITRO_NATIVE "${CMAKE_CURRENT_SOURCE_DIR}/native")
-# NITRO_LINK_SPEC_CHECKSUM 4931d1ba3c8e7c48
+# NITRO_LINK_SPEC_CHECKSUM 836d84512126e991
 set(GENERATED_CPP "${CMAKE_CURRENT_SOURCE_DIR}/../lib/src/generated/cpp")
 
 add_library(nitro_type_coverage SHARED
@@ -14,7 +14,11 @@ add_library(nitro_type_coverage SHARED
 )
 
 if(NOT ANDROID)
-  target_sources(nitro_type_coverage PRIVATE "HybridNitroTypeCoverage.cpp")
+  if(DEFINED NITRO_IMPL_SRC_nitro_type_coverage)
+    target_sources(nitro_type_coverage PRIVATE "${NITRO_IMPL_SRC_nitro_type_coverage}")
+  else()
+    target_sources(nitro_type_coverage PRIVATE "HybridNitroTypeCoverage.cpp")
+  endif()
 endif()
 target_include_directories(nitro_type_coverage PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}"

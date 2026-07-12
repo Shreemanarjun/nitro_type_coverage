@@ -32,8 +32,13 @@ typedef float = double;
   ios: NativeImpl.swift,
   android: NativeImpl.kotlin,
   macos: NativeImpl.swift,
-  windows: NativeImpl.cpp,
-  linux: NativeImpl.cpp,
+  // Explicit per-platform markers, not the generic NativeImpl.cpp shorthand.
+  // Windows and Linux each have their own windows/src/HybridNitroTypeCoverage.cpp
+  // and linux/src/HybridNitroTypeCoverage.cpp — this is nitrogen link's
+  // explicit, immediate signal to keep wiring them separately instead of
+  // falling back to sharing src/HybridNitroTypeCoverage.cpp.
+  windows: WindowsNativeImpl.cpp,
+  linux: LinuxNativeImpl.cpp,
 )
 abstract class NitroTypeCoverage extends HybridObject {
   // Default singleton — same as getInstance('default').

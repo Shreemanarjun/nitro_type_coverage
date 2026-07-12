@@ -2,8 +2,11 @@
 #
 # Each job drives the SAME Dart test file (example/integration_test/
 # type_coverage_test.dart) through a different native implementation:
-#   • Linux   → NativeImpl.cpp  (src/HybridNitroTypeCoverage.cpp, GCC/Clang)
-#   • Windows → NativeImpl.cpp  (same file, MSVC)
+#   • Linux   → NativeImpl.cpp  (linux/src/HybridNitroTypeCoverage.cpp, GCC/Clang)
+#   • Windows → NativeImpl.cpp  (windows/src/HybridNitroTypeCoverage.cpp, MSVC —
+#                                 its own file, not shared with Linux; each
+#                                 platform's CMakeLists.txt sets its own
+#                                 NITRO_IMPL_SRC_nitro_type_coverage override)
 #   • macOS   → NativeImpl.swift (reference implementation)
 #
 # The nitro_ecosystem repo is checked out alongside because the plugin (and

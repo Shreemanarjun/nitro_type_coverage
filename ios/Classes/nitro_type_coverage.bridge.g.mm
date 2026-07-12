@@ -10715,7 +10715,7 @@ void nitro_type_coverage_native_async_config_list(int64_t instanceId, void* valu
         return;
     }
     try {
-        g_impl->nativeAsyncConfigList(values, _nitro_err, dart_port);
+        g_impl->nativeAsyncConfigList(NitroCppBuffer{ (const uint8_t*)values + 4, (size_t)*(int32_t*)values }, _nitro_err, dart_port);
     } catch (const std::exception& e) {
         _nitro_desktop_err(_nitro_err, "CppException", e.what());
         Dart_CObject _err = { Dart_CObject_kNull };
@@ -10736,7 +10736,7 @@ void nitro_type_coverage_native_async_status_list(int64_t instanceId, void* valu
         return;
     }
     try {
-        g_impl->nativeAsyncStatusList(values, _nitro_err, dart_port);
+        g_impl->nativeAsyncStatusList(NitroCppBuffer{ (const uint8_t*)values + 4, (size_t)*(int32_t*)values }, _nitro_err, dart_port);
     } catch (const std::exception& e) {
         _nitro_desktop_err(_nitro_err, "CppException", e.what());
         Dart_CObject _err = { Dart_CObject_kNull };
@@ -10757,7 +10757,7 @@ void nitro_type_coverage_native_async_event_list(int64_t instanceId, void* value
         return;
     }
     try {
-        g_impl->nativeAsyncEventList(values, _nitro_err, dart_port);
+        g_impl->nativeAsyncEventList(NitroCppBuffer{ (const uint8_t*)values + 4, (size_t)*(int32_t*)values }, _nitro_err, dart_port);
     } catch (const std::exception& e) {
         _nitro_desktop_err(_nitro_err, "CppException", e.what());
         Dart_CObject _err = { Dart_CObject_kNull };
@@ -10778,7 +10778,7 @@ void nitro_type_coverage_native_async_int_list(int64_t instanceId, void* values,
         return;
     }
     try {
-        g_impl->nativeAsyncIntList(values, _nitro_err, dart_port);
+        g_impl->nativeAsyncIntList(NitroCppBuffer{ (const uint8_t*)values + 4, (size_t)*(int32_t*)values }, _nitro_err, dart_port);
     } catch (const std::exception& e) {
         _nitro_desktop_err(_nitro_err, "CppException", e.what());
         Dart_CObject _err = { Dart_CObject_kNull };
@@ -10790,7 +10790,7 @@ void nitro_type_coverage_native_async_int_list(int64_t instanceId, void* values,
     }
 }
 
-void nitro_type_coverage_native_async_with_callback(int64_t instanceId, int64_t value, void* callback, NitroError* _nitro_err, int64_t dart_port) {
+void nitro_type_coverage_native_async_with_callback(int64_t instanceId, int64_t value, void (*callback)(int64_t), NitroError* _nitro_err, int64_t dart_port) {
     if (_nitro_err) { _nitro_err->hasError = 0; }
     if (!g_impl) {
         _nitro_desktop_err(_nitro_err, "NotInitialized", "No C++ implementation registered.");
@@ -10799,7 +10799,12 @@ void nitro_type_coverage_native_async_with_callback(int64_t instanceId, int64_t 
         return;
     }
     try {
-        g_impl->nativeAsyncWithCallback(value, callback, _nitro_err, dart_port);
+        auto _rawfn_callback = reinterpret_cast<void (*)(int64_t)>(callback);
+        std::function<void(int64_t)> _fn_callback =
+            [_rawfn_callback](int64_t _a0) -> void {
+            _rawfn_callback((int64_t)_a0);
+            };
+        g_impl->nativeAsyncWithCallback(value, _fn_callback, _nitro_err, dart_port);
     } catch (const std::exception& e) {
         _nitro_desktop_err(_nitro_err, "CppException", e.what());
         Dart_CObject _err = { Dart_CObject_kNull };
@@ -10862,7 +10867,7 @@ void nitro_type_coverage_native_async_echo_int_map(int64_t instanceId, uint8_t* 
         return;
     }
     try {
-        g_impl->nativeAsyncEchoIntMap(value, _nitro_err, dart_port);
+        g_impl->nativeAsyncEchoIntMap(NitroCppBuffer{ (const uint8_t*)value + 4, (size_t)*(int32_t*)value }, _nitro_err, dart_port);
     } catch (const std::exception& e) {
         _nitro_desktop_err(_nitro_err, "CppException", e.what());
         Dart_CObject _err = { Dart_CObject_kNull };

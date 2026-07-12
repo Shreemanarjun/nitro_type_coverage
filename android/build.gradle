@@ -31,7 +31,9 @@ android {
         incremental = false
     }
 
-    defaultConfig { minSdk = 24 }
+    defaultConfig {
+            consumerProguardFiles "consumer-rules.pro"
+ minSdk = 24 }
 
     sourceSets {
         main {

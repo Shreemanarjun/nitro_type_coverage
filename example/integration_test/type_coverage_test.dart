@@ -4209,7 +4209,7 @@ void main() {
     });
 
     // Special characters: null byte in the middle would truncate a C string.
-    // toNativeUtf8() encodes Dart String (UTF-16 internally) to UTF-8;  
+    // toNativeUtf8() encodes Dart String (UTF-16 internally) to UTF-8; U+0000
     // becomes a 2-byte sequence (0xC0 0x80 in modified UTF-8) in some impls.
     // The key assertion is no crash — the exact content depends on the platform.
     testWidgets('String callback with special characters does not crash', (

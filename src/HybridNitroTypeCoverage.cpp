@@ -1,4 +1,16 @@
-// HybridNitroTypeCoverage — NativeImpl.cpp implementation (Windows/Linux).
+// HybridNitroTypeCoverage — NativeImpl.cpp implementation.
+//
+// SUPERSEDED / no longer compiled for this plugin: windows/CMakeLists.txt
+// and linux/CMakeLists.txt now each set their own NITRO_IMPL_SRC_nitro_type_coverage
+// (see src/CMakeLists.txt's `if(DEFINED NITRO_IMPL_SRC_nitro_type_coverage)`
+// guard), pointing at windows/src/HybridNitroTypeCoverage.cpp and
+// linux/src/HybridNitroTypeCoverage.cpp respectively — both are byte-identical
+// copies of this file's content, now independently editable per platform.
+// This file only remains as the `else()` fallback src/CMakeLists.txt would
+// use if a future plugin config only targets ONE of Windows/Linux as C++
+// (in which case that platform goes back to sharing this file, unchanged
+// from before this split existed) — kept in place rather than deleted so
+// its git history stays attached to one continuous file.
 //
 // Complete echo implementation mirroring android/.../NitroTypeCoverageImpl.kt
 // and ios/.../NitroTypeCoverageImpl.swift — every method returns exactly what

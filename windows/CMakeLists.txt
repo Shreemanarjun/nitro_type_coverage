@@ -10,6 +10,12 @@ cmake_minimum_required(VERSION 3.14)
 set(PROJECT_NAME "nitro_type_coverage")
 project(${PROJECT_NAME} LANGUAGES CXX)
 
+# Compile Windows's own HybridNitroTypeCoverage.cpp instead of sharing the
+# one Linux uses — src/CMakeLists.txt still provides the generated bridge
+# code (bridge.g.cpp, dart_api_dl.c) via add_subdirectory below; only the
+# hand-maintained impl file is Windows-specific.
+set(NITRO_IMPL_SRC_nitro_type_coverage "${CMAKE_CURRENT_SOURCE_DIR}/src/HybridNitroTypeCoverage.cpp")
+
 # Invoke the build for native code shared with the other target platforms.
 # This can be changed to accommodate different builds.
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../src" "${CMAKE_CURRENT_BINARY_DIR}/shared")
