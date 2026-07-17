@@ -160,34 +160,61 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     }
 
     // ── #9: Batch stream (§32) ─────────────────────────────────────────────────
+    // Each configure starts a FRESH sequence (§38 re-subscribe contract):
+    // cancel a still-running previous sender so a new subscriber never
+    // receives tail items from an earlier configure's range.
+    private var _batchIntWork: DispatchWorkItem?
     private var _batchIntSubject = PassthroughSubject<Int64, Never>()
     public var batchIntStream: AnyPublisher<Int64, Never> {
         _batchIntSubject.eraseToAnyPublisher()
     }
     public func configureBatchStream(from: Int64, count: Int64) {
-        DispatchQueue.global().async { [weak self] in
-            for i in 0..<count { self?._batchIntSubject.send(from + i) }
+        _batchIntWork?.cancel()
+        var work: DispatchWorkItem!
+        work = DispatchWorkItem { [weak self] in
+            for i in 0..<count {
+                if work.isCancelled { return }
+                self?._batchIntSubject.send(from + i)
+            }
         }
+        _batchIntWork = work
+        DispatchQueue.global().async(execute: work)
     }
 
+    private var _batchDoubleWork: DispatchWorkItem?
     private var _batchDoubleSubject = PassthroughSubject<Double, Never>()
     public var batchDoubleStream: AnyPublisher<Double, Never> {
         _batchDoubleSubject.eraseToAnyPublisher()
     }
     public func configureBatchDoubleStream(values: [Double]) {
-        DispatchQueue.global().async { [weak self] in
-            for v in values { self?._batchDoubleSubject.send(v) }
+        _batchDoubleWork?.cancel()
+        var work: DispatchWorkItem!
+        work = DispatchWorkItem { [weak self] in
+            for v in values {
+                if work.isCancelled { return }
+                self?._batchDoubleSubject.send(v)
+            }
         }
+        _batchDoubleWork = work
+        DispatchQueue.global().async(execute: work)
     }
 
+    private var _batchBoolWork: DispatchWorkItem?
     private var _batchBoolSubject = PassthroughSubject<Bool, Never>()
     public var batchBoolStream: AnyPublisher<Bool, Never> {
         _batchBoolSubject.eraseToAnyPublisher()
     }
     public func configureBatchBoolStream(values: [Bool]) {
-        DispatchQueue.global().async { [weak self] in
-            for v in values { self?._batchBoolSubject.send(v) }
+        _batchBoolWork?.cancel()
+        var work: DispatchWorkItem!
+        work = DispatchWorkItem { [weak self] in
+            for v in values {
+                if work.isCancelled { return }
+                self?._batchBoolSubject.send(v)
+            }
         }
+        _batchBoolWork = work
+        DispatchQueue.global().async(execute: work)
     }
 
     private var _batchStringSubject = PassthroughSubject<String, Never>()

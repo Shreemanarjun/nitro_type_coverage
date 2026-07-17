@@ -28,10 +28,24 @@ CXX="${CXX:-clang++}"
   -I"$PLUGIN_DIR/src/native" \
   -x c "$PLUGIN_DIR/src/dart_api_dl.c" -c -o "$OUT_DIR/dart_api_dl.o"
 
+# On macOS the bridge's __APPLE__ sections are Objective-C++ and dispatch to
+# Swift @_cdecl symbols this harness never builds. Compile a harness-local
+# copy with those sections compiled out and the desktop section forced on —
+# the exact dispatch code the Linux CI leak job exercises, which is what this
+# harness is for. Linux compiles the real generated file untouched.
+BRIDGE_SRC="$GEN/nitro_type_coverage.bridge.g.cpp"
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  BRIDGE_SRC="$OUT_DIR/bridge_desktop.g.cpp"
+  sed -e 's/^#if defined(__APPLE__)$/#if 0 \/* __APPLE__ section disabled for leak harness *\//' \
+      -e 's/^#elif __APPLE__$/#elif 0 \/* __APPLE__ dispatch disabled for leak harness *\//' \
+      -e 's/^#elif defined(_WIN32) || defined(__linux__)/#elif 1 \/* desktop dispatch forced for leak harness *\//' \
+      "$GEN/nitro_type_coverage.bridge.g.cpp" > "$BRIDGE_SRC"
+fi
+
 "$CXX" -std=c++17 -g -fsanitize=address -fno-omit-frame-pointer \
   -I"$GEN" \
   -I"$PLUGIN_DIR/src/native" \
-  "$GEN/nitro_type_coverage.bridge.g.cpp" \
+  "$BRIDGE_SRC" \
   "$PLUGIN_DIR/linux/src/HybridNitroTypeCoverage.cpp" \
   "$SCRIPT_DIR/native_leak_check/main.cpp" \
   "$OUT_DIR/dart_api_dl.o" \

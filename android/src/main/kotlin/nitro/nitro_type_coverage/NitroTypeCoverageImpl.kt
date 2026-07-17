@@ -222,26 +222,41 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     // ── #9: Batch stream (§32) ─────────────────────────────────────────────────
     // Channel.UNLIMITED buffers all emitted items unconditionally, so items
     // are never dropped even when the bridge collector hasn't subscribed yet.
+    //
+    // Each configure starts a FRESH sequence (§38 re-subscribe contract):
+    // cancel a previous sender that may still be running and drain leftovers
+    // that a mid-flush cancel left queued in the app-lifetime channel —
+    // otherwise stale items cascade into the next subscription's values
+    // (seen as §38 failures on slow emulators).
     private val _batchIntChannel = Channel<Long>(Channel.UNLIMITED)
+    private var _batchIntJob: kotlinx.coroutines.Job? = null
     override val batchIntStream: kotlinx.coroutines.flow.Flow<Long> = _batchIntChannel.receiveAsFlow()
     override fun configureBatchStream(from: Long, count: Long) {
-        CoroutineScope(Dispatchers.Default).launch {
+        _batchIntJob?.cancel()
+        while (_batchIntChannel.tryReceive().isSuccess) { }
+        _batchIntJob = CoroutineScope(Dispatchers.Default).launch {
             for (i in 0 until count) { _batchIntChannel.send(from + i) }
         }
     }
 
     private val _batchDoubleChannel = Channel<Double>(Channel.UNLIMITED)
+    private var _batchDoubleJob: kotlinx.coroutines.Job? = null
     override val batchDoubleStream: kotlinx.coroutines.flow.Flow<Double> = _batchDoubleChannel.receiveAsFlow()
     override fun configureBatchDoubleStream(values: List<Double>) {
-        CoroutineScope(Dispatchers.Default).launch {
+        _batchDoubleJob?.cancel()
+        while (_batchDoubleChannel.tryReceive().isSuccess) { }
+        _batchDoubleJob = CoroutineScope(Dispatchers.Default).launch {
             for (v in values) { _batchDoubleChannel.send(v) }
         }
     }
 
     private val _batchBoolChannel = Channel<Boolean>(Channel.UNLIMITED)
+    private var _batchBoolJob: kotlinx.coroutines.Job? = null
     override val batchBoolStream: kotlinx.coroutines.flow.Flow<Boolean> = _batchBoolChannel.receiveAsFlow()
     override fun configureBatchBoolStream(values: List<Boolean>) {
-        CoroutineScope(Dispatchers.Default).launch {
+        _batchBoolJob?.cancel()
+        while (_batchBoolChannel.tryReceive().isSuccess) { }
+        _batchBoolJob = CoroutineScope(Dispatchers.Default).launch {
             for (v in values) { _batchBoolChannel.send(v) }
         }
     }

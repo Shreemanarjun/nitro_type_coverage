@@ -494,21 +494,39 @@ public:
     void onDoubleTransform(std::function<double(int64_t)> doubleCb) override { doubleCb(7); }
 
     // ── Batch streams ────────────────────────────────────────────────────────
+    // Each configure starts a FRESH sequence (§38 re-subscribe contract): a
+    // generation counter stops a still-running previous sender thread, so a
+    // new subscriber never receives tail items from an earlier range.
+    std::atomic<uint64_t> _batchIntGen{0};
     void configureBatchStream(int64_t from, int64_t count) override {
-        nitro_run_detached([this, from, count]() {
-            for (int64_t i = 0; i < count; i++) emit_batchIntStream(from + i);
+        const uint64_t gen = ++_batchIntGen;
+        nitro_run_detached([this, from, count, gen]() {
+            for (int64_t i = 0; i < count; i++) {
+                if (_batchIntGen.load() != gen) return;
+                emit_batchIntStream(from + i);
+            }
         });
     }
+    std::atomic<uint64_t> _batchDoubleGen{0};
     void configureBatchDoubleStream(NitroCppBuffer values) override {
         auto items = nitro_decode_list_param<double>(values, true, [](NitroRecordReader& r) -> double { return r.readDouble(); });
-        nitro_run_detached([this, items]() {
-            for (double v : items) emit_batchDoubleStream(v);
+        const uint64_t gen = ++_batchDoubleGen;
+        nitro_run_detached([this, items, gen]() {
+            for (double v : items) {
+                if (_batchDoubleGen.load() != gen) return;
+                emit_batchDoubleStream(v);
+            }
         });
     }
+    std::atomic<uint64_t> _batchBoolGen{0};
     void configureBatchBoolStream(NitroCppBuffer values) override {
         auto items = nitro_decode_list_param<bool>(values, true, [](NitroRecordReader& r) -> bool { return r.readBool(); });
-        nitro_run_detached([this, items]() {
-            for (bool v : items) emit_batchBoolStream(v);
+        const uint64_t gen = ++_batchBoolGen;
+        nitro_run_detached([this, items, gen]() {
+            for (bool v : items) {
+                if (_batchBoolGen.load() != gen) return;
+                emit_batchBoolStream(v);
+            }
         });
     }
 
