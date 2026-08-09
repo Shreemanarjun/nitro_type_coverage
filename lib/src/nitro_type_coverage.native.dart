@@ -244,6 +244,10 @@ abstract class NitroTypeCoverage extends HybridObject {
   @nitroAsync
   Future<List<TcPoint>> echoPointList(List<TcPoint> values);
 
+  // §39: sync submit against a shared port; native buffers (callId, value) and
+  // posts each drained burst as one kArray for NitroCoalescer to demux.
+  void submitCoalesced(int callId, int value, int dartPort);
+
   // ── §35: @NitroNativeAsync with typed returns ─────────────────────────────
   @nitroNativeAsync
   Future<int> nativeAsyncInt(int value);

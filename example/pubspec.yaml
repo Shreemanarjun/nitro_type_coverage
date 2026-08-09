@@ -30,6 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  leak_tracker: ^11.0.0
 
   nitro_type_coverage:
     # When depending on this package from a real application you should use:

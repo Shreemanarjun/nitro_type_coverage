@@ -1,5 +1,8 @@
 import Foundation
 import Combine
+#if canImport(NitroTypeCoverageCpp)
+import NitroTypeCoverageCpp // Dart_CObject / Dart_PostCObject_DL (SPM C++ module)
+#endif
 
 /// Complete echo implementation of HybridNitroTypeCoverageProtocol.
 /// Every method returns exactly what it receives.
@@ -546,4 +549,51 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     public func nativeAsyncEchoIntMap(value: Any) async throws -> Any { value }
     public func nativeAsyncEchoPoint(value: TcPoint) async throws -> TcPoint { value }
     public func nativeAsyncEchoAnyMap(value: Any) async throws -> Any { value }
+
+    // §39: buffer (callId, value) on a serial queue; flush as one kArray after a
+    // short window so a burst shares one wake.
+    private let _coalQueue = DispatchQueue(label: "nitro.tc.coalesce")
+    private var _coalBuf: [(Int64, Int64)] = []
+    private var _coalPort: Int64 = 0
+    private var _coalScheduled = false
+
+    public func submitCoalesced(callId: Int64, value: Int64, dartPort: Int64) {
+        _coalQueue.async {
+            self._coalPort = dartPort
+            self._coalBuf.append((callId, value))
+            if !self._coalScheduled {
+                self._coalScheduled = true
+                self._coalQueue.asyncAfter(deadline: .now() + .microseconds(200)) {
+                    self._flushCoalesce()
+                }
+            }
+        }
+    }
+
+    private func _flushCoalesce() {
+        _coalScheduled = false
+        guard !_coalBuf.isEmpty, _coalPort != 0 else { return }
+        let batch = _coalBuf
+        _coalBuf.removeAll(keepingCapacity: true)
+        let port = _coalPort
+        let n = batch.count * 2
+        var elems = [Dart_CObject](repeating: Dart_CObject(), count: n)
+        for i in 0..<batch.count {
+            elems[2 * i].type = Dart_CObject_kInt64
+            elems[2 * i].value.as_int64 = batch[i].0
+            elems[2 * i + 1].type = Dart_CObject_kInt64
+            elems[2 * i + 1].value.as_int64 = batch[i].1
+        }
+        elems.withUnsafeMutableBufferPointer { ebuf in
+            var ptrs: [UnsafeMutablePointer<Dart_CObject>?] =
+                (0..<n).map { ebuf.baseAddress! + $0 }
+            ptrs.withUnsafeMutableBufferPointer { pbuf in
+                var arr = Dart_CObject()
+                arr.type = Dart_CObject_kArray
+                arr.value.as_array.length = Int(n)
+                arr.value.as_array.values = pbuf.baseAddress
+                _ = Dart_PostCObject_DL(port, &arr)
+            }
+        }
+    }
 }

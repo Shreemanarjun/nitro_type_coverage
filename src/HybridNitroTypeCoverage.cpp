@@ -55,12 +55,15 @@
 #include "dart_api_dl.h"
 
 #include <atomic>
+#include <chrono>
+#include <condition_variable>
 #include <cstdlib>
 #include <cstring>
 #include <functional>
 #include <mutex>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 // ── Generic list codecs ─────────────────────────────────────────────────────
@@ -255,8 +258,30 @@ static void nitro_run_detached(std::function<void()> fn) {
 
 class HybridNitroTypeCoverageImpl final : public HybridNitroTypeCoverage {
 public:
-    HybridNitroTypeCoverageImpl() = default;
-    ~HybridNitroTypeCoverageImpl() override = default;
+    HybridNitroTypeCoverageImpl() {
+        // Coalescer flush thread (issue #39): posts each burst as one kArray.
+        _coalThread = std::thread([this]() { _coalesceLoop(); });
+    }
+    ~HybridNitroTypeCoverageImpl() override {
+        {
+            std::lock_guard<std::mutex> lk(_coalMtx);
+            _coalRunning = false;
+        }
+        _coalCv.notify_one();
+        if (_coalThread.joinable()) _coalThread.join();
+    }
+
+    // ── Coalesced completion (issue #39) ─────────────────────────────────────
+    // Buffer (callId, value); the flush thread posts each drained burst as one
+    // kArray to the shared port. Validates NitroCoalescer end-to-end on device.
+    void submitCoalesced(int64_t callId, int64_t value, int64_t dartPort) override {
+        _coalPort.store(dartPort, std::memory_order_relaxed);
+        {
+            std::lock_guard<std::mutex> lk(_coalMtx);
+            _coalBuf.emplace_back(callId, value);
+        }
+        _coalCv.notify_one();
+    }
 
     // ── Primitives ───────────────────────────────────────────────────────────
     int64_t echoInt(int64_t value) override { return value; }
@@ -1004,6 +1029,51 @@ private:
     TcEvent _currentEvent = TcEventTap{0, 0};
 
     NitroCppBuffer _currentEventBuffer() { return nitro_TcEvent_to_native(_currentEvent); }
+
+    // ── Coalescer (issue #39) ────────────────────────────────────────────────
+    std::mutex _coalMtx;
+    std::condition_variable _coalCv;
+    std::vector<std::pair<int64_t, int64_t>> _coalBuf;
+    std::atomic<int64_t> _coalPort{0};
+    bool _coalRunning = true;
+    std::thread _coalThread;
+    static constexpr int _coalWindowUs = 200; // batch submits arriving within this window
+
+    // Flush loop: wait for the first submit, let a burst accumulate for one
+    // window, then post the whole batch as a single kArray of int64 pairs.
+    void _coalesceLoop() {
+        while (true) {
+            std::vector<std::pair<int64_t, int64_t>> batch;
+            {
+                std::unique_lock<std::mutex> lk(_coalMtx);
+                _coalCv.wait(lk, [this]() { return !_coalBuf.empty() || !_coalRunning; });
+                if (!_coalRunning && _coalBuf.empty()) return;
+                // Let the burst accumulate for one window (lock released during
+                // the wait so producers can keep adding); a shutdown notify breaks
+                // it early. RAII throughout — no manual unlock/lock (CP.20).
+                _coalCv.wait_for(lk, std::chrono::microseconds(_coalWindowUs),
+                                 [this]() { return !_coalRunning; });
+                batch.swap(_coalBuf);
+            }
+            const int64_t port = _coalPort.load(std::memory_order_relaxed);
+            if (port == 0 || batch.empty()) continue;
+            const size_t n = batch.size() * 2;
+            std::vector<Dart_CObject> elems(n);
+            std::vector<Dart_CObject*> ptrs(n);
+            for (size_t i = 0; i < batch.size(); ++i) {
+                elems[2 * i].type = Dart_CObject_kInt64;
+                elems[2 * i].value.as_int64 = batch[i].first;   // callId
+                elems[2 * i + 1].type = Dart_CObject_kInt64;
+                elems[2 * i + 1].value.as_int64 = batch[i].second; // value
+            }
+            for (size_t i = 0; i < n; ++i) ptrs[i] = &elems[i];
+            Dart_CObject arr;
+            arr.type = Dart_CObject_kArray;
+            arr.value.as_array.length = static_cast<intptr_t>(n);
+            arr.value.as_array.values = ptrs.data();
+            Dart_PostCObject_DL(port, &arr);
+        }
+    }
 };
 
 static HybridNitroTypeCoverageImpl g_impl;

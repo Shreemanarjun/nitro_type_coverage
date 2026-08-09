@@ -558,6 +558,26 @@ public:
         nitro_run_detached([value, dartPort]() { nitro_post_string(dartPort, value); });
     }
 
+    // §39 coalesced completion. Desktop posts the (callId, value) pair straight
+    // away as a one-entry batch: NitroCoalescer demuxes the array pairwise by
+    // callId, so a batch of one is wire-correct. The Apple (GCD) and Android
+    // (dedicated worker) impls buffer a short window to amortise the isolate
+    // wake across a burst — that is where bursts actually occur.
+    void submitCoalesced(int64_t callId, int64_t value, int64_t dartPort) override {
+        Dart_CObject cid;
+        cid.type = Dart_CObject_kInt64;
+        cid.value.as_int64 = callId;
+        Dart_CObject val;
+        val.type = Dart_CObject_kInt64;
+        val.value.as_int64 = value;
+        Dart_CObject* items[2] = { &cid, &val };
+        Dart_CObject arr;
+        arr.type = Dart_CObject_kArray;
+        arr.value.as_array.length = 2;
+        arr.value.as_array.values = items;
+        Dart_PostCObject_DL(dartPort, &arr);
+    }
+
     // ── Stream<String> ───────────────────────────────────────────────────────
     void configureStringStream(NitroCppBuffer values) override {
         auto items = nitro_decode_list_param<std::string>(values, true, [](NitroRecordReader& r) -> std::string { return r.readString(); });

@@ -107,7 +107,7 @@ packages:
     source: sdk
     version: "0.0.0"
   leak_tracker:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: leak_tracker
       sha256: "33e2e26bdd85a0112ec15400c8cbffea70d0f9c3407491f672a2fad47915e2de"
@@ -168,14 +168,14 @@ packages:
       path: "../../../flutter_package/nitro_ecosystem/packages/nitro"
       relative: true
     source: path
-    version: "0.5.15"
+    version: "0.5.18"
   nitro_annotations:
     dependency: "direct overridden"
     description:
       path: "../../../flutter_package/nitro_ecosystem/packages/nitro_annotations"
       relative: true
     source: path
-    version: "0.5.15"
+    version: "0.5.18"
   nitro_type_coverage:
     dependency: "direct main"
     description:

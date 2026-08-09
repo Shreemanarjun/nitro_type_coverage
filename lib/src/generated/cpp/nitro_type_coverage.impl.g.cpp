@@ -440,6 +440,11 @@ public:
         // return { nullptr, 0 };
     }
 
+    void submitCoalesced(int64_t callId, int64_t value, int64_t dartPort) override {
+        // TODO: implement submitCoalesced
+        throw std::runtime_error("Not implemented: submitCoalesced");
+    }
+
     void nativeAsyncInt(int64_t value, NitroError* _nitro_err, int64_t dartPort) override {
         // TODO: on error, populate _nitro_err (hasError/name/message via strdup) before posting.
         // TODO: post result via Dart_PostCObject_DL(dartPort, ...)

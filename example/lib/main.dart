@@ -4,6 +4,7 @@ import 'package:nitro/nitro.dart';
 import 'package:nitro_type_coverage/nitro_type_coverage.dart' as plugin;
 import 'package:signals_flutter/signals_flutter.dart';
 
+import 'jni_bench.dart';
 import 'models.dart';
 import 'sections/primitives_sync.dart';
 import 'sections/multi_param_sync.dart';
@@ -18,6 +19,8 @@ import 'sections/callbacks.dart';
 import 'sections/properties.dart';
 import 'sections/special_features.dart';
 import 'sections/error_handling.dart';
+import 'leak_lab.dart';
+import 'coalesce_soak.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,7 +56,13 @@ class MyApp extends StatelessWidget {
           brightness: Brightness.dark,
         ),
       ),
-      home: const DemoDashboard(),
+      home: const bool.fromEnvironment('JNI_BENCH')
+          ? const JniBenchScreen()
+          : const bool.fromEnvironment('COALESCE_PROFILE')
+          ? const CoalesceSoakScreen()
+          : const bool.fromEnvironment('LEAKLAB_AUTORUN')
+              ? const LeakLabScreen(autoRun: true)
+              : const DemoDashboard(),
     );
   }
 }
@@ -261,6 +270,13 @@ class _DemoDashboardState extends State<DemoDashboard> {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
+          IconButton(
+            tooltip: 'Leak Lab',
+            icon: const Icon(Icons.memory_outlined),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const LeakLabScreen()),
+            ),
+          ),
           SignalBuilder(
             builder: (context) {
               final activeCount = _activeStreamsCount.value;

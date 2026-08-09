@@ -590,6 +590,78 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     override suspend fun nativeAsyncEchoPoint(value: TcPoint): TcPoint = value
     override suspend fun nativeAsyncEchoAnyMap(value: Map<String, Any?>): Map<String, Any?> = value
 
+    // Kotlin can't post to Dart directly: a dedicated worker buffers
+    // (callId, value) pairs and flushes each ~200µs window as one kArray via the
+    // nativeCoalescePost JNI helper. A coroutine + delay(1) per burst cost three
+    // thread-wakes and an allocation per burst; one worker with a condition
+    // variable collapses that to a single wake.
+    private val _coalLock = java.util.concurrent.locks.ReentrantLock()
+    private val _coalCond = _coalLock.newCondition()
+    private val _coalBuf = ArrayList<Long>() // flat [callId, value, ...]
+    private var _coalPort = 0L
+    @Volatile private var _coalRunning = true
+    private val _coalWindowNanos = 200_000L // 200µs accumulation window
+    private var _coalThread: Thread? = null
+
+    override fun submitCoalesced(callId: Long, value: Long, dartPort: Long) {
+        _coalLock.lock()
+        try {
+            _coalPort = dartPort
+            _coalBuf.add(callId)
+            _coalBuf.add(value)
+            if (_coalThread == null) {
+                // Lazy start: no idle thread for instances that never coalesce.
+                _coalThread = Thread(::coalesceLoop, "nitro-coalesce").apply {
+                    isDaemon = true
+                    start()
+                }
+            }
+            _coalCond.signal()
+        } finally {
+            _coalLock.unlock()
+        }
+    }
+
+    private fun coalesceLoop() {
+        while (true) {
+            val batch: LongArray
+            val port: Long
+            _coalLock.lock()
+            try {
+                while (_coalBuf.isEmpty() && _coalRunning) _coalCond.await()
+                if (!_coalRunning && _coalBuf.isEmpty()) return
+                // Accumulate a window so a burst coalesces into one post.
+                // Producer signals return early with budget left, so loop on the
+                // remaining time; only shutdown breaks out.
+                var remaining = _coalWindowNanos
+                while (remaining > 0L && _coalRunning) remaining = _coalCond.awaitNanos(remaining)
+                if (_coalBuf.isEmpty() || _coalPort == 0L) continue
+                batch = _coalBuf.toLongArray()
+                _coalBuf.clear()
+                port = _coalPort
+            } finally {
+                _coalLock.unlock()
+            }
+            nativeCoalescePost(port, batch)
+        }
+    }
+
+    /// Stop the coalescer worker (call on plugin teardown). Idempotent.
+    fun disposeCoalescer() {
+        val t: Thread?
+        _coalLock.lock()
+        try {
+            _coalRunning = false
+            _coalCond.signal()
+            t = _coalThread
+        } finally {
+            _coalLock.unlock()
+        }
+        t?.join(1000)
+    }
+
+    private external fun nativeCoalescePost(port: Long, pairs: LongArray)
+
     companion object {
         // ART's Unsafe.allocateMemory/freeMemory wrap malloc/free, so pointers
         // returned here are freed by the C bridge's _release function via free().
