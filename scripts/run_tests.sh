@@ -62,7 +62,7 @@ regen() {
          "$EXAMPLE_DIR/windows/flutter/ephemeral" "$EXAMPLE_DIR/linux/flutter/ephemeral"
 
   log_info "Running build_runner in plugin root..."
-  (cd "$PLUGIN_DIR" && dart run build_runner build --delete-conflicting-outputs)
+  (cd "$PLUGIN_DIR" && flutter pub run build_runner build --delete-conflicting-outputs)
   log_ok "Code generation complete"
 
   if is_darwin; then
