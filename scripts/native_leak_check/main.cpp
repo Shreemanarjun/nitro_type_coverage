@@ -78,11 +78,14 @@ int main() {
     const std::string bigName(2048, 'x');  // kB-sized so per-iteration leaks are loud
 
     for (int i = 0; i < kIterations; i++) {
-        // ── String return: native strdup → "Dart" frees via nitro_free ──────
+        // ── String return: BORROWED since 0.6.0. Native lends a reusable
+        // per-thread buffer, so the caller must decode immediately and must NOT
+        // free it — freeing would be an alloc-dealloc mismatch (the buffer is
+        // std::string storage from operator new, not malloc). @nitroAsync
+        // string returns are still owned and freed. ──────────────────────────
         {
             const char* r = nitro_type_coverage_echo_string(id, "hello-leak-check", &err);
             assert(r && strcmp(r, "hello-leak-check") == 0);
-            nitro_type_coverage_nitro_free((void*)r);
         }
 
         // ── Record round-trip: param is caller-owned, return is Dart-owned ──
