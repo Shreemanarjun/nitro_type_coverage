@@ -6817,8 +6817,14 @@ void main() {
       int iterations,
       FutureOr<void> Function(int i) body,
     ) async {
-      // Warm-up primes caches/pools so steady-state growth is what's measured.
-      for (var i = 0; i < 200; i++) {
+      // Warm up with a FULL pass, not a token 200 iterations: the heap (and on
+      // Android the JVM's direct-buffer space) expands to the working set this
+      // workload needs, and that one-time expansion is not a leak. Measuring
+      // the first pass books it as one — 4 KB × 20k zero-copy returns read as
+      // ~51 MB "growth" on Android, while the second pass is ~14 MB and the
+      // growth *falls* as iterations rise, which no per-iteration leak does.
+      // A real leak is unbounded, so it still shows up in the second window.
+      for (var i = 0; i < iterations; i++) {
         await body(i);
       }
       final before = await settledRss();
@@ -6831,8 +6837,10 @@ void main() {
         grown,
         lessThan(rssBudgetBytes),
         reason:
-            '$label: RSS grew by ${(grown / (1 << 20)).toStringAsFixed(1)} MB '
-            'over $iterations iterations — a per-iteration native leak.',
+            '$label: steady-state RSS grew by '
+            '${(grown / (1 << 20)).toStringAsFixed(1)} MB over $iterations '
+            'iterations (measured after an equal warm-up pass, so heap '
+            'expansion is excluded) — this indicates a per-iteration leak.',
       );
     }
 

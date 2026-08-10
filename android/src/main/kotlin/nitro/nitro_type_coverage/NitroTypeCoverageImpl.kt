@@ -89,35 +89,38 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
         return buf
     }
 
+    // Pooled: the buffer returns to the pool from the native release path once
+    // Dart is done with it, so a hot loop stops churning fresh direct blocks
+    // (which fragmented ART's malloc_space — #48).
     override fun echoBytes(value: ByteArray): java.nio.ByteBuffer {
-        val buf = java.nio.ByteBuffer.allocateDirect(value.size)
+        val buf = nitro.nitro_type_coverage_module.NitroTypeCoverageJniBridge.acquireZeroCopyBuffer(value.size)
         buf.put(value); buf.flip(); return buf
     }
 
     override fun echoFloats(value: FloatArray): java.nio.ByteBuffer {
-        val buf = java.nio.ByteBuffer.allocateDirect(value.size * 4).order(java.nio.ByteOrder.nativeOrder())
+        val buf = nitro.nitro_type_coverage_module.NitroTypeCoverageJniBridge.acquireZeroCopyBuffer(value.size * 4).order(java.nio.ByteOrder.nativeOrder())
         buf.asFloatBuffer().put(value); buf.rewind(); return buf
     }
 
     override fun echoFloat64s(value: DoubleArray): java.nio.ByteBuffer {
-        val buf = java.nio.ByteBuffer.allocateDirect(value.size * 8).order(java.nio.ByteOrder.nativeOrder())
+        val buf = nitro.nitro_type_coverage_module.NitroTypeCoverageJniBridge.acquireZeroCopyBuffer(value.size * 8).order(java.nio.ByteOrder.nativeOrder())
         buf.asDoubleBuffer().put(value); buf.rewind(); return buf
     }
 
     override fun echoInt8s(value: ByteArray): java.nio.ByteBuffer {
-        val buf = java.nio.ByteBuffer.allocateDirect(value.size)
+        val buf = nitro.nitro_type_coverage_module.NitroTypeCoverageJniBridge.acquireZeroCopyBuffer(value.size)
         buf.put(value); buf.flip(); return buf
     }
     override fun echoInt16s(value: ShortArray): java.nio.ByteBuffer {
-        val buf = java.nio.ByteBuffer.allocateDirect(value.size * 2).order(java.nio.ByteOrder.nativeOrder())
+        val buf = nitro.nitro_type_coverage_module.NitroTypeCoverageJniBridge.acquireZeroCopyBuffer(value.size * 2).order(java.nio.ByteOrder.nativeOrder())
         buf.asShortBuffer().put(value); buf.rewind(); return buf
     }
     override fun echoInt64s(value: LongArray): java.nio.ByteBuffer {
-        val buf = java.nio.ByteBuffer.allocateDirect(value.size * 8).order(java.nio.ByteOrder.nativeOrder())
+        val buf = nitro.nitro_type_coverage_module.NitroTypeCoverageJniBridge.acquireZeroCopyBuffer(value.size * 8).order(java.nio.ByteOrder.nativeOrder())
         buf.asLongBuffer().put(value); buf.rewind(); return buf
     }
     override fun echoInt32s(value: IntArray): java.nio.ByteBuffer {
-        val buf = java.nio.ByteBuffer.allocateDirect(value.size * 4).order(java.nio.ByteOrder.nativeOrder())
+        val buf = nitro.nitro_type_coverage_module.NitroTypeCoverageJniBridge.acquireZeroCopyBuffer(value.size * 4).order(java.nio.ByteOrder.nativeOrder())
         buf.asIntBuffer().put(value); buf.rewind(); return buf
     }
 
