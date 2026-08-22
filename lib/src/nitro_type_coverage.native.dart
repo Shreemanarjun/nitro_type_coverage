@@ -1,6 +1,10 @@
 
 import 'package:nitro/nitro.dart';
 
+// Web-targeting specs get their instance factory from the platform shim, which
+// resolves to the dart:ffi impl natively and to the WASM bridge on web.
+import 'nitro_type_coverage.platform.g.dart';
+
 part 'nitro_type_coverage.g.dart';
 
 // ── L13: uint64 scalar type ────────────────────────────────────────────────────
@@ -39,6 +43,10 @@ typedef float = double;
   // falling back to sharing src/HybridNitroTypeCoverage.cpp.
   windows: WindowsNativeImpl.cpp,
   linux: LinuxNativeImpl.cpp,
+  // Web compiles the SAME src/HybridNitroTypeCoverage.cpp the desktop targets
+  // use, through em++ instead of MSVC/GCC — so one implementation is exercised
+  // against the whole type surface on every platform, browser included.
+  web: WebNativeImpl.wasm,
 )
 abstract class NitroTypeCoverage extends HybridObject {
   // Default singleton — same as getInstance('default').
@@ -48,7 +56,7 @@ abstract class NitroTypeCoverage extends HybridObject {
   // Each unique key maps to a dedicated native impl (string-keyed registry,
   // int64 instanceId used internally for zero-overhead C bridge calls).
   static NitroTypeCoverage getInstance([String key = 'default']) =>
-      _NitroTypeCoverageImpl(key);
+      createNitroTypeCoverageInstance(key);
 
   // ── Primitives (sync) ──────────────────────────────────────────────────────
   int echoInt(int value);

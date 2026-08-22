@@ -97,3 +97,52 @@ jobs:
       - name: Run §M memory-leak soak tests
         working-directory: ${{ env.PLUGIN_DIR }}/example
         run: xvfb-run -a flutter test integration_test/type_coverage_test.dart -d linux --plain-name '§M' --timeout 300s
+
+  web-soak:
+    name: Web resource soak (function table + module refcount)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: nitro_plugins/nitro_type_coverage
+
+      - uses: actions/checkout@v4
+        with:
+          repository: Shreemanarjun/nitro_ecosystem
+          path: flutter_package/nitro_ecosystem
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: latest
+          actions-cache-folder: emsdk-cache
+
+      - uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: Regenerate bindings
+        working-directory: ${{ env.PLUGIN_DIR }}
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build the WASM module
+        working-directory: ${{ env.PLUGIN_DIR }}
+        run: bash web/build_web.sh
+
+      # A browser exposes no per-tab RSS, so §M cannot run here. What CAN leak
+      # on web is the Emscripten function table (one slot per registered
+      # callback) and the module refcount (dispose without a matching retain
+      # evicts the module). Both are exercised by the soak group, under both
+      # compilers since they differ at the js_interop boundary.
+      - name: Web soak (dart2js)
+        working-directory: ${{ env.PLUGIN_DIR }}
+        run: flutter pub run test test/nitro_type_coverage_web_test.dart -p chrome --plain-name 'soak'
+
+      - name: Web soak (dart2wasm)
+        working-directory: ${{ env.PLUGIN_DIR }}
+        run: flutter pub run test test/nitro_type_coverage_web_test.dart -p chrome -c dart2wasm --plain-name 'soak'

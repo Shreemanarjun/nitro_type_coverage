@@ -8,7 +8,8 @@
 //   flutter test integration_test/type_coverage_test.dart -d <device-id>
 
 import 'dart:async';
-import 'dart:io' show ProcessInfo;
+import 'support/process_rss.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -17,7 +18,17 @@ import 'package:nitro_type_coverage/nitro_type_coverage.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-  final tc = NitroTypeCoverage.instance;
+
+  // Bound in setUpAll, not here: on web the WASM module loads asynchronously,
+  // so reading `.instance` during registration throws — and then NOTHING
+  // registers, which the driver happily reports as a passing run of zero
+  // tests. `tc` is only dereferenced inside test bodies, so late-binding it
+  // costs nothing on native, where ensure...Ready() is a no-op.
+  late final NitroTypeCoverage tc;
+  setUpAll(() async {
+    await ensureNitroTypeCoverageReady();
+    tc = NitroTypeCoverage.instance;
+  });
 
   // ══════════════════════════════════════════════════════════════════════════
   // §1 PRIMITIVES — sync echo
@@ -3430,7 +3441,7 @@ void main() {
 
     testWidgets('acquireBuffer: handle address is non-zero', (t) async {
       final handle = tc.acquireBuffer(128);
-      expect(handle.pointer.address, isNonZero);
+      expect(handle.address, isNonZero);
     });
 
     testWidgets('acquireBuffer: zero size does not crash', (t) async {
@@ -3597,7 +3608,7 @@ void main() {
 
     testWidgets('handle address is non-zero', (t) async {
       final handle = await tc.asyncAcquireBuffer(128);
-      expect(handle.pointer.address, isNonZero);
+      expect(handle.address, isNonZero);
     });
 
     testWidgets('zero size does not crash', (t) async {
@@ -3614,7 +3625,7 @@ void main() {
       // All handles must be non-null.
       for (final h in handles) {
         expect(h, isNotNull);
-        expect(h.pointer.address, isNonZero);
+        expect(h.address, isNonZero);
       }
     });
   });
@@ -4917,7 +4928,12 @@ void main() {
       );
       expect(results, everyElement(isTrue), reason: 'every call must time out without deadlocking');
     });
-  });
+  }, skip: kIsWeb
+      ? 'deadline enforcement needs a thread the timer can run on: on web the '
+        'impl runs inline on the browser'"'"'s single thread, so a call that '
+        'exceeds its deadline blocks the event loop and the Dart timer that '
+        'would fire the timeout cannot run until the call has already returned'
+      : false);
 
   // ── §48: Stream cancel mid-burst ─────────────────────────────────────────
   group('§48 Stream cancel mid-burst', () {
@@ -6809,7 +6825,7 @@ void main() {
       for (var i = 0; i < 6; i++) {
         await Future.delayed(const Duration(milliseconds: 40));
       }
-      return ProcessInfo.currentRss;
+      return currentRssBytes();
     }
 
     Future<void> expectBoundedGrowth(
@@ -6921,5 +6937,5 @@ void main() {
         expect(r.length, 4096);
       });
     });
-  });
+  }, skip: rssAvailable ? false : 'RSS is not observable in a browser');
 }

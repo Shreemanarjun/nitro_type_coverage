@@ -15,6 +15,8 @@ dependencies:
   nitro: ^0.5.5
 
 dev_dependencies:
+  test: ^1.25.8
+  stream_channel: ^2.1.2
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
@@ -26,6 +28,8 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  assets:
+    - assets/web/
   # This section identifies this Flutter project as a plugin project.
   # The 'pluginClass' specifies the class (in Java, Kotlin, Swift, Objective-C, etc.)
   # which should be registered in the plugin registry. This is required for
@@ -94,3 +98,9 @@ dependency_overrides:
     path: ../../flutter_package/nitro_ecosystem/packages/nitro_generator
   nitro_annotations:
     path: ../../flutter_package/nitro_ecosystem/packages/nitro_annotations
+  # build_runner's auto-patching `nitrogen link` runs through nitrogen_cli.
+  # Without this override it resolved the PUBLISHED CLI, which re-copied
+  # nitro_wasm_compat.h into the Apple SPM include dir after a local run had
+  # removed it — and that header's #error guard fails the macOS/iOS build.
+  nitrogen_cli:
+    path: ../../flutter_package/nitro_ecosystem/packages/nitrogen_cli

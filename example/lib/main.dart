@@ -22,7 +22,7 @@ import 'sections/error_handling.dart';
 import 'leak_lab.dart';
 import 'coalesce_soak.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   NitroConfig.instance
     ..debugMode = true
@@ -30,6 +30,11 @@ void main() {
     ..isolatePoolSize = 4
     ..logLevel = NitroLogLevel.verbose
     ..slowCallThresholdUs = 16000;
+  // On web the WASM module is fetched from the plugin's asset bundle, so the
+  // bridge does not exist until this resolves — every call before it would
+  // throw. A no-op on native, which is why it sits here unconditionally rather
+  // than behind a kIsWeb branch.
+  await plugin.ensureNitroTypeCoverageReady();
   runApp(const MyApp());
 }
 

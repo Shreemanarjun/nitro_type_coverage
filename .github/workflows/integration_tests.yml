@@ -211,3 +211,45 @@ jobs:
           working-directory: nitro_plugins/nitro_type_coverage
           script: ./scripts/run_tests.sh android
 
+
+  web:
+    name: Web (Chrome · WASM via em++)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: nitro_plugins/nitro_type_coverage
+
+      - uses: actions/checkout@v4
+        with:
+          repository: Shreemanarjun/nitro_ecosystem
+          path: flutter_package/nitro_ecosystem
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      # Compiles the SAME src/HybridNitroTypeCoverage.cpp the desktop targets
+      # build, so a failure here is the web bridge rather than the impl.
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: latest
+          actions-cache-folder: emsdk-cache
+
+      # Do NOT install a second Chrome. chromedriver launches the browser from
+      # a fixed system path (/opt/google/chrome/chrome) — it ignores PATH and
+      # CHROME_EXECUTABLE — so a second install only yields "only supports
+      # Chrome version N". This action matches the driver to the Chrome
+      # already on the runner. run_tests.sh starts it on 4444 itself.
+      - uses: nanasess/setup-chromedriver@v2
+
+      - name: Enable web
+        run: flutter config --enable-web
+
+      # Builds the module, runs the browser suite under BOTH compilers, then
+      # drives the full 679-test integration suite in Chrome under dart2wasm.
+      - name: Run integration tests (web)
+        working-directory: ${{ env.PLUGIN_DIR }}
+        run: ./scripts/run_tests.sh web

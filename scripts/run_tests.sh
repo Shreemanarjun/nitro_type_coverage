@@ -8,6 +8,7 @@
 #   ./scripts/run_tests.sh android      # first connected Android device
 #   ./scripts/run_tests.sh linux        # Linux desktop (if running on Linux)
 #   ./scripts/run_tests.sh windows      # Windows desktop (if running on Windows)
+#   ./scripts/run_tests.sh web          # Chrome (dart2wasm) — needs emsdk on PATH
 #   ./scripts/run_tests.sh all          # every available platform + all connected devices
 #
 # Platform availability rules:
@@ -16,6 +17,7 @@
 #   Android — available when at least one Android device/emulator is connected
 #   Linux   — available when running on Linux
 #   Windows — available when running on Windows
+#   Web     — available when em++ (emsdk) is on PATH; runs under dart2wasm
 
 set -euo pipefail
 
@@ -101,13 +103,30 @@ _devices_for() {
 android_devices() { _devices_for 'android'; }
 ios_devices()     { _devices_for 'ios'; }
 
+# A private log file for one run.
+#
+# NOT a bare `mktemp .../nitro_test_XXXXXX.log`: six X's is a small namespace,
+# and once a long session has littered $TMPDIR with these, macOS mktemp gives
+# up with "File exists". The variable then held an EMPTY path, `tee ""` failed,
+# and pipefail reported a PASSING step as FAILED. Widen the template and fail
+# loudly rather than silently mis-reporting.
+new_log_file() {
+  local f
+  f="$(mktemp "${TMPDIR:-/tmp}/nitro_test_XXXXXXXXXXXX.log" 2>/dev/null)" || f=""
+  if [[ -z "$f" ]]; then
+    f="${TMPDIR:-/tmp}/nitro_test_$$_${RANDOM}_${RANDOM}.log"
+    : > "$f" || { log_err "cannot create a log file in ${TMPDIR:-/tmp}"; return 1; }
+  fi
+  printf '%s' "$f"
+}
+
 # ── Run tests on a single device/platform ─────────────────────────────────────
 # Usage: run_on_device <label> [device_id_or_platform_flag]
 run_on_device() {
   local label="$1"
   local target="${2:-$label}"
   local log_file
-  log_file="$(mktemp "${TMPDIR:-/tmp}/nitro_test_XXXXXX.log")"
+  log_file="$(new_log_file)"
 
   log_info "Running integration tests on: $label"
 
@@ -210,6 +229,125 @@ run_windows() {
   run_on_device "Windows" "windows" || FAILURES=$((FAILURES + 1))
 }
 
+# Runs an arbitrary command with the same pass/fail digest as run_on_device.
+run_logged() {
+  local label="$1"; shift
+  local log_file
+  log_file="$(new_log_file)"
+  log_info "Running: $label"
+  if ("$@" 2>&1) | tee "$log_file"; then
+    log_ok "PASSED — $label"
+    rm -f "$log_file"
+    return 0
+  fi
+  log_err "FAILED — $label"
+  echo ""
+  echo "════════════════════════════════════════════════════════════════"
+  echo "  FAILURE DIGEST — $label"
+  echo "════════════════════════════════════════════════════════════════"
+  grep -E '^\s*(✗|EXCEPTION|The following|#[0-9]+|TimeoutException|Error:|error:|Expected:|Actual:|Test failed\.)' "$log_file" | head -60 || true
+  echo ""
+  echo "--- last 20 lines of output ---"
+  tail -20 "$log_file"
+  echo "════════════════════════════════════════════════════════════════"
+  echo ""
+  rm -f "$log_file"
+  return 1
+}
+
+# `flutter drive` on web talks WebDriver, so a driver must be listening on
+# 4444 — without one it fails with "Unable to start a WebDriver session".
+# Started here rather than in each CI job so local and CI runs are identical.
+CHROMEDRIVER_PID=""
+_stop_chromedriver() {
+  if [[ -n "$CHROMEDRIVER_PID" ]]; then
+    kill "$CHROMEDRIVER_PID" 2>/dev/null || true
+    CHROMEDRIVER_PID=""
+  fi
+}
+trap _stop_chromedriver EXIT
+
+_ensure_chromedriver() {
+  # Already listening (a dev's own session, or a CI step that started it) —
+  # leave it alone; it is not ours to kill.
+  if curl -s --max-time 2 http://localhost:4444/status >/dev/null 2>&1; then
+    log_info "chromedriver already listening on 4444"
+    return 0
+  fi
+  if ! command -v chromedriver >/dev/null 2>&1; then
+    log_warn "chromedriver not on PATH — cannot drive the web integration suite."
+    return 1
+  fi
+  chromedriver --port=4444 >/dev/null 2>&1 &
+  CHROMEDRIVER_PID=$!
+  for _ in $(seq 1 20); do
+    if curl -s --max-time 2 http://localhost:4444/status >/dev/null 2>&1; then
+      log_ok "chromedriver ready on 4444 (pid $CHROMEDRIVER_PID)"
+      return 0
+    fi
+    sleep 1
+  done
+  log_err "chromedriver did not become ready on 4444"
+  _stop_chromedriver
+  return 1
+}
+
+_web_drive() {
+  cd "$EXAMPLE_DIR" || return 1
+  # `-d chrome`, NOT `-d web-server`: the latter never launches a browser and
+  # the run reports success having executed nothing. The EXTENDED driver is
+  # equally load-bearing — the plain integration_test_driver has no WebDriver
+  # handshake and also reports a vacuous pass.
+  #
+  # `--wasm` is mandatory, not a preference: the suite contains int64 min/max
+  # literals that dart2js cannot even compile (53-bit ints).
+  flutter drive \
+    --driver=test_driver/integration_test.dart \
+    --target="$TEST_FILE" \
+    -d chrome --wasm \
+    --web-browser-flag=--headless=new \
+    --web-browser-flag=--no-sandbox
+}
+
+_web_unit() {
+  cd "$PLUGIN_DIR" || return 1
+  flutter pub run test test/nitro_type_coverage_web_test.dart -p chrome "$@"
+}
+
+run_web() {
+  if ! command -v em++ >/dev/null 2>&1; then
+    log_skip "Web — em++ not on PATH (source emsdk_env.sh), skipping."
+    return 0
+  fi
+
+  # The WASM module is a build artifact — rebuild it so the tests exercise the
+  # C++ actually in the tree, not a stale checked-in binary.
+  TOTAL=$((TOTAL + 1))
+  if ! run_logged "Web (em++ build)" bash "$PLUGIN_DIR/web/build_web.sh"; then
+    FAILURES=$((FAILURES + 1))
+    log_warn "Web — module build failed, skipping the web test runs."
+    return 0
+  fi
+
+  # Both compilers: they diverge at the js_interop boundary (dart2js `.toDart`
+  # is a cast, dart2wasm's is a copy; dart2js ints are 53-bit), so a green run
+  # under one says nothing about the other.
+  TOTAL=$((TOTAL + 1))
+  run_logged "Web browser suite (dart2js)" _web_unit || FAILURES=$((FAILURES + 1))
+  TOTAL=$((TOTAL + 1))
+  run_logged "Web browser suite (dart2wasm)" _web_unit -c dart2wasm || FAILURES=$((FAILURES + 1))
+
+  # The package:test runs above need only Chrome; the integration suite also
+  # needs a WebDriver server.
+  if _ensure_chromedriver; then
+    TOTAL=$((TOTAL + 1))
+    run_logged "Web integration suite (chrome · dart2wasm)" _web_drive || FAILURES=$((FAILURES + 1))
+    _stop_chromedriver
+  else
+    log_skip "Web integration suite — no chromedriver on 4444."
+  fi
+}
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 MODE="${1:-auto}"
 FAILURES=0
@@ -242,12 +380,17 @@ case "$MODE" in
     run_windows
     ;;
 
+  web)
+    run_web
+    ;;
+
   all)
     run_macos
     run_ios
     run_all_android
     run_linux
     run_windows
+    run_web
     ;;
 
   auto|*)
@@ -257,6 +400,7 @@ case "$MODE" in
     run_android
     run_linux
     run_windows
+    run_web
     ;;
 esac
 

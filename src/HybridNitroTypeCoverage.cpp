@@ -52,7 +52,16 @@
 // impl's `CoroutineScope(Dispatchers.Default).launch { ... }` pattern.
 
 #include "../lib/src/generated/cpp/nitro_type_coverage.native.g.h"
+
+#ifdef __EMSCRIPTEN__
+// Web: Dart_PostCObject_DL is provided by nitro's compat shim over the
+// module's registered post callback, and emscripten_async_call replaces the
+// flush thread (single-threaded build — std::thread's ctor aborts).
+#include "nitro_wasm_compat.h"
+#include <emscripten.h>
+#else
 #include "dart_api_dl.h"
+#endif
 
 #include <atomic>
 #include <chrono>
@@ -251,7 +260,15 @@ static void nitro_post_opt_bool(int64_t dartPort, std::optional<bool> v) {
 // this impl completes this way (matches Kotlin's `_asyncExecutor.execute {}` /
 // Swift's `Task.detached {}`; the framework accepts a post from any thread).
 static void nitro_run_detached(std::function<void()> fn) {
+#ifdef __EMSCRIPTEN__
+    // Single-threaded build: std::thread's constructor aborts at runtime.
+    // Running inline is still asynchronous as far as Dart is concerned — the
+    // web runtime defers delivery of the post to a microtask, so the Future
+    // completes after the calling frame returns, exactly as on native.
+    fn();
+#else
     std::thread(std::move(fn)).detach();
+#endif
 }
 
 // ── Implementation ───────────────────────────────────────────────────────────
@@ -259,16 +276,22 @@ static void nitro_run_detached(std::function<void()> fn) {
 class HybridNitroTypeCoverageImpl final : public HybridNitroTypeCoverage {
 public:
     HybridNitroTypeCoverageImpl() {
+#ifndef __EMSCRIPTEN__
         // Coalescer flush thread (issue #39): posts each burst as one kArray.
+        // The web build has no threads — it flushes from a scheduled callback
+        // instead (see _coalFlushNow).
         _coalThread = std::thread([this]() { _coalesceLoop(); });
+#endif
     }
     ~HybridNitroTypeCoverageImpl() override {
+#ifndef __EMSCRIPTEN__
         {
             std::lock_guard<std::mutex> lk(_coalMtx);
             _coalRunning = false;
         }
         _coalCv.notify_one();
         if (_coalThread.joinable()) _coalThread.join();
+#endif
     }
 
     // ── Coalesced completion (issue #39) ─────────────────────────────────────
@@ -276,11 +299,19 @@ public:
     // kArray to the shared port. Validates NitroCoalescer end-to-end on device.
     void submitCoalesced(int64_t callId, int64_t value, int64_t dartPort) override {
         _coalPort.store(dartPort, std::memory_order_relaxed);
+#ifdef __EMSCRIPTEN__
+        _coalBuf.emplace_back(callId, value);
+        if (!_coalFlushScheduled) {
+            _coalFlushScheduled = true;
+            emscripten_async_call(&HybridNitroTypeCoverageImpl::_coalFlushTrampoline, this, 0);
+        }
+#else
         {
             std::lock_guard<std::mutex> lk(_coalMtx);
             _coalBuf.emplace_back(callId, value);
         }
         _coalCv.notify_one();
+#endif
     }
 
     // ── Primitives ───────────────────────────────────────────────────────────
@@ -1055,25 +1086,51 @@ private:
                                  [this]() { return !_coalRunning; });
                 batch.swap(_coalBuf);
             }
-            const int64_t port = _coalPort.load(std::memory_order_relaxed);
-            if (port == 0 || batch.empty()) continue;
-            const size_t n = batch.size() * 2;
-            std::vector<Dart_CObject> elems(n);
-            std::vector<Dart_CObject*> ptrs(n);
-            for (size_t i = 0; i < batch.size(); ++i) {
-                elems[2 * i].type = Dart_CObject_kInt64;
-                elems[2 * i].value.as_int64 = batch[i].first;   // callId
-                elems[2 * i + 1].type = Dart_CObject_kInt64;
-                elems[2 * i + 1].value.as_int64 = batch[i].second; // value
-            }
-            for (size_t i = 0; i < n; ++i) ptrs[i] = &elems[i];
-            Dart_CObject arr;
-            arr.type = Dart_CObject_kArray;
-            arr.value.as_array.length = static_cast<intptr_t>(n);
-            arr.value.as_array.values = ptrs.data();
-            Dart_PostCObject_DL(port, &arr);
+            _postBatch(batch);
         }
     }
+
+    // Posts one drained burst as a single kArray of [callId, value] pairs.
+    // Extracted so the single-threaded web build can flush from a scheduled
+    // callback instead of a condition-variable loop.
+    void _postBatch(const std::vector<std::pair<int64_t, int64_t>>& batch) {
+        const int64_t port = _coalPort.load(std::memory_order_relaxed);
+        if (port == 0 || batch.empty()) return;
+        const size_t n = batch.size() * 2;
+        std::vector<Dart_CObject> elems(n);
+        std::vector<Dart_CObject*> ptrs(n);
+        for (size_t i = 0; i < batch.size(); ++i) {
+            elems[2 * i].type = Dart_CObject_kInt64;
+            elems[2 * i].value.as_int64 = batch[i].first;   // callId
+            elems[2 * i + 1].type = Dart_CObject_kInt64;
+            elems[2 * i + 1].value.as_int64 = batch[i].second; // value
+        }
+        for (size_t i = 0; i < n; ++i) ptrs[i] = &elems[i];
+        Dart_CObject arr;
+        arr.type = Dart_CObject_kArray;
+        arr.value.as_array.length = static_cast<intptr_t>(n);
+        arr.value.as_array.values = ptrs.data();
+        Dart_PostCObject_DL(port, &arr);
+    }
+
+#ifdef __EMSCRIPTEN__
+    // Web: no flush thread. Drain on a zero-delay async call, which runs after
+    // the current JS task — so every submit made in one synchronous burst
+    // still coalesces into a single kArray, preserving the batching semantics
+    // the condition-variable window gives on native.
+    static void _coalFlushTrampoline(void* self) {
+        static_cast<HybridNitroTypeCoverageImpl*>(self)->_coalFlushNow();
+    }
+
+    void _coalFlushNow() {
+        std::vector<std::pair<int64_t, int64_t>> batch;
+        batch.swap(_coalBuf);
+        _coalFlushScheduled = false;
+        _postBatch(batch);
+    }
+
+    bool _coalFlushScheduled = false;
+#endif
 };
 
 static HybridNitroTypeCoverageImpl g_impl;
