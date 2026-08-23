@@ -86,6 +86,9 @@ abstract class NitroTypeCoverage extends HybridObject {
   // ── Struct ────────────────────────────────────────────────────────────────
   TcPoint echoPoint(TcPoint value);
 
+  /// Round-trips every wasm32 struct field slot (see [TcRichStruct]).
+  TcRichStruct echoRichStruct(TcRichStruct value);
+
   // ── @HybridRecord ─────────────────────────────────────────────────────────
   TcConfig echoConfig(TcConfig value);
 
@@ -700,6 +703,29 @@ class TcStructHolder {
     required this.label,
     required this.origin,
     required this.radius,
+  });
+}
+
+/// Web struct layout coverage: every wasm32 field slot in one struct —
+/// `const char*`, `uint8_t*` (+ synthesized int64 count), a nested `TcPoint*`,
+/// an int32 enum, an int64 and a 1-byte bool. Field order is deliberate: the
+/// bool before an int64 forces alignment padding, which a naively-packed
+/// reader gets wrong.
+@HybridStruct()
+class TcRichStruct {
+  final String label;
+  final Uint8List bytes;
+  final TcPoint origin;
+  final TcStatus status;
+  final bool ok;
+  final int count;
+  TcRichStruct({
+    required this.label,
+    required this.bytes,
+    required this.origin,
+    required this.status,
+    required this.ok,
+    required this.count,
   });
 }
 

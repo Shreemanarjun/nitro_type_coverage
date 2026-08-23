@@ -58,6 +58,7 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
 
     // ── Struct ────────────────────────────────────────────────────────────────
     public func echoPoint(value: TcPoint) -> TcPoint { value }
+    public func echoRichStruct(value: TcRichStruct) -> TcRichStruct { value }
 
     // ── @HybridRecord ─────────────────────────────────────────────────────────
     public func echoConfig(value: TcConfig) -> TcConfig { value }

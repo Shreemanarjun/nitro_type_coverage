@@ -58,6 +58,19 @@ typedef struct {
 } TcPoint;
 #endif // NITRO_STRUCT_TCPOINT_DEFINED
 
+#ifndef NITRO_STRUCT_TCRICHSTRUCT_DEFINED
+#define NITRO_STRUCT_TCRICHSTRUCT_DEFINED
+typedef struct {
+  const char* label; 
+  uint8_t* bytes; 
+  int64_t bytesLength; /* synthesized: element count for data buffer */
+  TcPoint* origin; 
+  int32_t status; 
+  int8_t ok; 
+  int64_t count; 
+} TcRichStruct;
+#endif // NITRO_STRUCT_TCRICHSTRUCT_DEFINED
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -96,6 +109,7 @@ NITRO_EXPORT const char* nitro_type_coverage_echo_nullable_string(int64_t instan
 NITRO_EXPORT int64_t nitro_type_coverage_echo_status(int64_t instanceId, int64_t value, NitroError* _nitro_err);
 NITRO_EXPORT int64_t nitro_type_coverage_echo_nullable_status(int64_t instanceId, int64_t value, NitroError* _nitro_err);
 NITRO_EXPORT void* nitro_type_coverage_echo_point(int64_t instanceId, void* value, NitroError* _nitro_err);
+NITRO_EXPORT void* nitro_type_coverage_echo_rich_struct(int64_t instanceId, void* value, NitroError* _nitro_err);
 NITRO_EXPORT void* nitro_type_coverage_echo_config(int64_t instanceId, void* value, NitroError* _nitro_err);
 NITRO_EXPORT uint8_t* nitro_type_coverage_echo_bytes(int64_t instanceId, uint8_t* value, size_t value_length, NitroError* _nitro_err);
 NITRO_EXPORT uint8_t* nitro_type_coverage_echo_floats(int64_t instanceId, float* value, size_t value_length, NitroError* _nitro_err);
@@ -313,6 +327,7 @@ NITRO_EXPORT void nitro_type_coverage_release_nullable_bool_stream_stream(int64_
 
 // Struct release functions
 NITRO_EXPORT void nitro_type_coverage_release_TcPoint(void* ptr);
+NITRO_EXPORT void nitro_type_coverage_release_TcRichStruct(void* ptr);
 
 #ifdef __cplusplus
 }

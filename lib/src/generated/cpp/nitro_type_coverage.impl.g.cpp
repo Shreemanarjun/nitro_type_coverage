@@ -132,6 +132,11 @@ public:
         throw std::runtime_error("Not implemented: echoPoint");
     }
 
+    TcRichStruct echoRichStruct(const TcRichStruct& value) override {
+        // TODO: implement echoRichStruct
+        throw std::runtime_error("Not implemented: echoRichStruct");
+    }
+
     NitroCppBuffer echoConfig(NitroCppBuffer value) override {
         // TODO: implement echoConfig
         throw std::runtime_error("Not implemented: echoConfig");

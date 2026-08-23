@@ -47,7 +47,11 @@ Uint8List _nitroEncodeFramed(void Function(RecordWriter w) write) {
   return w.takeFramedBytes();
 }
 
-Uint8List _nitroPackStructTcPoint(TcPoint v) {
+Uint8List _nitroPackStructTcPoint(
+  NitroWasmModule m,
+  WasmArena arena,
+  TcPoint v,
+) {
   final out = Uint8List(24);
   final bd = ByteData.sublistView(out);
   bd.setFloat64(0, v.x, Endian.little);
@@ -62,6 +66,44 @@ TcPoint _nitroReadStructTcPoint(NitroWasmModule m, int ptr) {
     x: bd.getFloat64(0, Endian.little),
     y: bd.getFloat64(8, Endian.little),
     z: bd.getFloat64(16, Endian.little),
+  );
+}
+
+Uint8List _nitroPackStructTcRichStruct(
+  NitroWasmModule m,
+  WasmArena arena,
+  TcRichStruct v,
+) {
+  final out = Uint8List(40);
+  final bd = ByteData.sublistView(out);
+  bd.setUint32(0, arena.cString(v.label), Endian.little);
+  bd.setUint32(4, arena.copyIn(v.bytes), Endian.little);
+  setInt64LE(bd, 8, v.bytes.length);
+  bd.setUint32(
+    16,
+    arena.copyIn(_nitroPackStructTcPoint(m, arena, v.origin)),
+    Endian.little,
+  );
+  bd.setInt32(20, v.status.nativeValue, Endian.little);
+  bd.setUint8(24, v.ok ? 1 : 0);
+  setInt64LE(bd, 32, v.count);
+  return out;
+}
+
+TcRichStruct _nitroReadStructTcRichStruct(NitroWasmModule m, int ptr) {
+  final bd = ByteData.sublistView(m.readBytes(ptr, 40));
+  final _pbytes = bd.getUint32(4, Endian.little);
+  final _nbytes = getInt64LE(bd, 8);
+  return TcRichStruct(
+    label: (() {
+      final _p = bd.getUint32(0, Endian.little);
+      return _p == 0 ? '' : m.readCString(_p);
+    })(),
+    bytes: (_pbytes == 0 ? Uint8List(0) : m.readBytes(_pbytes, _nbytes * 1)),
+    origin: _nitroReadStructTcPoint(m, bd.getUint32(16, Endian.little)),
+    status: bd.getInt32(20, Endian.little).toTcStatus(),
+    ok: bd.getUint8(24) != 0,
+    count: getInt64LE(bd, 32),
   );
 }
 
@@ -424,7 +466,7 @@ final class _NitroTypeCoverageWebImpl extends NitroTypeCoverage {
     );
     NitroRuntime.checkLinkChecksum(
       _libName,
-      'c7156915255fdd26',
+      '46e8d195aa2d8635',
       () => _m.readCString(
         dartI64(_m.call('nitro_type_coverage_nitro_bridge_checksum', const [])),
       ),
@@ -757,7 +799,7 @@ final class _NitroTypeCoverageWebImpl extends NitroTypeCoverage {
       return withWasmArena(_m, (arena) {
         final _res = _m.call('nitro_type_coverage_echo_point', [
           jsI64(_instanceId),
-          arena.copyIn(_nitroPackStructTcPoint(value)).toJS,
+          arena.copyIn(_nitroPackStructTcPoint(_m, arena, value)).toJS,
           _err.ptr.toJS,
         ]);
         NitroRuntime.throwIfOutParamError(_err);
@@ -767,6 +809,25 @@ final class _NitroTypeCoverageWebImpl extends NitroTypeCoverage {
         return _v;
       });
     }, methodName: 'echoPoint');
+  }
+
+  @override
+  TcRichStruct echoRichStruct(TcRichStruct value) {
+    checkDisposed();
+    return NitroRuntime.callSync(() {
+      return withWasmArena(_m, (arena) {
+        final _res = _m.call('nitro_type_coverage_echo_rich_struct', [
+          jsI64(_instanceId),
+          arena.copyIn(_nitroPackStructTcRichStruct(_m, arena, value)).toJS,
+          _err.ptr.toJS,
+        ]);
+        NitroRuntime.throwIfOutParamError(_err);
+        final _ptr = dartI64(_res);
+        final _v = _nitroReadStructTcRichStruct(_m, _ptr);
+        _m.call('nitro_type_coverage_release_TcRichStruct', [_ptr.toJS]);
+        return _v;
+      });
+    }, methodName: 'echoRichStruct');
   }
 
   @override
@@ -1326,7 +1387,7 @@ final class _NitroTypeCoverageWebImpl extends NitroTypeCoverage {
         return withWasmArena(_m, (arena) {
           final _res = _m.call('nitro_type_coverage_async_point', [
             jsI64(_instanceId),
-            arena.copyIn(_nitroPackStructTcPoint(value)).toJS,
+            arena.copyIn(_nitroPackStructTcPoint(_m, arena, value)).toJS,
           ]);
           _checkLegacyError();
           final _ptr = dartI64(_res);
@@ -1629,7 +1690,9 @@ final class _NitroTypeCoverageWebImpl extends NitroTypeCoverage {
       return withWasmArena(_m, (arena) {
         final _res = _m.call('nitro_type_coverage_echo_nullable_point', [
           jsI64(_instanceId),
-          (value == null ? 0 : arena.copyIn(_nitroPackStructTcPoint(value)))
+          (value == null
+                  ? 0
+                  : arena.copyIn(_nitroPackStructTcPoint(_m, arena, value)))
               .toJS,
           _err.ptr.toJS,
         ]);
@@ -2601,7 +2664,7 @@ final class _NitroTypeCoverageWebImpl extends NitroTypeCoverage {
       call: (dartPort) =>
           _m.call('nitro_type_coverage_native_async_echo_point', [
             jsI64(_instanceId),
-            arena.copyIn(_nitroPackStructTcPoint(value)).toJS,
+            arena.copyIn(_nitroPackStructTcPoint(_m, arena, value)).toJS,
             _slot.ptr.toJS,
             jsI64(dartPort),
           ]),

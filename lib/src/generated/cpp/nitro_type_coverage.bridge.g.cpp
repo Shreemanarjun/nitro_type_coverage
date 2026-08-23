@@ -28,7 +28,7 @@ NITRO_EXPORT uint32_t nitro_type_coverage_nitro_abi_version(void) {
     return 1;
 }
 NITRO_EXPORT const char* nitro_type_coverage_nitro_bridge_checksum(void) {
-    return "c7156915255fdd26";
+    return "46e8d195aa2d8635";
 }
 NITRO_EXPORT intptr_t nitro_type_coverage_init_dart_api_dl(void* data) {
     return Dart_InitializeApiDL(data);
@@ -77,6 +77,14 @@ NITRO_EXPORT void nitro_type_coverage_async_acquire_buffer_release(void* handle)
 extern "C" {
 void nitro_type_coverage_release_TcPoint(void* ptr) {
     if (!ptr) { return; }
+    free(ptr);
+}
+void nitro_type_coverage_release_TcRichStruct(void* ptr) {
+    if (!ptr) { return; }
+    TcRichStruct* st_ptr = (TcRichStruct*)ptr;
+    if (st_ptr->label) { free((void*)st_ptr->label); }
+    if (st_ptr->bytes) { free(st_ptr->bytes); st_ptr->bytes = nullptr; }
+    if (st_ptr->origin) { free(st_ptr->origin); st_ptr->origin = nullptr; }
     free(ptr);
 }
 }
@@ -133,6 +141,7 @@ static jmethodID g_mid_echoNullableString_call = nullptr;
 static jmethodID g_mid_echoStatus_call = nullptr;
 static jmethodID g_mid_echoNullableStatus_call = nullptr;
 static jmethodID g_mid_echoPoint_call = nullptr;
+static jmethodID g_mid_echoRichStruct_call = nullptr;
 static jmethodID g_mid_echoConfig_call = nullptr;
 static jmethodID g_mid_echoBytes_call = nullptr;
 static jmethodID g_mid_echoFloats_call = nullptr;
@@ -329,6 +338,14 @@ static jmethodID g_ctor_TcPoint = nullptr;
 static jfieldID g_fid_TcPoint_x = nullptr;
 static jfieldID g_fid_TcPoint_y = nullptr;
 static jfieldID g_fid_TcPoint_z = nullptr;
+static jclass g_cls_TcRichStruct = nullptr;
+static jmethodID g_ctor_TcRichStruct = nullptr;
+static jfieldID g_fid_TcRichStruct_label = nullptr;
+static jfieldID g_fid_TcRichStruct_bytes = nullptr;
+static jfieldID g_fid_TcRichStruct_origin = nullptr;
+static jfieldID g_fid_TcRichStruct_status = nullptr;
+static jfieldID g_fid_TcRichStruct_ok = nullptr;
+static jfieldID g_fid_TcRichStruct_count = nullptr;
 
 
 // RAII guard: auto-detaches a thread from the JVM when it exits.
@@ -389,6 +406,48 @@ static TcPoint pack_TcPoint_from_jni(JNIEnv* env, jobject obj) {
 }
 static jobject unpack_TcPoint_to_jni(JNIEnv* env, const TcPoint* st) {
     jobject result = env->NewObject(g_cls_TcPoint, g_ctor_TcPoint, (jdouble)st->x, (jdouble)st->y, (jdouble)st->z);
+    return result;
+}
+static TcRichStruct pack_TcRichStruct_from_jni(JNIEnv* env, jobject obj) {
+    TcRichStruct result;
+    jstring j_label = (jstring)env->GetObjectField(obj, g_fid_TcRichStruct_label);
+    const char* str_label = (j_label != nullptr) ? env->GetStringUTFChars(j_label, 0) : "";
+    result.label = strdup(str_label);
+    if (j_label) {
+        env->ReleaseStringUTFChars(j_label, str_label);
+        env->DeleteLocalRef(j_label);
+    }
+    jbyteArray j_bytes = (jbyteArray)env->GetObjectField(obj, g_fid_TcRichStruct_bytes);
+    jsize _len_bytes = (j_bytes != nullptr) ? env->GetArrayLength(j_bytes) : 0;
+    result.bytes = nullptr;
+    result.bytesLength = 0;
+    if (j_bytes != nullptr && _len_bytes > 0) {
+        result.bytes = (uint8_t*)malloc(_len_bytes * sizeof(uint8_t));
+        env->GetByteArrayRegion(j_bytes, 0, _len_bytes, (jbyte*)result.bytes);
+        result.bytesLength = (int64_t)_len_bytes;
+        env->DeleteLocalRef(j_bytes);
+    }
+    jobject j_origin = env->GetObjectField(obj, g_fid_TcRichStruct_origin);
+    TcPoint* origin_ptr = (TcPoint*)malloc(sizeof(TcPoint));
+    *origin_ptr = pack_TcPoint_from_jni(env, j_origin);
+    env->DeleteLocalRef(j_origin);
+    result.origin = origin_ptr;
+    result.status = (TcStatus)(int32_t)env->GetLongField(obj, g_fid_TcRichStruct_status);
+    result.ok = env->GetBooleanField(obj, g_fid_TcRichStruct_ok);
+    result.count = env->GetLongField(obj, g_fid_TcRichStruct_count);
+    return result;
+}
+static jobject unpack_TcRichStruct_to_jni(JNIEnv* env, const TcRichStruct* st) {
+    jstring j_label = env->NewStringUTF(st->label ? st->label : "");
+    jobject j_origin = unpack_TcPoint_to_jni(env, st->origin);
+    jbyteArray j_bytes = env->NewByteArray((jsize)st->bytesLength);
+    if (j_bytes != nullptr && st->bytes != nullptr) {
+        env->SetByteArrayRegion(j_bytes, 0, (jsize)st->bytesLength, (const jbyte*)st->bytes);
+    }
+    jobject result = env->NewObject(g_cls_TcRichStruct, g_ctor_TcRichStruct, j_label, j_bytes, j_origin, (jlong)(int32_t)st->status, (jboolean)st->ok, (jlong)st->count);
+    if (j_label) env->DeleteLocalRef(j_label);
+    if (j_bytes) env->DeleteLocalRef(j_bytes);
+    if (j_origin) env->DeleteLocalRef(j_origin);
     return result;
 }
 
@@ -819,6 +878,33 @@ void* nitro_type_coverage_echo_point(int64_t instanceId, void* value, NitroError
     static thread_local TcPoint _g_ret_st;
     TcPoint* result = &_g_ret_st;
     *result = pack_TcPoint_from_jni(env, jobj);
+    env->PopLocalFrame(nullptr);
+    return result;
+}
+
+void* nitro_type_coverage_echo_rich_struct(int64_t instanceId, void* value, NitroError* _nitro_err) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
+    JNIEnv* env = GetEnv();
+    if (env == nullptr) { return nullptr; }
+    jmethodID methodId = g_mid_echoRichStruct_call;
+    if (methodId == nullptr) { LOGE("Method not found: echoRichStruct_call sig=(JLnitro/nitro_type_coverage_module/TcRichStruct;)Lnitro/nitro_type_coverage_module/TcRichStruct;"); return nullptr; }
+
+    nitro_type_coverage_clear_error();
+    if (env->PushLocalFrame(16) != 0) { return nullptr; }
+    jobject jobj_value = unpack_TcRichStruct_to_jni(env, (const TcRichStruct*)value);
+    jobject jobj = env->CallStaticObjectMethod(g_bridgeClass, methodId, (jlong)instanceId, jobj_value);
+    if (env->ExceptionCheck()) {
+        nitro_report_jni_exception(env, env->ExceptionOccurred(), _nitro_err);
+        env->PopLocalFrame(nullptr);
+        return nullptr;
+    }
+    if (jobj == nullptr) {
+        env->PopLocalFrame(nullptr);
+        return nullptr;
+    }
+    static thread_local TcRichStruct _g_ret_st;
+    TcRichStruct* result = &_g_ret_st;
+    *result = pack_TcRichStruct_from_jni(env, jobj);
     env->PopLocalFrame(nullptr);
     return result;
 }
@@ -4720,6 +4806,8 @@ JNIEXPORT void JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverag
         if (!g_mid_echoNullableStatus_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: echoNullableStatus_call sig=(JJ)J"); }
         g_mid_echoPoint_call = env->GetStaticMethodID(g_bridgeClass, "echoPoint_call", "(JLnitro/nitro_type_coverage_module/TcPoint;)Lnitro/nitro_type_coverage_module/TcPoint;");
         if (!g_mid_echoPoint_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: echoPoint_call sig=(JLnitro/nitro_type_coverage_module/TcPoint;)Lnitro/nitro_type_coverage_module/TcPoint;"); }
+        g_mid_echoRichStruct_call = env->GetStaticMethodID(g_bridgeClass, "echoRichStruct_call", "(JLnitro/nitro_type_coverage_module/TcRichStruct;)Lnitro/nitro_type_coverage_module/TcRichStruct;");
+        if (!g_mid_echoRichStruct_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: echoRichStruct_call sig=(JLnitro/nitro_type_coverage_module/TcRichStruct;)Lnitro/nitro_type_coverage_module/TcRichStruct;"); }
         g_mid_echoConfig_call = env->GetStaticMethodID(g_bridgeClass, "echoConfig_call", "(J[B)[B");
         if (!g_mid_echoConfig_call && env->ExceptionCheck()) { env->ExceptionClear(); LOGE("Method not found: echoConfig_call sig=(J[B)[B"); }
         g_mid_echoBytes_call = env->GetStaticMethodID(g_bridgeClass, "echoBytes_call", "(J[B)Ljava/nio/ByteBuffer;");
@@ -5121,6 +5209,20 @@ JNIEXPORT void JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverag
             g_fid_TcPoint_x = env->GetFieldID(g_cls_TcPoint, "x", "D");
             g_fid_TcPoint_y = env->GetFieldID(g_cls_TcPoint, "y", "D");
             g_fid_TcPoint_z = env->GetFieldID(g_cls_TcPoint, "z", "D");
+        }
+    }
+    {
+        jclass local_cls_TcRichStruct = env->FindClass("nitro/nitro_type_coverage_module/TcRichStruct");
+        if (local_cls_TcRichStruct != nullptr) {
+            g_cls_TcRichStruct = (jclass)env->NewGlobalRef(local_cls_TcRichStruct);
+            env->DeleteLocalRef(local_cls_TcRichStruct);
+            g_ctor_TcRichStruct = env->GetMethodID(g_cls_TcRichStruct, "<init>", "(Ljava/lang/String;[BLnitro/nitro_type_coverage_module/TcPoint;JZJ)V");
+            g_fid_TcRichStruct_label = env->GetFieldID(g_cls_TcRichStruct, "label", "Ljava/lang/String;");
+            g_fid_TcRichStruct_bytes = env->GetFieldID(g_cls_TcRichStruct, "bytes", "[B");
+            g_fid_TcRichStruct_origin = env->GetFieldID(g_cls_TcRichStruct, "origin", "Lnitro/nitro_type_coverage_module/TcPoint;");
+            g_fid_TcRichStruct_status = env->GetFieldID(g_cls_TcRichStruct, "status", "J");
+            g_fid_TcRichStruct_ok = env->GetFieldID(g_cls_TcRichStruct, "ok", "Z");
+            g_fid_TcRichStruct_count = env->GetFieldID(g_cls_TcRichStruct, "count", "J");
         }
     }
 }
@@ -5680,6 +5782,31 @@ void* nitro_type_coverage_echo_point(int64_t instanceId, void* value, NitroError
     }
 #else
     return _nitro_type_coverage_call_echoPoint(value);
+#endif
+}
+
+extern void* _nitro_type_coverage_call_echoRichStruct(void* value);
+void* nitro_type_coverage_echo_rich_struct(int64_t instanceId, void* value, NitroError* _nitro_err) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+#ifdef __OBJC__
+    @try {
+        return _nitro_type_coverage_call_echoRichStruct(value);
+    } @catch (NSException* e) {
+        if (_nitro_err) {
+            // sync: write exception to out-param error slot.
+            _nitro_err->hasError = 1;
+            _nitro_err->name    = strdup([e.name UTF8String]);
+            _nitro_err->message = strdup([e.reason UTF8String]);
+            _nitro_err->code = nullptr;
+            _nitro_err->stackTrace = nullptr;
+        } else {
+            // async: _nitro_err is null — route exception to TLS slot.
+            nitro_report_error([e.name UTF8String], [e.reason UTF8String], nullptr, nullptr);
+        }
+        return nullptr;
+    }
+#else
+    return _nitro_type_coverage_call_echoRichStruct(value);
 #endif
 }
 
@@ -9614,6 +9741,25 @@ void* nitro_type_coverage_echo_point(int64_t instanceId, void* value, NitroError
         TcPoint _res = g_impl->echoPoint(*static_cast<const TcPoint*>(value));
         static thread_local TcPoint _g_ret_st;
         TcPoint* _ptr = &_g_ret_st;
+        *_ptr = _res;
+        return _ptr;
+    } catch (const std::exception& e) {
+        _nitro_desktop_err(_nitro_err, "CppException", e.what());
+        return nullptr;
+    } catch (...) {
+        _nitro_desktop_err(_nitro_err, "CppException", "Unknown C++ exception");
+        return nullptr;
+    }
+}
+
+void* nitro_type_coverage_echo_rich_struct(int64_t instanceId, void* value, NitroError* _nitro_err) {
+    nitro_type_coverage_clear_error();
+    if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
+    if (!g_impl) { _nitro_desktop_err(_nitro_err, "NotInitialized", "No C++ implementation registered. Call nitro_type_coverage_register_impl() first."); return nullptr; }
+    try {
+        TcRichStruct _res = g_impl->echoRichStruct(*static_cast<const TcRichStruct*>(value));
+        static thread_local TcRichStruct _g_ret_st;
+        TcRichStruct* _ptr = &_g_ret_st;
         *_ptr = _res;
         return _ptr;
     } catch (const std::exception& e) {

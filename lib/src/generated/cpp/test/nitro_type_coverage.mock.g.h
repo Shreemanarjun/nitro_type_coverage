@@ -27,6 +27,7 @@ class MockNitroTypeCoverage : public HybridNitroTypeCoverage {
     MOCK_METHOD(TcStatus, echoStatus, (TcStatus value), (override));
     MOCK_METHOD(TcStatus, echoNullableStatus, (TcStatus value), (override));
     MOCK_METHOD(TcPoint, echoPoint, (const TcPoint& value), (override));
+    MOCK_METHOD(TcRichStruct, echoRichStruct, (const TcRichStruct& value), (override));
     MOCK_METHOD(NitroCppBuffer, echoConfig, (NitroCppBuffer value), (override));
     MOCK_METHOD(NitroCppBuffer, echoBytes, (const uint8_t* value, size_t value_length), (override));
     MOCK_METHOD(NitroCppBuffer, echoFloats, (const float* value, size_t value_length), (override));

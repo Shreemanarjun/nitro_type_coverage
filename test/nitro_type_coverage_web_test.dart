@@ -379,6 +379,71 @@ void main() {
     });
   });
 
+  group('@HybridStruct wasm32 layout', () {
+    // Every field slot in one struct. The C typedef is
+    // const char*(0) uint8_t*(4) int64 len(8) TcPoint*(16) int32(20) int8(24)
+    // int64(32), size 40 — a naively-packed reader misreads everything after
+    // the first pointer.
+    TcRichStruct sample() => TcRichStruct(
+      label: 'rich ünï',
+      bytes: Uint8List.fromList([0, 1, 254, 255]),
+      origin: TcPoint(x: 1.5, y: -2.5, z: 0.25),
+      status: TcStatus.pending,
+      ok: true,
+      count: 1 << 40,
+    );
+
+    test('every field slot round-trips', () {
+      final r = api.echoRichStruct(sample());
+      expect(r.label, 'rich ünï');
+      expect(r.bytes, [0, 1, 254, 255]);
+      expect(r.origin.x, 1.5);
+      expect(r.origin.y, -2.5);
+      expect(r.origin.z, 0.25);
+      expect(r.status, TcStatus.pending);
+      expect(r.ok, isTrue);
+      expect(r.count, 1 << 40, reason: 'int64 after the 1-byte bool — needs padding to 32');
+    });
+
+    test('empty string and empty buffer keep their slots', () {
+      final r = api.echoRichStruct(TcRichStruct(
+        label: '',
+        bytes: Uint8List(0),
+        origin: TcPoint(x: 0, y: 0, z: 0),
+        status: TcStatus.ok,
+        ok: false,
+        count: 0,
+      ));
+      expect(r.label, '');
+      expect(r.bytes, isEmpty);
+      expect(r.status, TcStatus.ok);
+      expect(r.ok, isFalse);
+      expect(r.count, 0);
+    });
+
+    test('enum field is int32 — the next field is not swallowed', () {
+      for (final st in TcStatus.values) {
+        final r = api.echoRichStruct(TcRichStruct(
+          label: 'x',
+          bytes: Uint8List.fromList([7]),
+          origin: TcPoint(x: 0, y: 0, z: 0),
+          status: st,
+          ok: true,
+          count: 12345,
+        ));
+        expect(r.status, st);
+        expect(r.count, 12345, reason: 'reading the enum as int64 would eat ok+count');
+      }
+    });
+
+    test('100 round-trips do not corrupt or leak slots', () {
+      for (var i = 0; i < 100; i++) {
+        final r = api.echoRichStruct(sample());
+        expect(r.count, 1 << 40, reason: 'iteration $i');
+      }
+    });
+  });
+
   group('errors', () {
     test('a C++ exception surfaces as a HybridException', () {
       expect(

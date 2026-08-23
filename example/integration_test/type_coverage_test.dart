@@ -6815,6 +6815,71 @@ void main() {
   // verdicts on the same paths.
   // ══════════════════════════════════════════════════════════════════════════
 
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // §71 @HybridStruct with every field slot — the wasm32 layout must agree
+  // with the C typedef on every platform, not just web.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('§71 @HybridStruct — all field slots', () {
+    TcRichStruct sample() => TcRichStruct(
+      label: 'rich ünï',
+      bytes: Uint8List.fromList([0, 1, 254, 255]),
+      origin: TcPoint(x: 1.5, y: -2.5, z: 0.25),
+      status: TcStatus.pending,
+      ok: true,
+      count: 1 << 40,
+    );
+
+    test('every field round-trips', () {
+      final r = tc.echoRichStruct(sample());
+      expect(r.label, 'rich ünï');
+      expect(r.bytes, [0, 1, 254, 255]);
+      expect(r.origin.x, 1.5);
+      expect(r.origin.y, -2.5);
+      expect(r.origin.z, 0.25);
+      expect(r.status, TcStatus.pending);
+      expect(r.ok, isTrue);
+      expect(r.count, 1 << 40);
+    });
+
+    test('empty string and empty buffer', () {
+      final r = tc.echoRichStruct(TcRichStruct(
+        label: '',
+        bytes: Uint8List(0),
+        origin: TcPoint(x: 0, y: 0, z: 0),
+        status: TcStatus.ok,
+        ok: false,
+        count: 0,
+      ));
+      expect(r.label, '');
+      expect(r.bytes, isEmpty);
+      expect(r.ok, isFalse);
+      expect(r.count, 0);
+    });
+
+    test('all enum values keep the following fields intact', () {
+      for (final st in TcStatus.values) {
+        final r = tc.echoRichStruct(TcRichStruct(
+          label: 'x',
+          bytes: Uint8List.fromList([7]),
+          origin: TcPoint(x: 0, y: 0, z: 0),
+          status: st,
+          ok: true,
+          count: 12345,
+        ));
+        expect(r.status, st);
+        expect(r.count, 12345);
+      }
+    });
+
+    test('200 round-trips stay stable', () {
+      for (var i = 0; i < 200; i++) {
+        expect(tc.echoRichStruct(sample()).count, 1 << 40, reason: 'iteration $i');
+      }
+    });
+  });
+
   group('§M memory-leak soak — RSS growth bounds', () {
     // A leaked iteration ≈ payload size; thresholds sized so leaks are loud.
     const rssBudgetBytes = 48 << 20; // 48 MB slack for GC/allocator noise

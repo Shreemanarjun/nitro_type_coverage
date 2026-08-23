@@ -20,6 +20,7 @@ import nitro.nitro_type_coverage_module.TcNullableWrapper
 import nitro.nitro_type_coverage_module.TcPacket
 import nitro.nitro_type_coverage_module.TcEvent
 import nitro.nitro_type_coverage_module.TcPoint
+import nitro.nitro_type_coverage_module.TcRichStruct
 import nitro.nitro_type_coverage_module.TcStatus
 import nitro.nitro_type_coverage_module.TcPriority
 import nitro.nitro_type_coverage_module.TcStructHolder
@@ -77,6 +78,7 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
 
     // ── Struct ────────────────────────────────────────────────────────────────
     override fun echoPoint(value: TcPoint): TcPoint = value
+    override fun echoRichStruct(value: TcRichStruct): TcRichStruct = value
 
     // ── @HybridRecord ─────────────────────────────────────────────────────────
     override fun echoConfig(value: TcConfig): TcConfig = value

@@ -341,6 +341,7 @@ public:
 
     // ── Struct ───────────────────────────────────────────────────────────────
     TcPoint echoPoint(const TcPoint& value) override { return value; }
+    TcRichStruct echoRichStruct(const TcRichStruct& value) override { return value; }
 
     // ── @HybridRecord ────────────────────────────────────────────────────────
     NitroCppBuffer echoConfig(NitroCppBuffer value) override { return TcConfig::fromNative(value).toNativeBuffer(); }

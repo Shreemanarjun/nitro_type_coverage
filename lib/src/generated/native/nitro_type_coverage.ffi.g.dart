@@ -46,6 +46,67 @@ extension TcPointExt on TcPoint {
   }
 }
 
+final class TcRichStructFfi extends Struct {
+  external Pointer<Utf8> label;
+  external Pointer<Uint8> bytes;
+  @Int64()
+  external int bytesLength;
+  external Pointer<TcPointFfi> origin;
+  @Int32()
+  external int status;
+  @Int8()
+  external int ok;
+  @Int64()
+  external int count;
+}
+
+extension TcRichStructFfiExt on TcRichStructFfi {
+  TcRichStruct toDart() {
+    return TcRichStruct(
+      label: label.toDartString(),
+      bytes: Uint8List.fromList(bytes.asTypedList(bytesLength)),
+      origin: origin.ref.toDart(),
+      status: status.toTcStatus(),
+      ok: ok != 0,
+      count: count,
+    );
+  }
+
+  /// Frees internal fields (like strings) that were allocated on the C heap.
+  /// Does NOT free the struct itself.
+  ///
+  /// [nativeFree] must be the free function matching the allocator that
+  /// produced the fields — for native-returned structs, the module's
+  /// `_nitroFree` (the exported C-runtime free). package:ffi's malloc.free
+  /// is CoTaskMemFree on Windows and corrupts the heap on these pointers.
+  void freeFields(void Function(Pointer<NativeType>) nativeFree) {
+    if (label != nullptr) {
+      nativeFree(label);
+    }
+    if (bytes != nullptr) {
+      nativeFree(bytes);
+    }
+    if (origin != nullptr) {
+      origin.ref.freeFields(nativeFree);
+      nativeFree(origin);
+    }
+  }
+}
+
+extension TcRichStructExt on TcRichStruct {
+  Pointer<TcRichStructFfi> toNative(Arena arena) {
+    final ptr = arena<TcRichStructFfi>();
+    ptr.ref.label = label.toNativeUtf8(allocator: arena);
+    ptr.ref.bytes = bytes.toPointer(arena);
+    ptr.ref.bytesLength = bytes.length;
+    ptr.ref.origin = origin.toNative(arena);
+    ptr.ref.status = status.nativeValue;
+    ptr.ref.ok = ok ? 1 : 0;
+    ptr.ref.count = count;
+    return ptr;
+  }
+}
+
 // --- Struct Native Proxies (zero-copy, lazy field access) ---
 
 /// Zero-copy proxy for [TcPoint].
@@ -90,7 +151,12 @@ final class TcPointProxy extends TcPoint implements Finalizable {
       _finalizer != null,
       'TcPointProxy._init() was not called. Ensure the Nitro impl class constructor ran before creating proxies.',
     );
-    _finalizer!.attach(this, _native.cast(), detach: this, externalSize: 512);
+    _finalizer!.attach(
+      this,
+      _native.cast(),
+      detach: this,
+      externalSize: sizeOf<TcPointFfi>(),
+    );
   }
 
   // @override lazy getters — read native memory on demand, zero allocation.
@@ -107,6 +173,91 @@ final class TcPointProxy extends TcPoint implements Finalizable {
   /// prefer consuming the proxy fields lazily then letting it GC.
   /// Must not be called more than once.
   TcPoint toDartAndRelease() {
+    final v = _native.ref.toDart();
+    _finalizer?.detach(this);
+    _releaseFn!(_native.cast());
+    return v;
+  }
+}
+
+/// Zero-copy proxy for [TcRichStruct].
+/// Extends [TcRichStruct] and overrides every getter to read lazily from
+/// native memory — no field is copied at construction time.
+/// Because `TcRichStructProxy <: TcRichStruct`, a `Stream<TcRichStructProxy>`
+/// satisfies `Stream<TcRichStruct>` via Dart covariant generics.
+/// Native memory is freed via a [NativeFinalizer] backed by the
+/// generated C symbol 'nitro_type_coverage_release_TcRichStruct'.
+/// Ownership: this proxy owns the generated struct shell. Zero-copy
+/// field buffers remain owned by the native implementation and must
+/// stay valid until this proxy is released by the finalizer or
+/// [toDartAndRelease].
+final class TcRichStructProxy extends TcRichStruct implements Finalizable {
+  final Pointer<TcRichStructFfi> _native;
+
+  static NativeFinalizer? _finalizer;
+  static void Function(Pointer<Void>)? _releaseFn;
+
+  /// Binds the generated release symbol from [dylib].
+  /// Must be called once — typically in the impl class constructor.
+  /// Idempotent: subsequent calls are a no-op.
+  static void _init(DynamicLibrary dylib) {
+    _finalizer ??= NativeFinalizer(
+      dylib.lookup<NativeFunction<Void Function(Pointer<Void>)>>(
+        'nitro_type_coverage_release_TcRichStruct',
+      ),
+    );
+    _releaseFn ??= dylib
+        .lookupFunction<
+          Void Function(Pointer<Void>),
+          void Function(Pointer<Void>)
+        >('nitro_type_coverage_release_TcRichStruct');
+  }
+
+  /// Takes ownership of [native]. Super fields are zeroed and never read;
+  /// all getters below are overridden to read from native memory instead.
+  /// Do NOT call [malloc.free] on the struct shell after passing it here,
+  /// and do not free zero-copy field buffers while the proxy may be read.
+  TcRichStructProxy(this._native)
+    : super(
+        label: '',
+        bytes: Uint8List(0),
+        origin: TcPoint(x: 0.0, y: 0.0, z: 0.0),
+        status: TcStatus.values.first,
+        ok: false,
+        count: 0,
+      ) {
+    assert(
+      _finalizer != null,
+      'TcRichStructProxy._init() was not called. Ensure the Nitro impl class constructor ran before creating proxies.',
+    );
+    _finalizer!.attach(
+      this,
+      _native.cast(),
+      detach: this,
+      externalSize: sizeOf<TcRichStructFfi>(),
+    );
+  }
+
+  // @override lazy getters — read native memory on demand, zero allocation.
+  @override
+  String get label => _native.ref.label.toDartString();
+  @override
+  Uint8List get bytes => _native.ref.bytes.asTypedList(_native.ref.bytesLength);
+  @override
+  TcPoint get origin => _native.ref.origin.ref.toDart();
+  @override
+  TcStatus get status => _native.ref.status.toTcStatus();
+  @override
+  bool get ok => _native.ref.ok != 0;
+  @override
+  int get count => _native.ref.count;
+
+  /// Eagerly copies all fields to a plain [TcRichStruct] value, detaches
+  /// the finalizer, and frees native memory immediately.
+  /// Use this only when you need an immutable snapshot; for streams
+  /// prefer consuming the proxy fields lazily then letting it GC.
+  /// Must not be called more than once.
+  TcRichStruct toDartAndRelease() {
     final v = _native.ref.toDart();
     _finalizer?.detach(this);
     _releaseFn!(_native.cast());
@@ -348,7 +499,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     }
     NitroRuntime.checkLinkChecksum(
       'nitro_type_coverage',
-      'c7156915255fdd26',
+      '46e8d195aa2d8635',
       () => _dylib
           .lookupFunction<Pointer<Utf8> Function(), Pointer<Utf8> Function()>(
             'nitro_type_coverage_nitro_bridge_checksum',
@@ -356,6 +507,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
           .toDartString(),
     );
     TcPointProxy._init(_dylib);
+    TcRichStructProxy._init(_dylib);
     final _keyPtr = _instanceKey.toNativeUtf8(allocator: calloc);
     try {
       _instanceId = _createInstancePtr(_keyPtr);
@@ -584,6 +736,12 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
         Pointer<Void> Function(Int64, Pointer<Void>, Pointer<NitroErrorFfi>),
         Pointer<Void> Function(int, Pointer<Void>, Pointer<NitroErrorFfi>)
       >('nitro_type_coverage_echo_point');
+  late final Pointer<Void> Function(int, Pointer<Void>, Pointer<NitroErrorFfi>)
+  _echoRichStructPtr = _dylib
+      .lookupFunction<
+        Pointer<Void> Function(Int64, Pointer<Void>, Pointer<NitroErrorFfi>),
+        Pointer<Void> Function(int, Pointer<Void>, Pointer<NitroErrorFfi>)
+      >('nitro_type_coverage_echo_rich_struct');
   late final Pointer<Uint8> Function(
     int,
     Pointer<Uint8>,
@@ -2636,6 +2794,33 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
         return decoded;
       }),
       methodName: 'echoPoint',
+    );
+  }
+
+  @override
+  TcRichStruct echoRichStruct(TcRichStruct value) {
+    checkDisposed();
+    return NitroRuntime.callSync(
+      () => withArena((arena) {
+        final res = _echoRichStructPtr(
+          _instanceId,
+          value.toNative(arena).cast<Void>(),
+          _nitroErr,
+        );
+        NitroRuntime.throwIfOutParamError(_nitroErr, nativeFree: _nitroFree);
+        if (res == nullptr) {
+          throw StateError('echoRichStruct returned null');
+        }
+        final structPtr = Pointer<TcRichStructFfi>.fromAddress(res.address);
+        final TcRichStruct decoded;
+        try {
+          decoded = structPtr.ref.toDart();
+        } finally {
+          structPtr.ref.freeFields(_nitroFree);
+        }
+        return decoded;
+      }),
+      methodName: 'echoRichStruct',
     );
   }
 
