@@ -70,6 +70,7 @@
 #include <cstring>
 #include <functional>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <thread>
 #include <utility>
@@ -183,6 +184,38 @@ static NitroCppBuffer nitro_encode_map(const std::vector<std::pair<std::string, 
         w.writeString(e.first);
         w.writeInt8(tag);
         writeVal(w, e.second);
+    }
+    return w.toNativeBuffer();
+}
+
+// Nullable map VALUES ride the same tagged wire as tag 0. std::optional keeps
+// the key present with an empty value, which compactMapValues-style drops do not.
+template <typename V>
+static std::vector<std::pair<std::string, std::optional<V>>> nitro_decode_opt_map_param(NitroCppBuffer buf, V (*readVal)(NitroRecordReader&)) {
+    NitroRecordReader r(buf);
+    int32_t count = r.readInt32();
+    std::vector<std::pair<std::string, std::optional<V>>> result;
+    result.reserve((size_t)count);
+    for (int32_t i = 0; i < count; i++) {
+        std::string key = r.readString();
+        if (r.readInt8() == 0) {
+            result.emplace_back(std::move(key), std::nullopt);
+            continue;
+        }
+        result.emplace_back(std::move(key), readVal(r));
+    }
+    return result;
+}
+
+template <typename V>
+static NitroCppBuffer nitro_encode_opt_map(const std::vector<std::pair<std::string, std::optional<V>>>& entries, int8_t tag, void (*writeVal)(NitroRecordWriter&, const V&)) {
+    NitroRecordWriter w;
+    w.writeInt32((int32_t)entries.size());
+    for (const auto& e : entries) {
+        w.writeString(e.first);
+        if (!e.second.has_value()) { w.writeInt8(0); continue; }
+        w.writeInt8(tag);
+        writeVal(w, *e.second);
     }
     return w.toNativeBuffer();
 }
@@ -342,6 +375,7 @@ public:
     // ── Struct ───────────────────────────────────────────────────────────────
     TcPoint echoPoint(const TcPoint& value) override { return value; }
     TcRichStruct echoRichStruct(const TcRichStruct& value) override { return value; }
+    TcOptScalars echoOptScalars(const TcOptScalars& value) override { return value; }
 
     // ── @HybridRecord ────────────────────────────────────────────────────────
     NitroCppBuffer echoConfig(NitroCppBuffer value) override { return TcConfig::fromNative(value).toNativeBuffer(); }
@@ -509,6 +543,22 @@ public:
     NitroCppBuffer echoBoolMap(NitroCppBuffer value) override {
         auto entries = nitro_decode_map_param<bool>(value, [](NitroRecordReader& r) -> bool { return r.readBool(); });
         return nitro_encode_map<bool>(entries, 3, [](NitroRecordWriter& w, const bool& v) { w.writeBool(v); });
+    }
+    NitroCppBuffer echoNullableIntMap(NitroCppBuffer value) override {
+        auto entries = nitro_decode_opt_map_param<int64_t>(value, [](NitroRecordReader& r) -> int64_t { return r.readInt(); });
+        return nitro_encode_opt_map<int64_t>(entries, 1, [](NitroRecordWriter& w, const int64_t& v) { w.writeInt(v); });
+    }
+    NitroCppBuffer echoNullableDoubleMap(NitroCppBuffer value) override {
+        auto entries = nitro_decode_opt_map_param<double>(value, [](NitroRecordReader& r) -> double { return r.readDouble(); });
+        return nitro_encode_opt_map<double>(entries, 2, [](NitroRecordWriter& w, const double& v) { w.writeDouble(v); });
+    }
+    NitroCppBuffer echoNullableBoolMap(NitroCppBuffer value) override {
+        auto entries = nitro_decode_opt_map_param<bool>(value, [](NitroRecordReader& r) -> bool { return r.readBool(); });
+        return nitro_encode_opt_map<bool>(entries, 3, [](NitroRecordWriter& w, const bool& v) { w.writeBool(v); });
+    }
+    NitroCppBuffer echoNullableStringMap(NitroCppBuffer value) override {
+        auto entries = nitro_decode_opt_map_param<std::string>(value, [](NitroRecordReader& r) -> std::string { return r.readString(); });
+        return nitro_encode_opt_map<std::string>(entries, 4, [](NitroRecordWriter& w, const std::string& v) { w.writeString(v); });
     }
     NitroCppBuffer echoConfigMap(NitroCppBuffer value) override {
         auto entries = nitro_decode_map_param<TcConfig>(value, [](NitroRecordReader& r) -> TcConfig {

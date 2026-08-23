@@ -209,6 +209,20 @@ void main() {
       expect(api.echoIntMap(const {}), isEmpty);
     });
 
+    test('nullable values keep the key, tag 0', () {
+      final ints = api.echoNullableIntMap({'a': 1, 'none': null});
+      expect(ints.length, 2);
+      expect(ints['a'], 1);
+      expect(ints.containsKey('none'), isTrue);
+      expect(ints['none'], isNull);
+
+      // false and '' must not be confused with null.
+      expect(api.echoNullableBoolMap({'f': false, 'none': null}), {'f': false, 'none': null});
+      expect(api.echoNullableStringMap({'empty': '', 'none': null}), {'empty': '', 'none': null});
+      expect(api.echoNullableDoubleMap({'d': -0.5, 'none': null}), {'d': -0.5, 'none': null});
+      expect(api.echoNullableIntMap(const {}), isEmpty);
+    });
+
     test('record-valued map (tagged blob values)', () {
       final out = api.echoConfigMap({
         'one': TcConfig(name: 'one', count: 1, enabled: true, threshold: 0.5),
@@ -376,6 +390,26 @@ void main() {
       }
       // The shared default instance must be untouched by all that churn.
       expect(api.echoInt(7), 7);
+    });
+  });
+
+  group('@HybridStruct nullable scalar fields (wasm32 presence byte)', () {
+    test('present, absent and zero-valued fields are all distinguished', () {
+      final all = api.echoOptScalars(TcOptScalars(count: 42, ratio: 1.5, flag: true, keep: 7));
+      expect([all.count, all.ratio, all.flag, all.keep], [42, 1.5, true, 7]);
+
+      final none = api.echoOptScalars(TcOptScalars(keep: 9));
+      expect([none.count, none.ratio, none.flag], [null, null, null]);
+      expect(none.keep, 9, reason: 'the non-nullable neighbour must be unaffected');
+
+      // A zero payload must not read back as absent.
+      final zeros = api.echoOptScalars(TcOptScalars(count: 0, ratio: 0.0, flag: false, keep: 1));
+      expect([zeros.count, zeros.ratio, zeros.flag], [0, 0.0, false]);
+    });
+
+    test('a mix keeps each field independent', () {
+      final r = api.echoOptScalars(TcOptScalars(count: -1, flag: false, keep: 3));
+      expect([r.count, r.ratio, r.flag, r.keep], [-1, null, false, 3]);
     });
   });
 

@@ -191,6 +191,14 @@ abstract class NitroTypeCoverage extends HybridObject {
   Map<String, TcConfig> echoConfigMap(Map<String, TcConfig> value);
   Map<String, TcEvent> echoEventMap(Map<String, TcEvent> value);
 
+  // §72: nullable map VALUES — tag 0 on the String-key wire. int-key maps and
+  // enum/record/variant values still cannot carry a null (E018).
+  TcOptScalars echoOptScalars(TcOptScalars value);
+  Map<String, int?> echoNullableIntMap(Map<String, int?> value);
+  Map<String, double?> echoNullableDoubleMap(Map<String, double?> value);
+  Map<String, bool?> echoNullableBoolMap(Map<String, bool?> value);
+  Map<String, String?> echoNullableStringMap(Map<String, String?> value);
+
   // ── @HybridRecord with enum field (§25 coverage) ─────────────────────────
   // Tests binary codec with mixed primitive + enum field ordering.
   TcPacket echoPacket(TcPacket value);
@@ -597,6 +605,18 @@ class TcPoint {
   final double y;
   final double z;
   TcPoint({required this.x, required this.y, required this.z});
+}
+
+/// §73: nullable SCALAR struct fields. A flat C struct has no spare bit in an
+/// int64_t/double/int8_t slot, so each nullable scalar gets a synthesized
+/// `<field>HasValue` byte.
+@HybridStruct()
+class TcOptScalars {
+  final int? count;
+  final double? ratio;
+  final bool? flag;
+  final int keep;
+  TcOptScalars({this.count, this.ratio, this.flag, required this.keep});
 }
 
 @HybridRecord()

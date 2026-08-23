@@ -21,6 +21,7 @@ import nitro.nitro_type_coverage_module.TcPacket
 import nitro.nitro_type_coverage_module.TcEvent
 import nitro.nitro_type_coverage_module.TcPoint
 import nitro.nitro_type_coverage_module.TcRichStruct
+import nitro.nitro_type_coverage_module.TcOptScalars
 import nitro.nitro_type_coverage_module.TcStatus
 import nitro.nitro_type_coverage_module.TcPriority
 import nitro.nitro_type_coverage_module.TcStructHolder
@@ -202,6 +203,12 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     override fun echoStringMap(value: Map<String, String>): Map<String, String> = value
     override fun echoDoubleMap(value: Map<String, Double>): Map<String, Double> = value
     override fun echoBoolMap(value: Map<String, Boolean>): Map<String, Boolean> = value
+    // §72: nullable map values — tag 0 on the wire, null in the Kotlin map.
+    override fun echoOptScalars(value: TcOptScalars): TcOptScalars = value
+    override fun echoNullableIntMap(value: Map<String, Long?>): Map<String, Long?> = value
+    override fun echoNullableDoubleMap(value: Map<String, Double?>): Map<String, Double?> = value
+    override fun echoNullableBoolMap(value: Map<String, Boolean?>): Map<String, Boolean?> = value
+    override fun echoNullableStringMap(value: Map<String, String?>): Map<String, String?> = value
     override fun echoConfigMap(value: Map<String, TcConfig>): Map<String, TcConfig> = value
     override fun echoEventMap(value: Map<String, TcEvent>): Map<String, TcEvent> = value
 

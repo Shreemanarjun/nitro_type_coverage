@@ -346,6 +346,35 @@ public:
         // return { nullptr, 0 };
     }
 
+    TcOptScalars echoOptScalars(const TcOptScalars& value) override {
+        // TODO: implement echoOptScalars
+        throw std::runtime_error("Not implemented: echoOptScalars");
+    }
+
+    NitroCppBuffer echoNullableIntMap(NitroCppBuffer value) override {
+        // TODO: implement echoNullableIntMap
+        throw std::runtime_error("Not implemented: echoNullableIntMap");
+        // return { nullptr, 0 };
+    }
+
+    NitroCppBuffer echoNullableDoubleMap(NitroCppBuffer value) override {
+        // TODO: implement echoNullableDoubleMap
+        throw std::runtime_error("Not implemented: echoNullableDoubleMap");
+        // return { nullptr, 0 };
+    }
+
+    NitroCppBuffer echoNullableBoolMap(NitroCppBuffer value) override {
+        // TODO: implement echoNullableBoolMap
+        throw std::runtime_error("Not implemented: echoNullableBoolMap");
+        // return { nullptr, 0 };
+    }
+
+    NitroCppBuffer echoNullableStringMap(NitroCppBuffer value) override {
+        // TODO: implement echoNullableStringMap
+        throw std::runtime_error("Not implemented: echoNullableStringMap");
+        // return { nullptr, 0 };
+    }
+
     NitroCppBuffer echoPacket(NitroCppBuffer value) override {
         // TODO: implement echoPacket
         throw std::runtime_error("Not implemented: echoPacket");

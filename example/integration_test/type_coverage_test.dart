@@ -6817,6 +6817,114 @@ void main() {
 
 
   // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════════════
+  // §72 nullable map VALUES — tag 0 on the String-key wire. The key stays
+  // present with a null value; dropping the key instead is the failure this
+  // guards against (Swift's compactMapValues does exactly that).
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('§72 Map<String, T?> — nullable values', () {
+    test('Map<String, int?> keeps null keys and values', () {
+      final m = tc.echoNullableIntMap({'a': 1, 'none': null, 'z': -9007199254740991});
+      expect(m.length, 3);
+      expect(m['a'], 1);
+      expect(m.containsKey('none'), isTrue);
+      expect(m['none'], isNull);
+      expect(m['z'], -9007199254740991);
+    });
+
+    test('Map<String, double?>', () {
+      final m = tc.echoNullableDoubleMap({'pi': 3.5, 'none': null});
+      expect(m.length, 2);
+      expect(m['pi'], 3.5);
+      expect(m.containsKey('none'), isTrue);
+      expect(m['none'], isNull);
+    });
+
+    test('Map<String, bool?> distinguishes false from null', () {
+      final m = tc.echoNullableBoolMap({'t': true, 'f': false, 'none': null});
+      expect(m.length, 3);
+      expect(m['t'], isTrue);
+      expect(m['f'], isFalse);
+      expect(m.containsKey('none'), isTrue);
+      expect(m['none'], isNull);
+    });
+
+    test('Map<String, String?> distinguishes empty string from null', () {
+      final m = tc.echoNullableStringMap({'s': 'hëllo', 'empty': '', 'none': null});
+      expect(m.length, 3);
+      expect(m['s'], 'hëllo');
+      expect(m['empty'], '');
+      expect(m.containsKey('none'), isTrue);
+      expect(m['none'], isNull);
+    });
+
+    test('all-null and empty maps round-trip', () {
+      final all = tc.echoNullableIntMap({'a': null, 'b': null});
+      expect(all.length, 2);
+      expect(all.values.every((v) => v == null), isTrue);
+      expect(tc.echoNullableStringMap({}), isEmpty);
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // §73 nullable SCALAR @HybridStruct fields. A flat C struct has no spare bit
+  // in an int64_t/double/int8_t slot, so absence rides a synthesized
+  // `<field>HasValue` byte. Previously these fields generated code that did
+  // not compile, and the validator let the spec through.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('§73 @HybridStruct — nullable scalar fields', () {
+    test('all present round-trips', () {
+      final r = tc.echoOptScalars(TcOptScalars(count: 42, ratio: 1.5, flag: true, keep: 7));
+      expect(r.count, 42);
+      expect(r.ratio, 1.5);
+      expect(r.flag, isTrue);
+      expect(r.keep, 7);
+    });
+
+    test('all absent round-trips as null, not as zero', () {
+      final r = tc.echoOptScalars(TcOptScalars(keep: 9));
+      expect(r.count, isNull);
+      expect(r.ratio, isNull);
+      expect(r.flag, isNull);
+      expect(r.keep, 9, reason: 'the non-nullable neighbour must be unaffected');
+    });
+
+    test('false and 0 are distinguished from null', () {
+      final r = tc.echoOptScalars(TcOptScalars(count: 0, ratio: 0.0, flag: false, keep: 1));
+      expect(r.count, 0);
+      expect(r.ratio, 0.0);
+      expect(r.flag, isFalse);
+      // The bug this guards: a zero payload read back as "absent".
+      expect(r.count, isNotNull);
+      expect(r.flag, isNotNull);
+    });
+
+    test('a mix of present and absent keeps each field independent', () {
+      final r = tc.echoOptScalars(TcOptScalars(count: -1, flag: false, keep: 3));
+      expect(r.count, -1);
+      expect(r.ratio, isNull);
+      expect(r.flag, isFalse);
+      expect(r.keep, 3);
+    });
+
+    test('extreme payloads survive alongside the presence byte', () {
+      final r = tc.echoOptScalars(TcOptScalars(count: -9007199254740991, ratio: -0.0, flag: true, keep: 9007199254740991));
+      expect(r.count, -9007199254740991);
+      expect(r.ratio, -0.0);
+      expect(r.keep, 9007199254740991);
+    });
+
+    test('200 round-trips stay stable (no drift in the byte)', () {
+      for (var i = 0; i < 200; i++) {
+        final r = tc.echoOptScalars(TcOptScalars(count: i.isEven ? i : null, keep: i));
+        expect(r.count, i.isEven ? i : null);
+        expect(r.keep, i);
+      }
+    });
+  });
+
   // §71 @HybridStruct with every field slot — the wasm32 layout must agree
   // with the C typedef on every platform, not just web.
   // ══════════════════════════════════════════════════════════════════════════

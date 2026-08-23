@@ -107,6 +107,13 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     public func echoStringMap(value: Any) -> Any { value }
     public func echoDoubleMap(value: Any) -> Any { value }
     public func echoBoolMap(value: Any) -> Any { value }
+    // §72: nullable map values — the shared codec carries tag 0 as NSNull,
+    // so the pass-through echo needs no special handling.
+    public func echoOptScalars(value: TcOptScalars) -> TcOptScalars { value }
+    public func echoNullableIntMap(value: Any) -> Any { value }
+    public func echoNullableDoubleMap(value: Any) -> Any { value }
+    public func echoNullableBoolMap(value: Any) -> Any { value }
+    public func echoNullableStringMap(value: Any) -> Any { value }
     public func echoConfigMap(value: Any) -> Any { value }
     public func echoEventMap(value: Any) -> Any { value }
 
