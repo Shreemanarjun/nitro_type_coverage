@@ -5,6 +5,10 @@
 # Builds the plugin's WASM module(s) into assets/web/ (bundled as Flutter
 # assets — declared under `flutter: assets:` in pubspec.yaml).
 # Requires the Emscripten SDK on PATH: https://emscripten.org/docs/getting_started
+#
+# Records the generated bridge each module was built against; `nitrogen doctor`
+# warns when a bridge has been regenerated since this script was written.
+# NITRO_BRIDGE_CHECKSUM nitro_type_coverage 60dffbee42ab45ac
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -19,9 +23,20 @@ mkdir -p "$OUT"
 # shims the Dart API under __EMSCRIPTEN__).
 IMPL_SOURCES=$(ls src/Hybrid*.cpp 2>/dev/null || ls src/*.cpp 2>/dev/null | grep -v dart_api_dl || true)
 
-em++ -O2 --no-entry -fwasm-exceptions \
+# NITRO_WEB_THREADS=1 builds with wasm threads: impls may spawn std::thread and
+# native-async work leaves the main thread. Needs SharedArrayBuffer — serve the
+# app cross-origin isolated (COOP/COEP), or test in Chrome with
+# --enable-features=SharedArrayBuffer. Workers are same-origin: the module must
+# be served from the app's own origin.
+THREAD_FLAGS=""
+if [ "${NITRO_WEB_THREADS:-0}" = "1" ]; then
+  THREAD_FLAGS="-pthread -sPTHREAD_POOL_SIZE=4 -sPTHREAD_POOL_SIZE_STRICT=0 -sMAXIMUM_MEMORY=1gb"
+fi
+
+# nitro_type_coverage: web-specific impl
+em++ -O2 --no-entry -fwasm-exceptions $THREAD_FLAGS \
   -Isrc -Isrc/native -I"$GEN" \
-  "$GEN/nitro_type_coverage.bridge.g.cpp" $IMPL_SOURCES \
+  "$GEN/nitro_type_coverage.bridge.g.cpp" web/src/HybridNitroTypeCoverage.cpp \
   -sMODULARIZE=1 -sEXPORT_NAME=createNitroTypeCoverageModule \
   -sALLOW_MEMORY_GROWTH=1 -sALLOW_TABLE_GROWTH=1 \
   -sWASM_BIGINT=1 -sENVIRONMENT=web \

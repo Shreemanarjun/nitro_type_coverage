@@ -1,4 +1,6 @@
-// HybridNitroTypeCoverage — NativeImpl.cpp implementation.
+// HybridNitroTypeCoverage — web (WASM) implementation, compiled by web/build_web.sh
+// instead of the shared src/ copy (nitrogen link selects this file because it holds
+// real code). Kept in step with src/ by test/desktop_impl_parity_test.dart.
 //
 // SUPERSEDED / no longer compiled for this plugin: windows/CMakeLists.txt
 // and linux/CMakeLists.txt now each set their own NITRO_IMPL_SRC_nitro_type_coverage
@@ -51,7 +53,7 @@
 // detached std::thread to push items asynchronously, mirroring the Kotlin
 // impl's `CoroutineScope(Dispatchers.Default).launch { ... }` pattern.
 
-#include "../lib/src/generated/cpp/nitro_type_coverage.native.g.h"
+#include "../../lib/src/generated/cpp/nitro_type_coverage.native.g.h"
 
 #ifdef __EMSCRIPTEN__
 // Web: Dart_PostCObject_DL is provided by nitro's compat shim over the
@@ -352,7 +354,7 @@ public:
     double echoDouble(double value) override { return value; }
     bool echoBool(bool value) override { return value; }
     std::string echoString(const std::string& value) override { return value; }
-    std::string implVariant() override { return "cpp"; }
+    std::string implVariant() override { return "cpp-web"; }
 
     // ── Multi-param ──────────────────────────────────────────────────────────
     int64_t addInts(int64_t a, int64_t b, int64_t c) override { return a + b + c; }

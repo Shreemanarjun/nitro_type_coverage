@@ -34,6 +34,12 @@ void main() {
     api = NitroTypeCoverage.instance;
   });
 
+  group('§75 impl identity', () {
+    test('the wasm was built from web/src, not the shared src/ copy', () {
+      expect(api.implVariant(), 'cpp-web');
+    });
+  });
+
   group('primitives', () {
     test('int round-trips, including past the 32-bit boundary', () {
       expect(api.echoInt(0), 0);
@@ -267,6 +273,31 @@ void main() {
       );
       expect(c.name, 'x');
       expect(c.threshold, 0.25);
+    });
+  });
+
+  group('§74 named-optional nullable record param (@nitroNativeAsync)', () {
+    test('omitting the named param sends null and still returns a record', () async {
+      final r = await api.nativeAsyncPrintText('hello');
+      expect(r.name, 'hello');
+      expect(r.count, 5, reason: 'absent settings → native took the text-length branch');
+      expect(r.enabled, isFalse);
+    });
+
+    test('passing the named param round-trips it', () async {
+      final r = await api.nativeAsyncPrintText(
+        'doc',
+        settings: TcConfig(name: 'ignored', count: 42, enabled: true, threshold: 1.5),
+      );
+      expect(r.name, 'doc');
+      expect(r.count, 42, reason: 'settings were decoded, not treated as absent');
+      expect(r.enabled, isTrue);
+      expect(r.threshold, 1.5);
+    });
+
+    test('explicit null is the same as omitting', () async {
+      final r = await api.nativeAsyncPrintText('x', settings: null);
+      expect(r.count, 1);
     });
   });
 

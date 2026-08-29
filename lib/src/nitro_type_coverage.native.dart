@@ -307,6 +307,19 @@ abstract class NitroTypeCoverage extends HybridObject {
   @nitroNativeAsync
   Future<TcConfig> nativeAsyncConfig(TcConfig value);
 
+  // §74: named OPTIONAL nullable @HybridRecord param on a @NitroNativeAsync
+  // method that also returns a record — the `{Settings? settings}` shape.
+  // Nothing in this spec used a named-optional param before.
+  @nitroNativeAsync
+  Future<TcConfig> nativeAsyncPrintText(String text, {TcConfig? settings});
+
+  // §75: implementation identity. Each impl answers with the file it lives in
+  // (swift / kotlin / cpp-linux / cpp-windows / cpp-web), so every platform's
+  // test proves which implementation its build actually compiled — the class
+  // of bug where the wrong file is linked is otherwise invisible when two
+  // impls behave identically.
+  String implVariant();
+
   @nitroNativeAsync
   Future<TcConfig?> nativeAsyncNullableConfig(TcConfig? value);
 

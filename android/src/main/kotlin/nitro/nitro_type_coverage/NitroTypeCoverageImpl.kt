@@ -56,6 +56,7 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     override fun echoDouble(value: Double): Double = value
     override fun echoBool(value: Boolean): Boolean = value
     override fun echoString(value: String): String = value
+    override fun implVariant(): String = "kotlin"
 
     // ── Multi-param ───────────────────────────────────────────────────────────
     override fun addInts(a: Long, b: Long, c: Long): Long = a + b + c
@@ -584,6 +585,10 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     override suspend fun nativeAsyncStatus(value: TcStatus): TcStatus = value
     override suspend fun nativeAsyncNullableStatus(value: TcStatus?): TcStatus? = value
     override suspend fun nativeAsyncConfig(value: TcConfig): TcConfig = value
+    // §74: absent settings → record built from the text; present → echo it with name = text.
+    override suspend fun nativeAsyncPrintText(text: String, settings: TcConfig?): TcConfig =
+        if (settings == null) TcConfig(text, text.length.toLong(), false, 0.0)
+        else TcConfig(text, settings.count, settings.enabled, settings.threshold)
     override suspend fun nativeAsyncNullableConfig(value: TcConfig?): TcConfig? = value
     override suspend fun nativeAsyncEvent(value: TcEvent): TcEvent = value
     override suspend fun nativeAsyncConfigList(values: List<TcConfig>): List<TcConfig> = values

@@ -569,6 +569,21 @@ public:
         throw std::runtime_error("Not implemented: nativeAsyncConfig");
     }
 
+    void nativeAsyncPrintText(const std::string& text, NitroCppBuffer settings, NitroError* _nitro_err, int64_t dartPort) override {
+        // TODO: on error, populate _nitro_err (hasError/name/message via strdup) before posting.
+        // TODO: post result via Dart_PostCObject_DL(dartPort, ...)
+        // Nullable result? Post EITHER Dart_CObject_kNull OR kInt64 with
+        // value 0 — both decode to Dart null. Non-nullable results must
+        // always post a real encoded value.
+        throw std::runtime_error("Not implemented: nativeAsyncPrintText");
+    }
+
+    std::string implVariant() override {
+        // TODO: implement implVariant
+        throw std::runtime_error("Not implemented: implVariant");
+        // return "";
+    }
+
     void nativeAsyncNullableConfig(NitroCppBuffer value, NitroError* _nitro_err, int64_t dartPort) override {
         // TODO: on error, populate _nitro_err (hasError/name/message via strdup) before posting.
         // TODO: post result via Dart_PostCObject_DL(dartPort, ...)

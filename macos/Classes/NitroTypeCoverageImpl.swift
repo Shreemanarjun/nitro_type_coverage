@@ -36,6 +36,7 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     public func echoDouble(value: Double) -> Double { value }
     public func echoBool(value: Bool) -> Bool { value }
     public func echoString(value: String) -> String { value }
+    public func implVariant() -> String { "swift" }
 
     // ── Multi-param ───────────────────────────────────────────────────────────
     public func addInts(a: Int64, b: Int64, c: Int64) -> Int64 { a &+ b &+ c }
@@ -540,6 +541,11 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     public func nativeAsyncStatus(value: TcStatus) async throws -> TcStatus { value }
     public func nativeAsyncNullableStatus(value: TcStatus?) async throws -> TcStatus? { value }
     public func nativeAsyncConfig(value: TcConfig) async throws -> TcConfig { value }
+    // §74: absent settings → record built from the text; present → echo it with name = text.
+    public func nativeAsyncPrintText(text: String, settings: TcConfig?) async throws -> TcConfig {
+        guard let s = settings else { return TcConfig(name: text, count: Int64(text.count), enabled: false, threshold: 0.0) }
+        return TcConfig(name: text, count: s.count, enabled: s.enabled, threshold: s.threshold)
+    }
     public func nativeAsyncNullableConfig(value: TcConfig?) async throws -> TcConfig? { value }
     public func nativeAsyncEvent(value: TcEvent) async throws -> TcEvent { value }
     public func nativeAsyncConfigList(values: [TcConfig]) async throws -> [TcConfig] { values }

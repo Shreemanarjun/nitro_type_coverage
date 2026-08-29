@@ -284,6 +284,7 @@ public:
     double echoDouble(double value) override { return value; }
     bool echoBool(bool value) override { return value; }
     std::string echoString(const std::string& value) override { return value; }
+    std::string implVariant() override { return "cpp-windows"; }
 
     // ── Multi-param ──────────────────────────────────────────────────────────
     int64_t addInts(int64_t a, int64_t b, int64_t c) override { return a + b + c; }
@@ -939,6 +940,16 @@ public:
         nitro_run_detached([value, dartPort]() {
             nitro_post_int64(dartPort, value.has_value() ? static_cast<int64_t>(*value) : -1LL);
         });
+    }
+    // §74: named-optional nullable record param. A null `settings` arrives as a
+    // null buffer; echo it back with the text length recorded so the test can
+    // tell "absent" from "present".
+    void nativeAsyncPrintText(const std::string& text, NitroCppBuffer settings, NitroError*, int64_t dartPort) override {
+        TcConfig cfg = settings.data == nullptr
+            ? TcConfig{text, (int64_t)text.size(), false, 0.0}
+            : TcConfig::fromNative(settings);
+        cfg.name = text;
+        nitro_run_detached([cfg, dartPort]() { nitro_post_buffer(dartPort, cfg.toNativeBuffer()); });
     }
     void nativeAsyncConfig(NitroCppBuffer value, NitroError*, int64_t dartPort) override {
         TcConfig cfg = TcConfig::fromNative(value);

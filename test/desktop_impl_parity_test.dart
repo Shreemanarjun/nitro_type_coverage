@@ -17,11 +17,11 @@ Set<String> _names(RegExp re, String path) =>
     re.allMatches(File(path).readAsStringSync()).map((m) => m.group(1)!).toSet();
 
 void main() {
-  test('every pure virtual is implemented in all three C++ copies', () {
+  test('every pure virtual is implemented in all four C++ copies', () {
     final required = _names(_pureVirtual, 'lib/src/generated/cpp/nitro_type_coverage.native.g.h');
     expect(required, isNotEmpty, reason: 'no pure virtuals parsed — the regex or header path is wrong');
 
-    for (final impl in ['src', 'linux/src', 'windows/src']) {
+    for (final impl in ['src', 'linux/src', 'windows/src', 'web/src']) {
       final implemented = _names(_override, '$impl/HybridNitroTypeCoverage.cpp');
       expect(
         required.difference(implemented),

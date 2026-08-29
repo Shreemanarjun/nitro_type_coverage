@@ -9,7 +9,8 @@
 
 import 'dart:async';
 import 'support/process_rss.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -6921,6 +6922,67 @@ void main() {
         final r = tc.echoOptScalars(TcOptScalars(count: i.isEven ? i : null, keep: i));
         expect(r.count, i.isEven ? i : null);
         expect(r.keep, i);
+      }
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // §74 named-OPTIONAL nullable @HybridRecord param on a @NitroNativeAsync
+  // method that also returns a record — `Future<R> f(String, {S? settings})`.
+  // No named-optional param existed anywhere in this spec before.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('§75 impl identity', () {
+    test('this platform compiled the implementation it was meant to', () {
+      // Web is driven against the wasm that web/build_web.sh produced, which
+      // nitrogen link points at web/src (the file holds real code).
+      final expected = kIsWeb
+          ? 'cpp-web'
+          : switch (defaultTargetPlatform) {
+              TargetPlatform.iOS || TargetPlatform.macOS => 'swift',
+              TargetPlatform.android => 'kotlin',
+              TargetPlatform.linux => 'cpp-linux',
+              TargetPlatform.windows => 'cpp-windows',
+              TargetPlatform.fuchsia => throw UnsupportedError('no fuchsia impl'),
+            };
+      expect(tc.implVariant(), expected);
+    });
+  });
+
+  group('§74 @NitroNativeAsync — named optional nullable record param', () {
+    test('omitting the named param sends null', () async {
+      final r = await tc.nativeAsyncPrintText('hello');
+      expect(r.name, 'hello');
+      expect(r.count, 5, reason: 'absent settings → native took the text-length branch');
+      expect(r.enabled, isFalse);
+    });
+
+    test('passing the named param round-trips it', () async {
+      final r = await tc.nativeAsyncPrintText(
+        'doc',
+        settings: TcConfig(name: 'ignored', count: 42, enabled: true, threshold: 1.5),
+      );
+      expect(r.name, 'doc');
+      expect(r.count, 42, reason: 'settings were decoded, not treated as absent');
+      expect(r.enabled, isTrue);
+      expect(r.threshold, 1.5);
+    });
+
+    test('explicit null matches omission', () async {
+      expect((await tc.nativeAsyncPrintText('x', settings: null)).count, 1);
+    });
+
+    test('unicode text survives alongside the optional param', () async {
+      final r = await tc.nativeAsyncPrintText('héllo 😀');
+      expect(r.name, 'héllo 😀');
+    });
+
+    test('repeated calls alternating present/absent stay independent', () async {
+      for (var i = 0; i < 20; i++) {
+        final r = i.isEven
+            ? await tc.nativeAsyncPrintText('a' * (i + 1))
+            : await tc.nativeAsyncPrintText('b', settings: TcConfig(name: '', count: i, enabled: true, threshold: 0));
+        expect(r.count, i.isEven ? i + 1 : i);
       }
     });
   });
