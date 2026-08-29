@@ -278,6 +278,17 @@ _ensure_chromedriver() {
     log_warn "chromedriver not on PATH — cannot drive the web integration suite."
     return 1
   fi
+  # A driver/browser MAJOR mismatch does not error — the session hangs. Fail
+  # fast with the fix instead (Chrome auto-updates underneath a pinned driver).
+  local drv_major chrome_major chrome_bin
+  drv_major=$(chromedriver --version 2>/dev/null | sed -E 's/^ChromeDriver ([0-9]+)\..*/\1/')
+  chrome_bin="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+  command -v google-chrome >/dev/null 2>&1 && chrome_bin="google-chrome"
+  chrome_major=$("$chrome_bin" --version 2>/dev/null | sed -E 's/.* ([0-9]+)\..*/\1/')
+  if [[ -n "$drv_major" && -n "$chrome_major" && "$drv_major" != "$chrome_major" ]]; then
+    log_warn "chromedriver $drv_major does not match Chrome $chrome_major — sessions would hang. Fix: npm install -g chromedriver@$chrome_major"
+    return 1
+  fi
   chromedriver --port=4444 >/dev/null 2>&1 &
   CHROMEDRIVER_PID=$!
   for _ in $(seq 1 20); do
@@ -294,18 +305,21 @@ _ensure_chromedriver() {
 
 _web_drive() {
   cd "$EXAMPLE_DIR" || return 1
-  # `-d chrome`, NOT `-d web-server`: the latter never launches a browser and
-  # the run reports success having executed nothing. The EXTENDED driver is
-  # equally load-bearing — the plain integration_test_driver has no WebDriver
-  # handshake and also reports a vacuous pass.
+  # `-d web-server --browser-name=chrome`: the tool only serves the app and
+  # WebDriver (chromedriver on 4444) launches the browser and loads it. With
+  # `-d chrome` on Flutter 3.47.2 the drive deadlocks — its web runner awaits
+  # a Chrome instance the launcher itself started, but drive never launches
+  # one (no-launch-chrome), so the app never reports started and the driver
+  # script never runs. The EXTENDED driver stays load-bearing: the plain
+  # integration_test_driver has no WebDriver handshake and reports a vacuous
+  # pass on web-server.
   #
   # `--wasm` is mandatory, not a preference: the suite contains int64 min/max
   # literals that dart2js cannot even compile (53-bit ints).
   flutter drive \
     --driver=test_driver/integration_test.dart \
     --target="$TEST_FILE" \
-    -d chrome --wasm \
-    --web-browser-flag=--headless=new \
+    -d web-server --browser-name=chrome --headless --wasm \
     --web-browser-flag=--no-sandbox
 }
 
