@@ -120,6 +120,42 @@ flutter test integration_test/type_coverage_test.dart -d macos
 
 ---
 
+### Patrol — OS-driven `@NitroEntryPoint` checks
+
+`integration_test/bg_patrol_test.dart` uses [Patrol](https://patrol.leancode.co)
+for the cases plain integration tests cannot drive: the app is sent to the
+background and a job is started **by the OS** through the `nitrobg://run?text=…`
+link (`NitroBgJobActivity` on Android, the scene delegate on iOS), then the app
+is brought back and the card is checked against the persisted result.
+
+```bash
+dart pub global activate patrol_cli   # once
+cd example
+patrol test -t integration_test/bg_patrol_test.dart -d emulator-5554
+patrol test -t integration_test/bg_patrol_test.dart -d "iPhone 17 Pro"
+```
+
+Native wiring lives in `example/android/app/build.gradle.kts` +
+`androidTest/.../MainActivityTest.java` and `example/ios/RunnerUITests`
+(a UI-testing bundle in the `Runner` scheme). Scenarios: in-app job, OS-started
+while backgrounded / foregrounded, a burst of 5, a failing entry followed by a
+good one, a slow job overlapping a fast one, a Dart-started job surviving
+backgrounding — each ending with `activeNitroTypeCoverageBackgroundJobs() == 0`.
+
+The **app-killed** path cannot be driven from Patrol (its Dart side runs inside
+the app), so `scripts/bg_native_check.sh android|ios|all` force-stops /
+terminates the app before every scenario, starts the jobs purely from the OS
+(broadcast, VIEW intent, URL scheme), and reads what the entries persisted:
+single job in a fresh process, burst of 5, fast + slow + failing together
+(order, and the failure text reaching the native `onDone` callback and the
+`Nitro` log tag). Manual one-liners for the same thing:
+
+```bash
+adb shell am broadcast -a nitro.BG_JOB \
+  -n nitro.nitro_type_coverage_example/.NitroBgJobReceiver --es entry bgAppend --es text hello
+xcrun simctl openurl booted "nitrobg://run?entry=bgAppend&text=hello"
+```
+
 ## Key Implementation Notes
 
 ### `@NitroOwned` — `acquireBuffer`

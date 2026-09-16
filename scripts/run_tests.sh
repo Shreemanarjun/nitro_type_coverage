@@ -74,9 +74,14 @@ regen() {
     cp "$GEN/swift/nitro_type_coverage.bridge.g.swift" "$PLUGIN_DIR/ios/Classes/nitro_type_coverage.bridge.g.swift"
     cp "$GEN/swift/nitro_type_coverage.bridge.g.swift" "$PLUGIN_DIR/macos/Classes/nitro_type_coverage.bridge.g.swift"
     cp "$GEN/swift/nitro_type_coverage.bridge.g.swift" "$PLUGIN_DIR/macos/nitro_type_coverage/Sources/NitroTypeCoverage/nitro_type_coverage.bridge.g.swift"
+    cp "$GEN/swift/nitro_type_coverage.bridge.g.swift" "$PLUGIN_DIR/ios/nitro_type_coverage/Sources/NitroTypeCoverage/nitro_type_coverage.bridge.g.swift"
     # ObjC++ bridge (includes _release symbols)
     cp "$GEN/cpp/nitro_type_coverage.bridge.g.cpp" "$PLUGIN_DIR/ios/Classes/nitro_type_coverage.bridge.g.mm"
     cp "$GEN/cpp/nitro_type_coverage.bridge.g.cpp" "$PLUGIN_DIR/macos/Classes/nitro_type_coverage.bridge.g.mm"
+    # SwiftPM C++ targets are 3-line shims that #include the generated .cpp by
+    # relative path (always fresh); only the shared header copies need syncing.
+    cp "$PLUGIN_DIR/src/native/nitro_background.h" "$PLUGIN_DIR/ios/nitro_type_coverage/Sources/NitroTypeCoverageCpp/include/nitro_background.h"
+    cp "$PLUGIN_DIR/src/native/nitro_background.h" "$PLUGIN_DIR/macos/nitro_type_coverage/Sources/NitroTypeCoverageCpp/include/nitro_background.h"
     cp "$GEN/cpp/nitro_type_coverage.bridge.g.h"   "$PLUGIN_DIR/ios/Classes/nitro_type_coverage.bridge.g.h"
     cp "$GEN/cpp/nitro_type_coverage.bridge.g.h"   "$PLUGIN_DIR/macos/Classes/nitro_type_coverage.bridge.g.h"
     log_ok "Apple platform sync complete"

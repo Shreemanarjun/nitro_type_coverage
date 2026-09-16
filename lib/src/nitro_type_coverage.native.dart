@@ -4,6 +4,7 @@ import 'package:nitro/nitro.dart';
 // Web-targeting specs get their instance factory from the platform shim, which
 // resolves to the dart:ffi impl natively and to the WASM bridge on web.
 import 'nitro_type_coverage.platform.g.dart';
+import 'bg_persist.dart';
 
 part 'nitro_type_coverage.g.dart';
 
@@ -818,3 +819,143 @@ class TcEventNullable extends TcEvent {
 // functions (not extension methods, which cannot be added to typedefs).
 @NitroTuple()
 typedef TcPair = (int, String);
+
+// ── §76 @NitroEntryPoint — background invocation ─────────────────────────────
+// Set by the MAIN isolate before submitting; a fresh isolate/engine sees null,
+// which is how the tests prove the work ran elsewhere without dart:isolate.
+String? nitroBgMainMarker;
+
+@nitroEntryPoint
+Future<String> bgEcho(String text) async => '$text|${nitroBgMainMarker ?? 'fresh'}';
+
+/// Every type family and every parameter shape in one signature.
+@nitroEntryPoint
+Future<TcConfig> bgTransform(
+  TcPoint p,
+  TcConfig cfg,
+  TcPriority prio,
+  List<TcEvent> events,
+  Map<String, int> counts,
+  DateTime at,
+  Uint8List bytes,
+  Float64List samples,
+  TcPair pair, [
+  double scale = 1.0,
+]) async {
+  final tapSum = events.whereType<TcEventTap>().fold(0, (s, e) => s + e.x + e.y);
+  return TcConfig(
+    name: '${prio.name}|${events.length}|$tapSum|${counts['a']}|${at.millisecondsSinceEpoch}|${bytes.length}|${samples.first}|${pair.$1}:${pair.$2}',
+    count: (cfg.count * scale).round(),
+    enabled: !cfg.enabled,
+    threshold: p.x + p.y + p.z + cfg.threshold,
+  );
+}
+
+@nitroEntryPoint
+TcEvent bgVariant(TcEvent e) => switch (e) {
+  TcEventTap(:final x, :final y) => TcEventScroll(delta: (x + y).toDouble()),
+  TcEventScroll(:final delta) => TcEventResize(width: delta.round(), height: -delta.round()),
+  TcEventResize(:final width, :final height) => TcEventTap(x: width, y: height),
+  _ => e,
+};
+
+@nitroEntryPoint
+Future<Map<String, List<int?>>> bgNullable(int? a, List<int?> b, TcPoint? c, {String? note, required bool flag}) async => {
+  'a': [a],
+  'b': b,
+  'c': [c?.x.round(), c?.y.round()],
+  'note': [note?.length],
+  'flag': [flag ? 1 : 0],
+};
+
+@nitroEntryPoint
+Future<void> bgVoid(int n) async {
+  if (n < 0) throw ArgumentError.value(n, 'n', 'must be >= 0');
+}
+
+@nitroEntryPoint
+Future<int> bgThrows(String message) async => throw StateError(message);
+
+/// The background isolate uses the module itself (sync call into native).
+@nitroEntryPoint
+Future<int> bgCallsModule(int a, int b) async => NitroTypeCoverage.instance.addInts(a, b, 0);
+
+@nitroEntryPoint
+Future<int> bgSlow(int ms) async {
+  await Future<void>.delayed(Duration(milliseconds: ms));
+  return ms;
+}
+
+@nitroEntryPoint
+NitroAnyMap bgAnyMap(NitroAnyMap m) => m;
+
+@nitroEntryPoint
+Future<List<TcPair>> bgTuples(List<TcPair> pairs, TcPair? maybe) async => [...pairs, ?maybe, (pairs.length, 'n')];
+
+// ── §77 @NitroEntryPoint — streams from the background, native-initiated jobs ──
+@nitroEntryPoint
+Stream<int> bgTicks(int n) async* {
+  for (var i = 0; i < n; i++) {
+    await Future<void>.delayed(const Duration(milliseconds: 5));
+    yield i;
+  }
+}
+
+@nitroEntryPoint
+Stream<TcPoint> bgPoints(int n) async* {
+  for (var i = 0; i < n; i++) {
+    yield TcPoint(x: i.toDouble(), y: i * 2.0, z: 0);
+  }
+}
+
+@nitroEntryPoint
+Stream<int> bgStreamThrows(int after) async* {
+  for (var i = 0; i < after; i++) {
+    yield i;
+  }
+  throw StateError('stream boom');
+}
+
+/// Never ends on its own — proves cancellation stops the producer.
+@nitroEntryPoint
+Stream<int> bgInfinite() async* {
+  var i = 0;
+  while (true) {
+    await Future<void>.delayed(const Duration(milliseconds: 2));
+    yield i++;
+  }
+}
+
+/// The native-initiated demo entry: a Worker/BroadcastReceiver/URL launch runs
+/// it with no Dart submitter; the app reads the persisted line later.
+/// Appends its line instead of overwriting: bursts of native-initiated jobs
+/// (N broadcasts / URL opens in a row) must all land, in any order.
+@nitroEntryPoint
+Future<String> bgAppend(String text) async {
+  final line = '$text @ ${DateTime.now().toIso8601String()}';
+  await appendBgLine(line);
+  return line;
+}
+
+/// Slow twin of [bgAppend]: a job that is still running while others start
+/// and finish, and while the app may be opened or closed around it.
+@nitroEntryPoint
+Future<String> bgSlowAppend(String text) async {
+  await Future<void>.delayed(const Duration(seconds: 3));
+  return bgAppend(text);
+}
+
+/// Throws with a stack — the error/stack/entry must reach the caller as a
+/// NitroBackgroundException (Dart) or the onDone error text (native).
+@nitroEntryPoint
+Future<String> bgFailAppend(String text) async {
+  await appendBgLine('$text failing');
+  throw StateError('bgFailAppend: $text');
+}
+
+@nitroEntryPoint
+Future<String> bgPersist(String text) async {
+  final line = '$text @ ${DateTime.now().toIso8601String()}';
+  await persistBgResult(line);
+  return line;
+}

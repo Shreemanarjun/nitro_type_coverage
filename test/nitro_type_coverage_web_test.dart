@@ -517,4 +517,13 @@ void main() {
       );
     });
   });
+
+  group('@NitroEntryPoint on web', () {
+    test('no background host, and the typed runners throw UnsupportedError', () {
+      expect(hasNitroTypeCoverageBackgroundHost(), isFalse);
+      expect(() => runBgEchoInBackground('x'), throwsUnsupportedError);
+      expect(() => runBgVoidInBackground(1), throwsUnsupportedError);
+      expect(() => runBgTicksInBackground(1), throwsUnsupportedError);
+    });
+  });
 }

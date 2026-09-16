@@ -7173,4 +7173,286 @@ void main() {
       });
     });
   }, skip: rssAvailable ? false : 'RSS is not observable in a browser');
+
+  group('§76 @NitroEntryPoint — background invocation', () {
+    // On web the typed runners exist but throw; everything else is native.
+    final web = kIsWeb;
+
+    test('reports which path this platform uses', () {
+      if (web) {
+        expect(hasNitroTypeCoverageBackgroundHost(), isFalse);
+        return;
+      }
+      final host = hasNitroTypeCoverageBackgroundHost();
+      final expectHost = defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;
+      expect(host, expectHost, reason: 'Android/iOS start a headless engine; macOS/desktop use the isolate fallback');
+    });
+
+    test('runs on a fresh isolate/engine and returns the result', () async {
+      if (web) {
+        expect(() => runBgEchoInBackground('x'), throwsUnsupportedError);
+        return;
+      }
+      nitroBgMainMarker = 'main';
+      final r = await runBgEchoInBackground('hello');
+      expect(r, 'hello|fresh', reason: 'a fresh isolate does not see the main isolate\'s global');
+      expect(nitroBgMainMarker, 'main', reason: 'main isolate state untouched');
+    }, timeout: const Timeout(Duration(minutes: 2)));
+
+    test('every type family and parameter shape crosses both ways', () async {
+      if (web) return;
+      final at = DateTime.fromMillisecondsSinceEpoch(1700000000123);
+      final r = await runBgTransformInBackground(
+        TcPoint(x: 1, y: 2, z: 3),
+        TcConfig(name: 'in', count: 10, enabled: false, threshold: 0.5),
+        TcPriority.high,
+        [const TcEventTap(x: 1, y: 2), const TcEventScroll(delta: 4.5), const TcEventTap(x: 10, y: 20)],
+        {'a': 7, 'b': 8},
+        at,
+        Uint8List.fromList([1, 2, 3, 4, 5]),
+        Float64List.fromList([2.5, 3.5]),
+        (42, 'pair'),
+        3.0,
+      );
+      expect(r.name, 'high|3|33|7|1700000000123|5|2.5|42:pair');
+      expect(r.count, 30);
+      expect(r.enabled, isTrue);
+      expect(r.threshold, 6.5);
+    }, timeout: const Timeout(Duration(minutes: 2)));
+
+    test('variants in and out (sync entry point)', () async {
+      if (web) return;
+      expect(await runBgVariantInBackground(const TcEventTap(x: 3, y: 4)), isA<TcEventScroll>().having((e) => e.delta, 'delta', 7.0));
+      expect(await runBgVariantInBackground(const TcEventScroll(delta: 2.0)), isA<TcEventResize>().having((e) => e.height, 'height', -2));
+      expect(await runBgVariantInBackground(const TcEventResize(width: 9, height: 8)), isA<TcEventTap>().having((e) => e.x, 'x', 9));
+    }, timeout: const Timeout(Duration(minutes: 2)));
+
+    test('nullable params, nullable list items, nullable struct, named required/optional', () async {
+      if (web) return;
+      final r = await runBgNullableInBackground(null, [1, null, 3], TcPoint(x: 1.4, y: 2.6, z: 0), flag: true);
+      expect(r['a'], [null]);
+      expect(r['b'], [1, null, 3]);
+      expect(r['c'], [1, 3]);
+      expect(r['note'], [null]);
+      expect(r['flag'], [1]);
+      final r2 = await runBgNullableInBackground(5, const [], null, note: 'abc', flag: false);
+      expect(r2['a'], [5]);
+      expect(r2['c'], [null, null]);
+      expect(r2['note'], [3]);
+    }, timeout: const Timeout(Duration(minutes: 2)));
+
+    test('tuples and lists of tuples', () async {
+      if (web) return;
+      final r = await runBgTuplesInBackground([(1, 'a'), (2, 'b')], (3, 'c'));
+      expect(r, [(1, 'a'), (2, 'b'), (3, 'c'), (2, 'n')]);
+      expect(await runBgTuplesInBackground(const [], null), [(0, 'n')]);
+    }, timeout: const Timeout(Duration(minutes: 2)));
+
+    test('NitroAnyMap round-trips with its dynamic values', () async {
+      if (web) return;
+      final m = NitroAnyMap.fromDynamic({'i': 1, 'd': 2.5, 's': 'x', 'b': true, 'n': null, 'l': [1, 'two'], 'o': {'k': 'v'}});
+      final r = await runBgAnyMapInBackground(m);
+      expect(r.toDynamic(), m.toDynamic());
+    }, timeout: const Timeout(Duration(minutes: 2)));
+
+    test('void return completes; a thrown error surfaces as HybridException', () async {
+      if (web) return;
+      await runBgVoidInBackground(3);
+      await expectLater(runBgVoidInBackground(-1), throwsA(isA<HybridException>().having((e) => e.message, 'message', contains('must be >= 0'))));
+      await expectLater(runBgThrowsInBackground('kaboom'), throwsA(isA<HybridException>().having((e) => e.message, 'message', contains('kaboom'))));
+    }, timeout: const Timeout(Duration(minutes: 2)));
+
+    test('the background isolate can use the module itself', () async {
+      if (web) return;
+      expect(await runBgCallsModuleInBackground(20, 22), 42);
+    }, timeout: const Timeout(Duration(minutes: 2)));
+
+    test('concurrent jobs complete independently, each with its own result', () async {
+      if (web) return;
+      final results = await Future.wait([
+        runBgSlowInBackground(120),
+        runBgSlowInBackground(30),
+        runBgSlowInBackground(60),
+        runBgEchoInBackground('z'),
+      ]);
+      expect(results, [120, 30, 60, 'z|fresh']);
+    }, timeout: const Timeout(Duration(minutes: 3)));
+
+    test('sequential jobs after previous ones finished (engine/isolate teardown is clean)', () async {
+      if (web) return;
+      for (var i = 0; i < 5; i++) {
+        expect(await runBgEchoInBackground('n$i'), 'n$i|fresh');
+      }
+    }, timeout: const Timeout(Duration(minutes: 3)));
+
+    test('large payloads (256 KiB bytes, 10k-element lists) cross intact', () async {
+      if (web) return;
+      final bytes = Uint8List.fromList(List.generate(256 * 1024, (i) => i & 0xff));
+      final r = await runBgTransformInBackground(
+        TcPoint(x: 0, y: 0, z: 0),
+        TcConfig(name: '', count: 1, enabled: true, threshold: 0),
+        TcPriority.low,
+        List.generate(10000, (i) => TcEventTap(x: i, y: 0)),
+        const {'a': 0},
+        DateTime.fromMillisecondsSinceEpoch(0),
+        bytes,
+        Float64List.fromList([1.0]),
+        (0, ''),
+      );
+      expect(r.name, startsWith('low|10000|49995000|0|0|262144|1.0|0:'));
+    }, timeout: const Timeout(Duration(minutes: 3)));
+  });
+
+  group('§78 @NitroEntryPoint — errors, same-entry concurrency, mixed engines', () {
+    setUp(() async {
+      await clearBgLines();
+    });
+
+    Future<void> waitForIdle() async {
+      final deadline = DateTime.now().add(const Duration(seconds: 10));
+      while (activeNitroTypeCoverageBackgroundJobs() != 0 && DateTime.now().isBefore(deadline)) {
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+      }
+      expect(activeNitroTypeCoverageBackgroundJobs(), 0, reason: 'every job left the table');
+    }
+
+    test('a throwing entry surfaces a NitroBackgroundException with entry, message and remote stack', () async {
+      Object? caught;
+      try {
+        await runBgFailAppendInBackground('x1');
+      } catch (e) {
+        caught = e;
+      }
+      expect(caught, isA<NitroBackgroundException>());
+      final e = caught! as NitroBackgroundException;
+      expect(e.entry, 'bgFailAppend');
+      expect(e.message, 'Bad state: bgFailAppend: x1');
+      expect(e.stackTrace, isNotNull);
+      expect(e.stackTrace, contains('bgFailAppend'), reason: 'the stack is the one captured where it threw');
+      expect(e.isStartFailure, isFalse);
+      expect(e, isA<HybridException>(), reason: 'old catch sites keep working');
+      expect('$e', startsWith('NitroBackgroundException(bgFailAppend): Bad state: bgFailAppend: x1'));
+      expect(await readBgLines(), ['x1 failing'], reason: 'work before the throw was done');
+      await waitForIdle();
+    });
+
+    test('a failed job does not affect the next one on the same entry', () async {
+      await expectLater(runBgFailAppendInBackground('x2'), throwsA(isA<NitroBackgroundException>()));
+      final line = await runBgAppendInBackground('after');
+      expect(line, startsWith('after @'));
+      await waitForIdle();
+    });
+
+    test('10 concurrent jobs of the same entry each get their own result (engine ↔ job binding)', () async {
+      final results = await Future.wait(List.generate(10, (i) => runBgAppendInBackground('c$i')));
+      for (var i = 0; i < 10; i++) {
+        expect(results[i], startsWith('c$i @'), reason: 'result $i belongs to job $i');
+      }
+      final lines = await readBgLines();
+      expect(lines.length, 10);
+      expect(lines.map((l) => l.split(' ').first).toSet().length, 10, reason: 'no job ran twice, none was lost');
+      await waitForIdle();
+    });
+
+    test('slow and fast jobs run in parallel: the fast one resolves first', () async {
+      final order = <String>[];
+      final slow = runBgSlowAppendInBackground('slow').then((_) => order.add('slow'));
+      final fast = runBgAppendInBackground('fast').then((_) => order.add('fast'));
+      await Future.wait([slow, fast]);
+      expect(order, ['fast', 'slow']);
+      await waitForIdle();
+    });
+
+    test('different entries at once: future, slow future, echo and a stream all complete', () async {
+      final results = await Future.wait<Object>([
+        runBgAppendInBackground('mixed'),
+        runBgSlowAppendInBackground('mixed-slow'),
+        runBgEchoInBackground('echo'),
+        runBgTicksInBackground(4).toList(),
+        runBgFailAppendInBackground('mixed-fail').then<Object>((v) => v, onError: (Object e) => e),
+      ]);
+      expect(results[0], startsWith('mixed @'));
+      expect(results[1], startsWith('mixed-slow @'));
+      expect(results[2], 'echo|fresh');
+      expect(results[3], [0, 1, 2, 3]);
+      expect(results[4], isA<NitroBackgroundException>().having((e) => e.entry, 'entry', 'bgFailAppend'));
+      await waitForIdle();
+    });
+
+    test('stream entry errors are NitroBackgroundException too', () async {
+      Object? err;
+      await runBgStreamThrowsInBackground(2).handleError((Object e) => err = e).drain<void>();
+      expect(err, isA<NitroBackgroundException>().having((e) => e.entry, 'entry', 'bgStreamThrows'));
+      expect((err! as NitroBackgroundException).stackTrace, isNotNull);
+      await waitForIdle();
+    });
+  });
+
+  group('§77 @NitroEntryPoint — streams from the background + persistence', () {
+    final web = kIsWeb;
+
+    test('a Stream<int> entry streams items in order then completes', () async {
+      if (web) {
+        expect(() => runBgTicksInBackground(3), throwsUnsupportedError);
+        return;
+      }
+      expect(await runBgTicksInBackground(5).toList(), [0, 1, 2, 3, 4]);
+    }, timeout: const Timeout(Duration(minutes: 2)));
+
+    test('typed stream items (struct) decode per item', () async {
+      if (web) return;
+      final pts = await runBgPointsInBackground(3).toList();
+      expect(pts.map((p) => p.x), [0.0, 1.0, 2.0]);
+      expect(pts.map((p) => p.y), [0.0, 2.0, 4.0]);
+    }, timeout: const Timeout(Duration(minutes: 2)));
+
+    test('an error mid-stream delivers the earlier items then a HybridException', () async {
+      if (web) return;
+      final got = <int>[]; Object? err;
+      await for (final v in runBgStreamThrowsInBackground(3).handleError((Object e) => err = e)) {
+        got.add(v);
+      }
+      expect(got, [0, 1, 2]);
+      expect(err, isA<HybridException>().having((e) => e.message, 'message', contains('stream boom')));
+    }, timeout: const Timeout(Duration(minutes: 2)));
+
+    test('cancelling the subscription stops an endless producer; later jobs still work', () async {
+      if (web) return;
+      final got = <int>[];
+      final done = Completer<void>();
+      late final StreamSubscription<int> sub;
+      sub = runBgInfiniteInBackground().listen((v) {
+        got.add(v);
+        if (got.length == 3) {
+          sub.cancel();
+          done.complete();
+        }
+      });
+      await done.future;
+      final seen = got.length;
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      expect(got.length, seen, reason: 'no items after cancel');
+      expect(await runBgEchoInBackground('after-cancel'), 'after-cancel|fresh');
+    }, timeout: const Timeout(Duration(minutes: 2)));
+
+    test('two streams run concurrently and stay separate', () async {
+      if (web) return;
+      final r = await Future.wait([runBgTicksInBackground(4).toList(), runBgTicksInBackground(2).toList()]);
+      expect(r, [[0, 1, 2, 3], [0, 1]]);
+    }, timeout: const Timeout(Duration(minutes: 2)));
+
+    test('sync and async entries both work (explicit)', () async {
+      if (web) return;
+      expect(await runBgVariantInBackground(const TcEventTap(x: 1, y: 1)), isA<TcEventScroll>(), reason: 'sync entry');
+      expect(await runBgEchoInBackground('async'), 'async|fresh', reason: 'async entry');
+    }, timeout: const Timeout(Duration(minutes: 2)));
+
+    test('a job persists its result where the app can read it later', () async {
+      if (web) return;
+      await clearBgResult();
+      final line = await runBgPersistInBackground('from test');
+      expect(line, startsWith('from test @ '));
+      expect(await readBgResult(), line, reason: 'written by the background isolate, read by this one');
+    }, timeout: const Timeout(Duration(minutes: 2)));
+  });
 }

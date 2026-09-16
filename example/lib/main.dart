@@ -94,7 +94,87 @@ class _DemoDashboardState extends State<DemoDashboard> {
   final Map<String, StreamSubscription> _activeSubs = {};
   final _activeStreamsCount = signal<int>(0);
 
+  @override
+  void initState() {
+    super.initState();
+    _refreshBgResult();
+  }
+
   plugin.NitroTypeCoverage get _api => plugin.NitroTypeCoverage.instance;
+
+  // @NitroEntryPoint demo: what a background job left behind (persisted by
+  // bgPersist in the headless engine / fallback isolate), refreshed on demand.
+  final _bgResult = signal<String>('(no background result yet)');
+  final _bgBusy = signal<bool>(false);
+
+  Future<void> _refreshBgResult() async {
+    final r = await plugin.readBgResult();
+    _bgResult.value = r ?? '(no background result yet)';
+  }
+
+  Future<void> _runBgJobFromApp() async {
+    _bgBusy.value = true;
+    try {
+      final line = await plugin.runBgPersistInBackground('from app');
+      _log('background job done: $line');
+    } catch (e) {
+      _log('background job failed: $e');
+    } finally {
+      _bgBusy.value = false;
+      await _refreshBgResult();
+    }
+  }
+
+  Widget _buildBackgroundCard(ColorScheme cs) {
+    return Card(
+      key: const Key('bg-card'),
+      margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.work_history_outlined, size: 18),
+                const SizedBox(width: 8),
+                const Expanded(child: Text('Background job (@NitroEntryPoint)', style: TextStyle(fontWeight: FontWeight.bold))),
+                SignalBuilder(
+                  builder: (_) => plugin.hasNitroTypeCoverageBackgroundHost()
+                      ? const Chip(label: Text('headless engine'), visualDensity: VisualDensity.compact)
+                      : const Chip(label: Text('isolate fallback'), visualDensity: VisualDensity.compact),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            SignalBuilder(
+              builder: (_) => SelectableText(_bgResult.value, key: const Key('bg-result'), style: const TextStyle(fontFamily: 'monospace', fontSize: 12)),
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                SignalBuilder(
+                  builder: (_) => FilledButton.tonalIcon(
+                    key: const Key('bg-run'),
+                    onPressed: _bgBusy.value ? null : _runBgJobFromApp,
+                    icon: const Icon(Icons.play_arrow, size: 16),
+                    label: const Text('Run job now'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  key: const Key('bg-refresh'),
+                  onPressed: _refreshBgResult,
+                  icon: const Icon(Icons.refresh, size: 16),
+                  label: const Text('Refresh'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   void _log(String message) {
     final timestamp = DateTime.now().toLocal().toString().split(' ')[1].substring(0, 12);
@@ -307,6 +387,9 @@ class _DemoDashboardState extends State<DemoDashboard> {
         children: [
           // ─── Pinned Results Dashboard ───
           _buildTerminal(colorScheme),
+
+          // ─── Background job result (@NitroEntryPoint) ───
+          _buildBackgroundCard(colorScheme),
 
           // ─── Pinned Search Bar ───
           _buildSearchBar(colorScheme),
