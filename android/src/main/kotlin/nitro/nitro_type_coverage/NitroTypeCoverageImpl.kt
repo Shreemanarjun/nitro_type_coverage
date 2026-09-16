@@ -388,6 +388,30 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     // function can free() it directly when the NativeHandle is GC'd.
     override fun acquireBuffer(size: Long): Long = _allocNative(size)
 
+    // ── §79: Fast hot paths + NativeHandle params (GH #51/#52) ───────────────
+    override fun addIntsFast(a: Long, b: Long): Long = a + b
+    override fun touchFast() {}
+    override fun addIntsInline(a: Long, b: Long): Long = a + b
+    override fun scaleFast(v: Double, factor: Double): Double = v * factor
+    override fun notFast(v: Boolean): Boolean = !v
+    override fun nextStatusFast(s: TcStatus): TcStatus = TcStatus.values()[(s.ordinal + 1) % 3]
+    override fun optIncFast(v: Long?): Long? = v?.plus(1)
+    override fun strLenFast(s: String): Long = s.toByteArray(Charsets.UTF_8).size.toLong()
+    override fun throwsFast(v: Long): Long {
+        if (v < 0) throw RuntimeException("throwsFast: negative")
+        return v
+    }
+    // Handles are raw addresses (see acquireBuffer): fill/read through Unsafe.
+    override fun bufferFill(buffer: Long, size: Long, byte: Long): Long {
+        if (buffer == 0L || size <= 0L) return 0L
+        _setMemory(buffer, size, byte.toByte())
+        return size
+    }
+    // JVM bytes are signed: mask so 0xAB reads as 171, not -85 (a real §79 catch).
+    override fun addIntsHot(a: Long, b: Long): Long = a + b
+    override fun bufferFirstByteHot(buffer: Long): Long = if (buffer == 0L) -1L else (_getByte(buffer).toInt() and 0xFF).toLong()
+    override fun bufferFirstByteFast(buffer: Long): Long = if (buffer == 0L) -1L else (_getByte(buffer).toInt() and 0xFF).toLong()
+
     // ── §36: @NitroVariant ────────────────────────────────────────────────────
     override fun echoEvent(event: TcEvent): TcEvent = event
 
@@ -694,5 +718,13 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
             Class.forName("sun.misc.Unsafe").getDeclaredMethod("allocateMemory", Long::class.java)
         }
         fun _allocNative(size: Long): Long = _allocateMemoryMethod.invoke(_unsafeInstance, size) as Long
+        private val _setMemoryMethod by lazy {
+            Class.forName("sun.misc.Unsafe").getDeclaredMethod("setMemory", Long::class.java, Long::class.java, Byte::class.java)
+        }
+        private val _getByteMethod by lazy {
+            Class.forName("sun.misc.Unsafe").getDeclaredMethod("getByte", Long::class.java)
+        }
+        fun _setMemory(address: Long, bytes: Long, value: Byte) { _setMemoryMethod.invoke(_unsafeInstance, address, bytes, value) }
+        fun _getByte(address: Long): Byte = _getByteMethod.invoke(_unsafeInstance, address) as Byte
     }
 }

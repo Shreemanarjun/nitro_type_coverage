@@ -781,6 +781,82 @@ public:
         throw std::runtime_error("Not implemented: nativeAsyncEchoOptionalConfig");
     }
 
+    int64_t addIntsFast(int64_t a, int64_t b) override {
+        // TODO: implement addIntsFast
+        throw std::runtime_error("Not implemented: addIntsFast");
+        // return 0;
+    }
+
+    void touchFast() override {
+        // TODO: implement touchFast
+        throw std::runtime_error("Not implemented: touchFast");
+    }
+
+    int64_t addIntsInline(int64_t a, int64_t b) override {
+        // TODO: implement addIntsInline
+        throw std::runtime_error("Not implemented: addIntsInline");
+        // return 0;
+    }
+
+    double scaleFast(double v, double factor) override {
+        // TODO: implement scaleFast
+        throw std::runtime_error("Not implemented: scaleFast");
+        // return 0.0;
+    }
+
+    bool notFast(bool v) override {
+        // TODO: implement notFast
+        throw std::runtime_error("Not implemented: notFast");
+        // return false;
+    }
+
+    TcStatus nextStatusFast(TcStatus s) override {
+        // TODO: implement nextStatusFast
+        throw std::runtime_error("Not implemented: nextStatusFast");
+    }
+
+    std::optional<int64_t> optIncFast(std::optional<int64_t> v) override {
+        // TODO: implement optIncFast
+        throw std::runtime_error("Not implemented: optIncFast");
+        // return std::nullopt;
+    }
+
+    int64_t strLenFast(const std::string& s) override {
+        // TODO: implement strLenFast
+        throw std::runtime_error("Not implemented: strLenFast");
+        // return 0;
+    }
+
+    int64_t throwsFast(int64_t v) override {
+        // TODO: implement throwsFast
+        throw std::runtime_error("Not implemented: throwsFast");
+        // return 0;
+    }
+
+    int64_t bufferFill(void* buffer, int64_t size, int64_t byte) override {
+        // TODO: implement bufferFill
+        throw std::runtime_error("Not implemented: bufferFill");
+        // return 0;
+    }
+
+    int64_t bufferFirstByteFast(void* buffer) override {
+        // TODO: implement bufferFirstByteFast
+        throw std::runtime_error("Not implemented: bufferFirstByteFast");
+        // return 0;
+    }
+
+    int64_t addIntsHot(int64_t a, int64_t b) override {
+        // TODO: implement addIntsHot
+        throw std::runtime_error("Not implemented: addIntsHot");
+        // return 0;
+    }
+
+    int64_t bufferFirstByteHot(void* buffer) override {
+        // TODO: implement bufferFirstByteHot
+        throw std::runtime_error("Not implemented: bufferFirstByteHot");
+        // return 0;
+    }
+
     void* acquireBuffer(int64_t size) override {
         // TODO: implement acquireBuffer
         throw std::runtime_error("Not implemented: acquireBuffer");

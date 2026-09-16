@@ -120,6 +120,36 @@ flutter test integration_test/type_coverage_test.dart -d macos
 
 ---
 
+### §79 — `...Fast` hot paths and `NativeHandle` parameters
+
+Every scalar shape a hot loop uses (`int`, `void`, `double`, `bool`, enum,
+nullable) as a `Fast` method, a `Fast` method with a String argument (keeps the
+arena path), a `Fast` method whose native side throws (swallowed by contract;
+the next checked call must still be clean because the bridge clears the error
+slot per call), and methods taking a `NativeHandle` (`bufferFill`,
+`bufferFirstByteFast`) over a buffer from `acquireBuffer`, and the same
+contract via the `@nitroFast` annotation without a name suffix (`addIntsHot`,
+`bufferFirstByteHot`). All five native
+implementations carry them; the Kotlin one reads bytes through `Unsafe` and
+masks the JVM's signed `Byte` — the first thing this section caught.
+
+`addIntsInline` is `@nitroFast` + `@nitroNativeAsync`: the Dart signature is
+`Future<int>` but the bridge call is synchronous and the future completes
+inline (no port, no isolate wake); every native impl is a plain sync method.
+The test compares it against `nativeAsyncInt` (port post) and requires it to
+be at least 2× faster on every native platform.
+
+### §80 — `@NitroEntryPoint` with every parameter kind
+
+`bgProgress`, `bgHandleFirstByte`, `bgKeyedMaps`, `bgAnyNative`,
+`bgTickWithCallback` and `bgRecordCallback` cover: `void` callbacks (each call
+is proxied back to the submitting isolate; the proxy ports close when the job
+ends), an optional nullable callback, `NativeHandle<Void>` by address (caller
+keeps ownership), `Map<int, …>` / `Map<TcStatus, …>`, `AnyNativeObject` by id,
+nullable handles inside a list, a stream entry with a callback, struct + enum
+callback arguments, and 20 concurrent callback jobs. Runs on macOS (spawned
+isolate), Android and iOS (headless engines).
+
 ### Patrol — OS-driven `@NitroEntryPoint` checks
 
 `integration_test/bg_patrol_test.dart` uses [Patrol](https://patrol.leancode.co)

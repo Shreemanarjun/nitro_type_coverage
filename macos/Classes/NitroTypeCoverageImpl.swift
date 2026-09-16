@@ -350,6 +350,34 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
         return UnsafeMutableRawPointer.allocate(byteCount: Int(size), alignment: 16)
     }
 
+    // ── §79: Fast hot paths + NativeHandle params (GH #51/#52) ───────────────
+    public func addIntsFast(a: Int64, b: Int64) -> Int64 { a &+ b }
+    public func touchFast() {}
+    public func addIntsInline(a: Int64, b: Int64) -> Int64 { a &+ b }
+    public func scaleFast(v: Double, factor: Double) -> Double { v * factor }
+    public func notFast(v: Bool) -> Bool { !v }
+    public func nextStatusFast(s: TcStatus) -> TcStatus { TcStatus(rawValue: (s.rawValue + 1) % 3)! }
+    public func optIncFast(v: Int64?) -> Int64? { v.map { $0 &+ 1 } }
+    public func strLenFast(s: String) -> Int64 { Int64(s.utf8.count) }
+    public func throwsFast(v: Int64) -> Int64 {
+        if v < 0 { NSException(name: NSExceptionName("NativeTestError"), reason: "throwsFast: negative", userInfo: nil).raise() }
+        return v
+    }
+    public func bufferFill(buffer: UnsafeMutableRawPointer?, size: Int64, byte: Int64) -> Int64 {
+        guard let b = buffer, size > 0 else { return 0 }
+        memset(b, Int32(truncatingIfNeeded: byte), Int(size))
+        return size
+    }
+    public func addIntsHot(a: Int64, b: Int64) -> Int64 { a &+ b }
+    public func bufferFirstByteHot(buffer: UnsafeMutableRawPointer?) -> Int64 {
+        guard let b = buffer else { return -1 }
+        return Int64(b.load(as: UInt8.self))
+    }
+    public func bufferFirstByteFast(buffer: UnsafeMutableRawPointer?) -> Int64 {
+        guard let b = buffer else { return -1 }
+        return Int64(b.load(as: UInt8.self))
+    }
+
     // ── §36: @NitroVariant ────────────────────────────────────────────────────
     public func echoEvent(event: TcEvent) -> TcEvent { return event }
 

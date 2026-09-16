@@ -469,6 +469,37 @@ abstract class NitroTypeCoverage extends HybridObject {
   @nitroNativeAsync
   Future<TcConfig?> nativeAsyncEchoOptionalConfig(TcConfig? config);
 
+  // ── §79: `...Fast` hot paths + NativeHandle parameters (GH #51/#52) ──────
+  // Fast = leaf binding, bare body (no callSync closure), NO error-slot check.
+  // Every scalar shape a hot loop would use, plus the contract edge cases:
+  // a Fast method that throws natively (swallowed; the next call must be
+  // clean because the bridge clears the slot per call) and a Fast method with
+  // an arena argument (String) that must keep the arena path.
+  int addIntsFast(int a, int b);
+  void touchFast();
+  // @nitroFast + @nitroNativeAsync: Future signature, inline completion — the
+  // native side is a plain sync method and no port is opened.
+  @nitroFast
+  @nitroNativeAsync
+  Future<int> addIntsInline(int a, int b);
+  double scaleFast(double v, double factor);
+  bool notFast(bool v);
+  TcStatus nextStatusFast(TcStatus s);
+  int? optIncFast(int? v);
+  int strLenFast(String s);
+  /// Throws natively when [v] < 0 — a Fast-contract violation the bridge
+  /// swallows; returns v otherwise.
+  int throwsFast(int v);
+  /// Byte length written into a buffer from [acquireBuffer]: a plain method
+  /// with a NativeHandle parameter now binds `isLeaf: true`.
+  int bufferFill(NativeHandle<Void> buffer, int size, int byte);
+  int bufferFirstByteFast(NativeHandle<Void> buffer);
+  /// The annotation form of the same contract — no suffix in the name.
+  @nitroFast
+  int addIntsHot(int a, int b);
+  @nitroFast
+  int bufferFirstByteHot(NativeHandle<Void> buffer);
+
   // ── §36: @NitroOwned — returns an opaque handle ──────────────────────────
   // acquireBuffer returns an opaque native handle via @NitroOwned.
   @NitroOwned()
@@ -958,4 +989,46 @@ Future<String> bgPersist(String text) async {
   final line = '$text @ ${DateTime.now().toIso8601String()}';
   await persistBgResult(line);
   return line;
+}
+
+// ── §80: entry points take every parameter kind ────────────────────────────
+// Void callbacks are one-way proxies (each call posts its arguments back to
+// the submitting isolate), handles cross by address (the caller keeps
+// ownership), maps may be int- or enum-keyed, AnyNativeObject crosses by id.
+@nitroEntryPoint
+Future<int> bgProgress(int steps, void Function(int step, String label) onStep, {void Function()? onDone}) async {
+  for (var i = 0; i < steps; i++) {
+    onStep(i, 'step-$i');
+    await Future<void>.delayed(const Duration(milliseconds: 2));
+  }
+  onDone?.call();
+  return steps;
+}
+
+@nitroEntryPoint
+Future<int> bgHandleFirstByte(NativeHandle<Void> buffer) async => NitroTypeCoverage.instance.bufferFirstByteFast(buffer);
+
+@nitroEntryPoint
+Future<Map<TcStatus, List<int>>> bgKeyedMaps(Map<int, String> byId, Map<TcStatus, int> counts) async => {
+  for (final e in counts.entries) e.key: [e.value, byId.length, ...byId.keys],
+};
+
+@nitroEntryPoint
+AnyNativeObject bgAnyNative(AnyNativeObject o, List<NativeHandle<Void>?> handles) =>
+    AnyNativeObject(o.instanceId + handles.whereType<NativeHandle<Void>>().length);
+
+@nitroEntryPoint
+Stream<int> bgTickWithCallback(int n, void Function(int tick) onTick) async* {
+  for (var i = 0; i < n; i++) {
+    onTick(i);
+    yield i * 10;
+  }
+}
+
+@nitroEntryPoint
+Future<List<TcPoint>> bgRecordCallback(List<TcPoint> points, void Function(TcPoint p, TcStatus s) onEach) async {
+  for (final p in points) {
+    onEach(p, TcStatus.ok);
+  }
+  return points.reversed.toList();
 }

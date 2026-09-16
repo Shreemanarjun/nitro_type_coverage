@@ -7388,6 +7388,184 @@ void main() {
     });
   });
 
+  group('§80 @NitroEntryPoint — any parameter kind: callbacks, handles, keyed maps, AnyNativeObject', () {
+    Future<void> waitUntil(bool Function() cond, {String? reason}) async {
+      final deadline = DateTime.now().add(const Duration(seconds: 10));
+      while (!cond() && DateTime.now().isBefore(deadline)) {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+      }
+      expect(cond(), isTrue, reason: reason);
+    }
+
+    Future<void> waitForIdle() => waitUntil(() => activeNitroTypeCoverageBackgroundJobs() == 0, reason: 'every job left the table');
+
+    test('void callbacks proxy back to the caller, in order; an absent optional callback is fine', () async {
+      final steps = <String>[];
+      var done = 0;
+      final n = await runBgProgressInBackground(5, (step, label) => steps.add('$step:$label'), onDone: () => done++);
+      expect(n, 5);
+      await waitUntil(() => steps.length == 5 && done == 1, reason: 'every callback delivered: $steps / $done');
+      expect(steps, ['0:step-0', '1:step-1', '2:step-2', '3:step-3', '4:step-4']);
+      expect(await runBgProgressInBackground(2, (_, _) {}), 2);
+      await waitForIdle();
+    });
+
+    test('a NativeHandle crosses by address; the caller keeps ownership', () async {
+      final handle = tc.acquireBuffer(64);
+      tc.bufferFill(handle, 64, 0xAB);
+      expect(await runBgHandleFirstByteInBackground(handle), 0xAB);
+      expect(tc.bufferFirstByteFast(handle), 0xAB, reason: 'still ours afterwards');
+      await waitForIdle();
+    });
+
+    test('int- and enum-keyed maps round-trip, nested list values included', () async {
+      final out = await runBgKeyedMapsInBackground({1: 'a', 7: 'b'}, {TcStatus.ok: 3, TcStatus.pending: 9});
+      expect(out, {
+        TcStatus.ok: [3, 2, 1, 7],
+        TcStatus.pending: [9, 2, 1, 7],
+      });
+    });
+
+    test('AnyNativeObject by id; nullable handles inside a list', () async {
+      final r = await runBgAnyNativeInBackground(const AnyNativeObject(40), [null, NativeHandle<Void>.fromAddress(8), null, NativeHandle<Void>.fromAddress(16)]);
+      expect(r.instanceId, 42);
+    });
+
+    test('stream entry with a callback: ticks reported, items streamed, table idle after done', () async {
+      final ticks = <int>[];
+      final items = await runBgTickWithCallbackInBackground(4, ticks.add).toList();
+      expect(items, [0, 10, 20, 30]);
+      await waitUntil(() => ticks.length == 4, reason: 'ticks: $ticks');
+      expect(ticks, [0, 1, 2, 3]);
+      await waitForIdle();
+    });
+
+    test('struct and enum callback arguments, list of structs in and out', () async {
+      final seen = <String>[];
+      final out = await runBgRecordCallbackInBackground(
+        [TcPoint(x: 1, y: 2, z: 3), TcPoint(x: 4, y: 5, z: 6)],
+        (p, s) => seen.add('${p.x},${p.y},${p.z}:${s.name}'),
+      );
+      expect(out.map((p) => p.x), [4.0, 1.0]);
+      await waitUntil(() => seen.length == 2, reason: 'seen: $seen');
+      expect(seen, ['1.0,2.0,3.0:ok', '4.0,5.0,6.0:ok']);
+      await waitForIdle();
+    });
+
+    test('20 concurrent callback jobs: every call reaches its own submitter', () async {
+      final counts = List.filled(20, 0);
+      await Future.wait([
+        for (var j = 0; j < 20; j++) runBgProgressInBackground(3, (_, _) => counts[j]++),
+      ]);
+      await waitUntil(() => counts.every((c) => c == 3), reason: 'counts: $counts');
+      await waitForIdle();
+    });
+  });
+
+  group('§79 `...Fast` hot paths + NativeHandle parameters (GH #51/#52)', () {
+    test('Fast scalar shapes: int, void, double, bool, enum, nullable', () {
+      expect(tc.addIntsFast(40, 2), 42);
+      expect(() => tc.touchFast(), returnsNormally);
+      expect(tc.scaleFast(2.5, 4.0), 10.0);
+      expect(tc.notFast(true), isFalse);
+      expect(tc.notFast(false), isTrue);
+      expect(tc.nextStatusFast(TcStatus.ok), TcStatus.error);
+      expect(tc.nextStatusFast(TcStatus.pending), TcStatus.ok);
+      expect(tc.optIncFast(41), 42);
+      expect(tc.optIncFast(null), isNull);
+    });
+
+    test('Fast method with a String argument keeps the arena path and works', () {
+      expect(tc.strLenFast(''), 0);
+      expect(tc.strLenFast('héllo'), 6, reason: 'UTF-8 byte length');
+      expect(tc.strLenFast('x' * 10000), 10000);
+    });
+
+    test('edge: a Fast method that throws natively is swallowed, and the NEXT call is clean', () {
+      // Fast = no error-slot read. The bridge clears the slot at the start of
+      // every call, so the swallowed error can never be attributed to a later
+      // fallible method.
+      expect(tc.throwsFast(7), 7);
+      expect(() => tc.throwsFast(-1), returnsNormally, reason: 'Fast contract: nothing reads the slot');
+      expect(tc.addInts(1, 2, 3), 6, reason: 'a checked call right after is unaffected');
+      expect(() => tc.throwNative('own error'), throwsA(isA<HybridException>().having((e) => e.message, 'message', contains('own error'))));
+      expect(tc.throwsFast(5), 5);
+    });
+
+    test('NativeHandle parameter: plain (leaf-bound) and Fast methods share one buffer', () {
+      final buf = tc.acquireBuffer(64);
+      expect(tc.bufferFill(buf, 64, 0xAB), 64);
+      expect(tc.bufferFirstByteFast(buf), 0xAB);
+      expect(tc.bufferFill(buf, 16, 0x01), 16);
+      expect(tc.bufferFirstByteFast(buf), 0x01);
+    });
+
+    test('edge: zero-size fill is a no-op', () {
+      final buf = tc.acquireBuffer(8);
+      tc.bufferFill(buf, 8, 0x5A);
+      expect(tc.bufferFill(buf, 0, 0xFF), 0);
+      expect(tc.bufferFirstByteFast(buf), 0x5A, reason: 'untouched');
+    });
+
+    test('edge: handles from an async acquire work with sync Fast calls', () async {
+      final buf = await tc.asyncAcquireBuffer(32);
+      expect(tc.bufferFill(buf, 32, 0x42), 32);
+      expect(tc.bufferFirstByteFast(buf), 0x42);
+    });
+
+    test('100k Fast calls in a tight loop: correct and allocation-stable', () {
+      var acc = 0;
+      for (var i = 0; i < 100000; i++) {
+        acc += tc.addIntsFast(i, 1);
+      }
+      expect(acc, 100000 * 99999 ~/ 2 + 100000);
+      final buf = tc.acquireBuffer(4);
+      tc.bufferFill(buf, 4, 9);
+      var reads = 0;
+      for (var i = 0; i < 100000; i++) {
+        reads += tc.bufferFirstByteFast(buf);
+      }
+      expect(reads, 900000);
+    });
+
+    test('@nitroFast annotation: same contract without the name suffix', () {
+      expect(tc.addIntsHot(20, 22), 42);
+      final buf = tc.acquireBuffer(4);
+      tc.bufferFill(buf, 4, 0xC3);
+      expect(tc.bufferFirstByteHot(buf), 0xC3);
+      var acc = 0;
+      for (var i = 0; i < 50000; i++) {
+        acc += tc.addIntsHot(i, 0);
+      }
+      expect(acc, 50000 * 49999 ~/ 2);
+    });
+
+    test('edge: Fast methods still guard against use after dispose', () {
+      final own = NitroTypeCoverage.getInstance('§79-dispose');
+      expect(own.addIntsFast(1, 1), 2);
+      own.dispose();
+      expect(() => own.addIntsFast(1, 1), throwsA(isA<StateError>()), reason: 'checkDisposed() is kept on the bare body');
+      expect(() => own.touchFast(), throwsA(isA<StateError>()));
+    });
+    test('@nitroFast + @nitroNativeAsync: Future signature completes inline, well under the port round-trip', () async {
+      expect(await tc.addIntsInline(40, 2), 42);
+      expect(await tc.addIntsInline(-1, 1), 0);
+      if (kIsWeb) return; // no ports on web: nothing to compare against
+      const n = 2000;
+      final sw = Stopwatch()..start();
+      for (var i = 0; i < n; i++) {
+        await tc.addIntsInline(i, 1);
+      }
+      final inlineUs = sw.elapsedMicroseconds / n;
+      sw.reset();
+      for (var i = 0; i < n; i++) {
+        await tc.nativeAsyncInt(i);
+      }
+      final postUs = sw.elapsedMicroseconds / n;
+      expect(inlineUs, lessThan(postUs / 2), reason: 'inline ${inlineUs.toStringAsFixed(2)} µs vs port post ${postUs.toStringAsFixed(2)} µs');
+    });
+  });
+
   group('§77 @NitroEntryPoint — streams from the background + persistence', () {
     final web = kIsWeb;
 

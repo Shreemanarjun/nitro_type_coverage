@@ -51,6 +51,7 @@
 // detached std::thread to push items asynchronously, mirroring the Kotlin
 // impl's `CoroutineScope(Dispatchers.Default).launch { ... }` pattern.
 
+#include <stdexcept>
 #include "../lib/src/generated/cpp/nitro_type_coverage.native.g.h"
 
 #ifdef __EMSCRIPTEN__
@@ -782,6 +783,21 @@ public:
 
     // ── @NitroOwned ──────────────────────────────────────────────────────────
     void* acquireBuffer(int64_t size) override { return malloc((size_t)size); }
+
+    // ── §79: Fast hot paths + NativeHandle params (GH #51/#52) ───────────────
+    int64_t addIntsFast(int64_t a, int64_t b) override { return a + b; }
+    void touchFast() override {}
+    int64_t addIntsInline(int64_t a, int64_t b) override { return a + b; }
+    double scaleFast(double v, double factor) override { return v * factor; }
+    bool notFast(bool v) override { return !v; }
+    TcStatus nextStatusFast(TcStatus s) override { return static_cast<TcStatus>((static_cast<int64_t>(s) + 1) % 3); }
+    std::optional<int64_t> optIncFast(std::optional<int64_t> v) override { if (!v) return std::nullopt; return *v + 1; }
+    int64_t strLenFast(const std::string& s) override { return (int64_t)s.size(); }
+    int64_t throwsFast(int64_t v) override { if (v < 0) throw std::runtime_error("throwsFast: negative"); return v; }
+    int64_t bufferFill(void* buffer, int64_t size, int64_t byte) override { if (!buffer || size <= 0) return 0; memset(buffer, (int)byte, (size_t)size); return size; }
+    int64_t addIntsHot(int64_t a, int64_t b) override { return a + b; }
+    int64_t bufferFirstByteHot(void* buffer) override { return buffer ? (int64_t)(*static_cast<uint8_t*>(buffer)) : -1; }
+    int64_t bufferFirstByteFast(void* buffer) override { return buffer ? (int64_t)(*static_cast<uint8_t*>(buffer)) : -1; }
 
     // ── @NitroVariant ────────────────────────────────────────────────────────
     NitroCppBuffer echoEvent(NitroCppBuffer event) override {
