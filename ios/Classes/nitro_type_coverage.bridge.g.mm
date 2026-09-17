@@ -6102,6 +6102,234 @@ JNIEXPORT void JNICALL Java_nitro_nitro_1type_1coverage_1module_NitroTypeCoverag
 }
 
 } // extern "C"
+#ifndef __EMSCRIPTEN__
+void nitro_type_coverage_release_TcPoint(void* ptr);
+void nitro_type_coverage_release_TcOptScalars(void* ptr);
+void nitro_type_coverage_release_TcRichStruct(void* ptr);
+NITRO_EXPORT void nitro_type_coverage_echo_int_list_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_echo_int_list(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_echo_double_list_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_echo_double_list(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_echo_string_list_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_echo_string_list(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_echo_config_list_dispatch(int64_t instanceId, void* values, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_values = _nitro_copy_framed(values);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_echo_config_list(instanceId, _c_values.empty() ? nullptr : (void*)_c_values.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_int_dispatch(int64_t instanceId, int64_t value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        int64_t _r = nitro_type_coverage_async_int(instanceId, value);
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_i64(dart_port, _r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_double_dispatch(int64_t instanceId, double value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        double _r = nitro_type_coverage_async_double(instanceId, value);
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_f64(dart_port, _r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_bool_dispatch(int64_t instanceId, int8_t value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        int8_t _r = nitro_type_coverage_async_bool(instanceId, value);
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_bool(dart_port, _r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_string_dispatch(int64_t instanceId, const char* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::string _c_value(value ? value : ""); const bool _n_value = value == nullptr;
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        const char* _r = nitro_type_coverage_async_string(instanceId, _n_value ? nullptr : _c_value.c_str());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_str_owned(dart_port, (char*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_config_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_async_config(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_nullable_string_dispatch(int64_t instanceId, const char* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::string _c_value(value ? value : ""); const bool _n_value = value == nullptr;
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        const char* _r = nitro_type_coverage_async_nullable_string(instanceId, _n_value ? nullptr : _c_value.c_str());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_str_owned(dart_port, (char*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_nullable_status_dispatch(int64_t instanceId, int64_t value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        int64_t _r = nitro_type_coverage_async_nullable_status(instanceId, value);
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_i64(dart_port, _r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_meta_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_async_meta(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_echo_config_list_sync_dispatch(int64_t instanceId, void* values, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_values = _nitro_copy_framed(values);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_echo_config_list_sync(instanceId, _c_values.empty() ? nullptr : (void*)_c_values.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_echo_list_bool_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_echo_list_bool(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_echo_point_list_dispatch(int64_t instanceId, void* values, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_values = _nitro_copy_framed(values);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_echo_point_list(instanceId, _c_values.empty() ? nullptr : (void*)_c_values.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_throw_native_async_dispatch(int64_t instanceId, const char* message, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::string _c_message(message ? message : ""); const bool _n_message = message == nullptr;
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        nitro_type_coverage_throw_native_async(instanceId, _n_message ? nullptr : _c_message.c_str());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_null(dart_port);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_int_or_dispatch(int64_t instanceId, int64_t value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        int64_t _r = nitro_type_coverage_async_int_or(instanceId, value);
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_i64(dart_port, _r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_deep_record_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_async_deep_record(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_echo_event_dispatch(int64_t instanceId, void* event, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_event = _nitro_copy_framed(event);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        uint8_t* _r = nitro_type_coverage_async_echo_event(instanceId, _c_event.empty() ? nullptr : (void*)_c_event.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+#endif
 #elif __APPLE__
 extern "C" {
 NITRO_EXPORT void nitro_type_coverage_release_typed_data_return(void* ptr) {
@@ -10361,6 +10589,234 @@ NITRO_EXPORT void nitro_type_coverage_nitro_free(void* ptr) { if (ptr) { free(pt
 NITRO_EXPORT void* nitro_type_coverage_nitro_alloc(size_t size) { return malloc(size); }
 
 } // extern "C"
+#ifndef __EMSCRIPTEN__
+void nitro_type_coverage_release_TcPoint(void* ptr);
+void nitro_type_coverage_release_TcOptScalars(void* ptr);
+void nitro_type_coverage_release_TcRichStruct(void* ptr);
+NITRO_EXPORT void nitro_type_coverage_echo_int_list_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_echo_int_list(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_echo_double_list_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_echo_double_list(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_echo_string_list_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_echo_string_list(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_echo_config_list_dispatch(int64_t instanceId, void* values, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_values = _nitro_copy_framed(values);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_echo_config_list(instanceId, _c_values.empty() ? nullptr : (void*)_c_values.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_int_dispatch(int64_t instanceId, int64_t value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        int64_t _r = nitro_type_coverage_async_int(instanceId, value);
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_i64(dart_port, _r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_double_dispatch(int64_t instanceId, double value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        double _r = nitro_type_coverage_async_double(instanceId, value);
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_f64(dart_port, _r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_bool_dispatch(int64_t instanceId, int8_t value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        int8_t _r = nitro_type_coverage_async_bool(instanceId, value);
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_bool(dart_port, _r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_string_dispatch(int64_t instanceId, const char* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::string _c_value(value ? value : ""); const bool _n_value = value == nullptr;
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        const char* _r = nitro_type_coverage_async_string(instanceId, _n_value ? nullptr : _c_value.c_str());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_str_owned(dart_port, (char*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_config_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_async_config(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_nullable_string_dispatch(int64_t instanceId, const char* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::string _c_value(value ? value : ""); const bool _n_value = value == nullptr;
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        const char* _r = nitro_type_coverage_async_nullable_string(instanceId, _n_value ? nullptr : _c_value.c_str());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_str_owned(dart_port, (char*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_nullable_status_dispatch(int64_t instanceId, int64_t value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        int64_t _r = nitro_type_coverage_async_nullable_status(instanceId, value);
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_i64(dart_port, _r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_meta_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_async_meta(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_echo_config_list_sync_dispatch(int64_t instanceId, void* values, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_values = _nitro_copy_framed(values);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_echo_config_list_sync(instanceId, _c_values.empty() ? nullptr : (void*)_c_values.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_echo_list_bool_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_echo_list_bool(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_echo_point_list_dispatch(int64_t instanceId, void* values, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_values = _nitro_copy_framed(values);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_echo_point_list(instanceId, _c_values.empty() ? nullptr : (void*)_c_values.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_throw_native_async_dispatch(int64_t instanceId, const char* message, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::string _c_message(message ? message : ""); const bool _n_message = message == nullptr;
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        nitro_type_coverage_throw_native_async(instanceId, _n_message ? nullptr : _c_message.c_str());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_null(dart_port);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_int_or_dispatch(int64_t instanceId, int64_t value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        int64_t _r = nitro_type_coverage_async_int_or(instanceId, value);
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_i64(dart_port, _r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_deep_record_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_async_deep_record(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_echo_event_dispatch(int64_t instanceId, void* event, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_event = _nitro_copy_framed(event);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        uint8_t* _r = nitro_type_coverage_async_echo_event(instanceId, _c_event.empty() ? nullptr : (void*)_c_event.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+#endif
 #elif defined(_WIN32) || defined(__linux__) || defined(__EMSCRIPTEN__)  // Windows/Linux/Web: NativeImpl.cpp/wasm — direct C++ dispatch
 #include "nitro_type_coverage.native.g.h"
 
@@ -14127,6 +14583,234 @@ void nitro_type_coverage_configure_nullable_bool_stream(int64_t instanceId, int6
     }
 }
 
+#ifndef __EMSCRIPTEN__
+void nitro_type_coverage_release_TcPoint(void* ptr);
+void nitro_type_coverage_release_TcOptScalars(void* ptr);
+void nitro_type_coverage_release_TcRichStruct(void* ptr);
+NITRO_EXPORT void nitro_type_coverage_echo_int_list_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_echo_int_list(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_echo_double_list_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_echo_double_list(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_echo_string_list_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_echo_string_list(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_echo_config_list_dispatch(int64_t instanceId, void* values, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_values = _nitro_copy_framed(values);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_echo_config_list(instanceId, _c_values.empty() ? nullptr : (void*)_c_values.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_int_dispatch(int64_t instanceId, int64_t value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        int64_t _r = nitro_type_coverage_async_int(instanceId, value);
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_i64(dart_port, _r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_double_dispatch(int64_t instanceId, double value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        double _r = nitro_type_coverage_async_double(instanceId, value);
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_f64(dart_port, _r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_bool_dispatch(int64_t instanceId, int8_t value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        int8_t _r = nitro_type_coverage_async_bool(instanceId, value);
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_bool(dart_port, _r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_string_dispatch(int64_t instanceId, const char* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::string _c_value(value ? value : ""); const bool _n_value = value == nullptr;
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        const char* _r = nitro_type_coverage_async_string(instanceId, _n_value ? nullptr : _c_value.c_str());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_str_owned(dart_port, (char*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_config_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_async_config(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_nullable_string_dispatch(int64_t instanceId, const char* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::string _c_value(value ? value : ""); const bool _n_value = value == nullptr;
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        const char* _r = nitro_type_coverage_async_nullable_string(instanceId, _n_value ? nullptr : _c_value.c_str());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_str_owned(dart_port, (char*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_nullable_status_dispatch(int64_t instanceId, int64_t value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        int64_t _r = nitro_type_coverage_async_nullable_status(instanceId, value);
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_i64(dart_port, _r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_meta_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_async_meta(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_echo_config_list_sync_dispatch(int64_t instanceId, void* values, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_values = _nitro_copy_framed(values);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_echo_config_list_sync(instanceId, _c_values.empty() ? nullptr : (void*)_c_values.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_echo_list_bool_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_echo_list_bool(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_echo_point_list_dispatch(int64_t instanceId, void* values, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_values = _nitro_copy_framed(values);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_echo_point_list(instanceId, _c_values.empty() ? nullptr : (void*)_c_values.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_throw_native_async_dispatch(int64_t instanceId, const char* message, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::string _c_message(message ? message : ""); const bool _n_message = message == nullptr;
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        nitro_type_coverage_throw_native_async(instanceId, _n_message ? nullptr : _c_message.c_str());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_null(dart_port);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_int_or_dispatch(int64_t instanceId, int64_t value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        int64_t _r = nitro_type_coverage_async_int_or(instanceId, value);
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_i64(dart_port, _r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_deep_record_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        void* _r = nitro_type_coverage_async_deep_record(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+NITRO_EXPORT void nitro_type_coverage_async_echo_event_dispatch(int64_t instanceId, void* event, NitroError* _nitro_err, int64_t dart_port) {
+    if (_nitro_err) { _nitro_err->hasError = 0; }
+    std::vector<uint8_t> _c_event = _nitro_copy_framed(event);
+    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
+        nitro_type_coverage_clear_error();
+        uint8_t* _r = nitro_type_coverage_async_echo_event(instanceId, _c_event.empty() ? nullptr : (void*)_c_event.data());
+        NitroError* _e = nitro_type_coverage_get_error();
+        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
+        _nitro_post_ptr(dart_port, (const void*)_r);
+    });
+}
+
+#endif
 int64_t nitro_type_coverage_get_precision(int64_t instanceId, NitroError* _nitro_err) {
     nitro_type_coverage_clear_error();
     if (_nitro_err) { _nitro_err->hasError = 0; }  // S8: clear slot
@@ -14508,234 +15192,6 @@ void nitro_type_coverage_release_nullable_bool_stream_stream(int64_t dart_port) 
 }
 
 } // extern "C"
-#endif
-#ifndef __EMSCRIPTEN__
-void nitro_type_coverage_release_TcPoint(void* ptr);
-void nitro_type_coverage_release_TcOptScalars(void* ptr);
-void nitro_type_coverage_release_TcRichStruct(void* ptr);
-NITRO_EXPORT void nitro_type_coverage_echo_int_list_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
-    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
-    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
-        nitro_type_coverage_clear_error();
-        void* _r = nitro_type_coverage_echo_int_list(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
-        NitroError* _e = nitro_type_coverage_get_error();
-        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
-        _nitro_post_ptr(dart_port, (const void*)_r);
-    });
-}
-
-NITRO_EXPORT void nitro_type_coverage_echo_double_list_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
-    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
-    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
-        nitro_type_coverage_clear_error();
-        void* _r = nitro_type_coverage_echo_double_list(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
-        NitroError* _e = nitro_type_coverage_get_error();
-        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
-        _nitro_post_ptr(dart_port, (const void*)_r);
-    });
-}
-
-NITRO_EXPORT void nitro_type_coverage_echo_string_list_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
-    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
-    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
-        nitro_type_coverage_clear_error();
-        void* _r = nitro_type_coverage_echo_string_list(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
-        NitroError* _e = nitro_type_coverage_get_error();
-        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
-        _nitro_post_ptr(dart_port, (const void*)_r);
-    });
-}
-
-NITRO_EXPORT void nitro_type_coverage_echo_config_list_dispatch(int64_t instanceId, void* values, NitroError* _nitro_err, int64_t dart_port) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
-    std::vector<uint8_t> _c_values = _nitro_copy_framed(values);
-    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
-        nitro_type_coverage_clear_error();
-        void* _r = nitro_type_coverage_echo_config_list(instanceId, _c_values.empty() ? nullptr : (void*)_c_values.data());
-        NitroError* _e = nitro_type_coverage_get_error();
-        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
-        _nitro_post_ptr(dart_port, (const void*)_r);
-    });
-}
-
-NITRO_EXPORT void nitro_type_coverage_async_int_dispatch(int64_t instanceId, int64_t value, NitroError* _nitro_err, int64_t dart_port) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
-    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
-        nitro_type_coverage_clear_error();
-        int64_t _r = nitro_type_coverage_async_int(instanceId, value);
-        NitroError* _e = nitro_type_coverage_get_error();
-        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
-        _nitro_post_i64(dart_port, _r);
-    });
-}
-
-NITRO_EXPORT void nitro_type_coverage_async_double_dispatch(int64_t instanceId, double value, NitroError* _nitro_err, int64_t dart_port) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
-    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
-        nitro_type_coverage_clear_error();
-        double _r = nitro_type_coverage_async_double(instanceId, value);
-        NitroError* _e = nitro_type_coverage_get_error();
-        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
-        _nitro_post_f64(dart_port, _r);
-    });
-}
-
-NITRO_EXPORT void nitro_type_coverage_async_bool_dispatch(int64_t instanceId, int8_t value, NitroError* _nitro_err, int64_t dart_port) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
-    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
-        nitro_type_coverage_clear_error();
-        int8_t _r = nitro_type_coverage_async_bool(instanceId, value);
-        NitroError* _e = nitro_type_coverage_get_error();
-        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
-        _nitro_post_bool(dart_port, _r);
-    });
-}
-
-NITRO_EXPORT void nitro_type_coverage_async_string_dispatch(int64_t instanceId, const char* value, NitroError* _nitro_err, int64_t dart_port) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
-    std::string _c_value(value ? value : ""); const bool _n_value = value == nullptr;
-    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
-        nitro_type_coverage_clear_error();
-        const char* _r = nitro_type_coverage_async_string(instanceId, _n_value ? nullptr : _c_value.c_str());
-        NitroError* _e = nitro_type_coverage_get_error();
-        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
-        _nitro_post_str_owned(dart_port, (char*)_r);
-    });
-}
-
-NITRO_EXPORT void nitro_type_coverage_async_config_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
-    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
-    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
-        nitro_type_coverage_clear_error();
-        void* _r = nitro_type_coverage_async_config(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
-        NitroError* _e = nitro_type_coverage_get_error();
-        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
-        _nitro_post_ptr(dart_port, (const void*)_r);
-    });
-}
-
-NITRO_EXPORT void nitro_type_coverage_async_nullable_string_dispatch(int64_t instanceId, const char* value, NitroError* _nitro_err, int64_t dart_port) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
-    std::string _c_value(value ? value : ""); const bool _n_value = value == nullptr;
-    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
-        nitro_type_coverage_clear_error();
-        const char* _r = nitro_type_coverage_async_nullable_string(instanceId, _n_value ? nullptr : _c_value.c_str());
-        NitroError* _e = nitro_type_coverage_get_error();
-        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
-        _nitro_post_str_owned(dart_port, (char*)_r);
-    });
-}
-
-NITRO_EXPORT void nitro_type_coverage_async_nullable_status_dispatch(int64_t instanceId, int64_t value, NitroError* _nitro_err, int64_t dart_port) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
-    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
-        nitro_type_coverage_clear_error();
-        int64_t _r = nitro_type_coverage_async_nullable_status(instanceId, value);
-        NitroError* _e = nitro_type_coverage_get_error();
-        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
-        _nitro_post_i64(dart_port, _r);
-    });
-}
-
-NITRO_EXPORT void nitro_type_coverage_async_meta_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
-    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
-    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
-        nitro_type_coverage_clear_error();
-        void* _r = nitro_type_coverage_async_meta(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
-        NitroError* _e = nitro_type_coverage_get_error();
-        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
-        _nitro_post_ptr(dart_port, (const void*)_r);
-    });
-}
-
-NITRO_EXPORT void nitro_type_coverage_echo_config_list_sync_dispatch(int64_t instanceId, void* values, NitroError* _nitro_err, int64_t dart_port) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
-    std::vector<uint8_t> _c_values = _nitro_copy_framed(values);
-    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
-        nitro_type_coverage_clear_error();
-        void* _r = nitro_type_coverage_echo_config_list_sync(instanceId, _c_values.empty() ? nullptr : (void*)_c_values.data());
-        NitroError* _e = nitro_type_coverage_get_error();
-        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
-        _nitro_post_ptr(dart_port, (const void*)_r);
-    });
-}
-
-NITRO_EXPORT void nitro_type_coverage_echo_list_bool_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
-    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
-    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
-        nitro_type_coverage_clear_error();
-        void* _r = nitro_type_coverage_echo_list_bool(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
-        NitroError* _e = nitro_type_coverage_get_error();
-        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
-        _nitro_post_ptr(dart_port, (const void*)_r);
-    });
-}
-
-NITRO_EXPORT void nitro_type_coverage_echo_point_list_dispatch(int64_t instanceId, void* values, NitroError* _nitro_err, int64_t dart_port) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
-    std::vector<uint8_t> _c_values = _nitro_copy_framed(values);
-    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
-        nitro_type_coverage_clear_error();
-        void* _r = nitro_type_coverage_echo_point_list(instanceId, _c_values.empty() ? nullptr : (void*)_c_values.data());
-        NitroError* _e = nitro_type_coverage_get_error();
-        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
-        _nitro_post_ptr(dart_port, (const void*)_r);
-    });
-}
-
-NITRO_EXPORT void nitro_type_coverage_throw_native_async_dispatch(int64_t instanceId, const char* message, NitroError* _nitro_err, int64_t dart_port) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
-    std::string _c_message(message ? message : ""); const bool _n_message = message == nullptr;
-    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
-        nitro_type_coverage_clear_error();
-        nitro_type_coverage_throw_native_async(instanceId, _n_message ? nullptr : _c_message.c_str());
-        NitroError* _e = nitro_type_coverage_get_error();
-        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
-        _nitro_post_null(dart_port);
-    });
-}
-
-NITRO_EXPORT void nitro_type_coverage_async_int_or_dispatch(int64_t instanceId, int64_t value, NitroError* _nitro_err, int64_t dart_port) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
-    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
-        nitro_type_coverage_clear_error();
-        int64_t _r = nitro_type_coverage_async_int_or(instanceId, value);
-        NitroError* _e = nitro_type_coverage_get_error();
-        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
-        _nitro_post_i64(dart_port, _r);
-    });
-}
-
-NITRO_EXPORT void nitro_type_coverage_async_deep_record_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
-    std::vector<uint8_t> _c_value = _nitro_copy_framed(value);
-    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
-        nitro_type_coverage_clear_error();
-        void* _r = nitro_type_coverage_async_deep_record(instanceId, _c_value.empty() ? nullptr : (void*)_c_value.data());
-        NitroError* _e = nitro_type_coverage_get_error();
-        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
-        _nitro_post_ptr(dart_port, (const void*)_r);
-    });
-}
-
-NITRO_EXPORT void nitro_type_coverage_async_echo_event_dispatch(int64_t instanceId, void* event, NitroError* _nitro_err, int64_t dart_port) {
-    if (_nitro_err) { _nitro_err->hasError = 0; }
-    std::vector<uint8_t> _c_event = _nitro_copy_framed(event);
-    g_nitro_pool_nitro_type_coverage.enqueue([=]() mutable {
-        nitro_type_coverage_clear_error();
-        uint8_t* _r = nitro_type_coverage_async_echo_event(instanceId, _c_event.empty() ? nullptr : (void*)_c_event.data());
-        NitroError* _e = nitro_type_coverage_get_error();
-        if (_e->hasError) { _nitro_move_err(_nitro_err, _e); _nitro_post_null(dart_port); return; }
-        _nitro_post_ptr(dart_port, (const void*)_r);
-    });
-}
-
 #endif
 
 // ── @NitroEntryPoint: background job table exports ─────────────────────
