@@ -3601,7 +3601,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     final arena = Arena();
     final _nitroErr = calloc<NitroErrorFfi>();
     try {
-      return NitroRuntime.openNativeAsync<List<int>>(
+      return await NitroRuntime.openNativeAsync<List<int>>(
         call: (port) => _echoIntListPtr(
           _instanceId,
           RecordWriter.encodeIndexedPrimitiveList(
@@ -3646,7 +3646,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     final arena = Arena();
     final _nitroErr = calloc<NitroErrorFfi>();
     try {
-      return NitroRuntime.openNativeAsync<List<double>>(
+      return await NitroRuntime.openNativeAsync<List<double>>(
         call: (port) => _echoDoubleListPtr(
           _instanceId,
           RecordWriter.encodeIndexedPrimitiveList(
@@ -3691,7 +3691,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     final arena = Arena();
     final _nitroErr = calloc<NitroErrorFfi>();
     try {
-      return NitroRuntime.openNativeAsync<List<String>>(
+      return await NitroRuntime.openNativeAsync<List<String>>(
         call: (port) => _echoStringListPtr(
           _instanceId,
           RecordWriter.encodeIndexedPrimitiveList(
@@ -3736,7 +3736,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     final arena = Arena();
     final _nitroErr = calloc<NitroErrorFfi>();
     try {
-      return NitroRuntime.openNativeAsync<List<TcConfig>>(
+      return await NitroRuntime.openNativeAsync<List<TcConfig>>(
         call: (port) => _echoConfigListPtr(
           _instanceId,
           RecordWriter.encodeIndexedList(
@@ -3826,7 +3826,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     final arena = Arena();
     final _nitroErr = calloc<NitroErrorFfi>();
     try {
-      return NitroRuntime.openNativeAsync<String>(
+      return await NitroRuntime.openNativeAsync<String>(
         call: (port) => _asyncStringPtr(
           _instanceId,
           value.toNativeUtf8(allocator: arena),
@@ -3852,7 +3852,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     final arena = Arena();
     final _nitroErr = calloc<NitroErrorFfi>();
     try {
-      return NitroRuntime.openNativeAsync<TcConfig>(
+      return await NitroRuntime.openNativeAsync<TcConfig>(
         call: (port) => _asyncConfigPtr(
           _instanceId,
           value.toNative(arena),
@@ -3950,7 +3950,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     final arena = Arena();
     final _nitroErr = calloc<NitroErrorFfi>();
     try {
-      return NitroRuntime.openNativeAsync<String?>(
+      return await NitroRuntime.openNativeAsync<String?>(
         call: (port) => _asyncNullableStringPtr(
           _instanceId,
           value != null ? value.toNativeUtf8(allocator: arena) : nullptr,
@@ -4030,7 +4030,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     final arena = Arena();
     final _nitroErr = calloc<NitroErrorFfi>();
     try {
-      return NitroRuntime.openNativeAsync<TcMeta>(
+      return await NitroRuntime.openNativeAsync<TcMeta>(
         call: (port) =>
             _asyncMetaPtr(_instanceId, value.toNative(arena), _nitroErr, port),
         unpack: (raw) {
@@ -4670,7 +4670,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     final arena = Arena();
     final _nitroErr = calloc<NitroErrorFfi>();
     try {
-      return NitroRuntime.openNativeAsync<List<TcConfig>>(
+      return await NitroRuntime.openNativeAsync<List<TcConfig>>(
         call: (port) => _echoConfigListSyncPtr(
           _instanceId,
           RecordWriter.encodeIndexedList(
@@ -4938,7 +4938,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     final arena = Arena();
     final _nitroErr = calloc<NitroErrorFfi>();
     try {
-      return NitroRuntime.openNativeAsync<List<bool>>(
+      return await NitroRuntime.openNativeAsync<List<bool>>(
         call: (port) => _echoListBoolPtr(
           _instanceId,
           RecordWriter.encodeIndexedPrimitiveList(
@@ -4983,7 +4983,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     final arena = Arena();
     final _nitroErr = calloc<NitroErrorFfi>();
     try {
-      return NitroRuntime.openNativeAsync<List<TcPoint>>(
+      return await NitroRuntime.openNativeAsync<List<TcPoint>>(
         call: (port) => _echoPointListPtr(
           _instanceId,
           RecordWriter.encodeIndexedList(
@@ -6025,7 +6025,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     final arena = Arena();
     final _nitroErr = calloc<NitroErrorFfi>();
     try {
-      return NitroRuntime.openNativeAsync<void>(
+      return await NitroRuntime.openNativeAsync<void>(
         call: (port) => _throwNativeAsyncPtr(
           _instanceId,
           message.toNativeUtf8(allocator: arena),
@@ -6415,7 +6415,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     final arena = Arena();
     final _nitroErr = calloc<NitroErrorFfi>();
     try {
-      return NitroRuntime.openNativeAsync<TcDeepRecord>(
+      return await NitroRuntime.openNativeAsync<TcDeepRecord>(
         call: (port) => _asyncDeepRecordPtr(
           _instanceId,
           value.toNative(arena),
@@ -6477,7 +6477,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     final arena = Arena();
     final _nitroErr = calloc<NitroErrorFfi>();
     try {
-      return NitroRuntime.openNativeAsync<TcEvent>(
+      return await NitroRuntime.openNativeAsync<TcEvent>(
         call: (port) => _asyncEchoEventPtr(
           _instanceId,
           event.toNative(arena),
