@@ -1,4 +1,6 @@
 
+import 'dart:async';
+
 import 'package:nitro/nitro.dart';
 
 // Web-targeting specs get their instance factory from the platform shim, which
@@ -482,6 +484,21 @@ abstract class NitroTypeCoverage extends HybridObject {
   @nitroFast
   @nitroNativeAsync
   Future<int> addIntsInline(int a, int b);
+
+  // ── §81: FutureOr<T> signatures ───────────────────────────────────────────
+  // Declaring FutureOr<T> drops the `async` wrapper: the inline method
+  // returns the value itself (no Future), the dispatched / native-async
+  // methods return the bridge future as is. A disposed call throws
+  // synchronously. The native side is identical to the Future<T> siblings.
+  @nitroFast
+  @nitroNativeAsync
+  FutureOr<int> addIntsInlineOr(int a, int b);
+
+  @nitroAsync
+  FutureOr<int> asyncIntOr(int value);
+
+  @nitroNativeAsync
+  FutureOr<String> nativeAsyncStringOr(String value);
   double scaleFast(double v, double factor);
   bool notFast(bool v);
   TcStatus nextStatusFast(TcStatus s);

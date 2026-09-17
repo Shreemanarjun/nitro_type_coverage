@@ -7462,6 +7462,36 @@ void main() {
     });
   });
 
+  group('§81 FutureOr<T> signatures', () {
+    test('inline @nitroFast @nitroNativeAsync returns the value itself, no Future', () {
+      final r = tc.addIntsInlineOr(40, 2);
+      expect(r, isA<int>());
+      expect(r, 42);
+      expect(r is Future, isFalse);
+    });
+
+    test('dispatched @nitroAsync returns the bridge future as is', () async {
+      final r = tc.asyncIntOr(7);
+      expect(r, isA<Future<int>>());
+      expect(await r, 7);
+      expect(await Future.wait([for (var i = 0; i < 32; i++) Future.value(tc.asyncIntOr(i))]), List.generate(32, (i) => i));
+    });
+
+    test('@nitroNativeAsync returns the bridge future as is', () async {
+      final r = tc.nativeAsyncStringOr('héllo');
+      expect(r, isA<Future<String>>());
+      expect(await r, 'héllo');
+    });
+
+    test('a disposed instance throws synchronously (no async wrapper to fail)', () {
+      final tc2 = NitroTypeCoverage.getInstance('§81-dispose');
+      tc2.dispose();
+      expect(() => tc2.addIntsInlineOr(1, 1), throwsA(isA<StateError>()));
+      expect(() => tc2.asyncIntOr(1), throwsA(isA<StateError>()));
+      expect(() => tc2.nativeAsyncStringOr('x'), throwsA(isA<StateError>()));
+    });
+  });
+
   group('§79 `...Fast` hot paths + NativeHandle parameters (GH #51/#52)', () {
     test('Fast scalar shapes: int, void, double, bool, enum, nullable', () {
       expect(tc.addIntsFast(40, 2), 42);

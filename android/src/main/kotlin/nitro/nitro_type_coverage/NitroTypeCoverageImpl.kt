@@ -139,6 +139,7 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
 
     // ── Async ─────────────────────────────────────────────────────────────────
     override suspend fun asyncInt(value: Long): Long = value
+    override suspend fun asyncIntOr(value: Long): Long = value
     override suspend fun asyncDouble(value: Double): Double = value
     override suspend fun asyncBool(value: Boolean): Boolean = value
     override suspend fun asyncString(value: String): String = value
@@ -294,6 +295,7 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     override suspend fun nativeAsyncDouble(value: Double): Double = value
     override suspend fun nativeAsyncBool(value: Boolean): Boolean = value
     override suspend fun nativeAsyncString(value: String): String = value
+    override suspend fun nativeAsyncStringOr(value: String): String = value
 
     // ── §35: Stream<String> ───────────────────────────────────────────────────
     private val _stringStream = MutableSharedFlow<String>(extraBufferCapacity = 64)
@@ -392,6 +394,7 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     override fun addIntsFast(a: Long, b: Long): Long = a + b
     override fun touchFast() {}
     override fun addIntsInline(a: Long, b: Long): Long = a + b
+    override fun addIntsInlineOr(a: Long, b: Long): Long = a + b
     override fun scaleFast(v: Double, factor: Double): Double = v * factor
     override fun notFast(v: Boolean): Boolean = !v
     override fun nextStatusFast(s: TcStatus): TcStatus = TcStatus.values()[(s.ordinal + 1) % 3]

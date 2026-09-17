@@ -802,6 +802,27 @@ public:
         // return 0;
     }
 
+    int64_t addIntsInlineOr(int64_t a, int64_t b) override {
+        // TODO: implement addIntsInlineOr
+        throw std::runtime_error("Not implemented: addIntsInlineOr");
+        // return 0;
+    }
+
+    int64_t asyncIntOr(int64_t value) override {
+        // TODO: implement asyncIntOr
+        throw std::runtime_error("Not implemented: asyncIntOr");
+        // return 0;
+    }
+
+    void nativeAsyncStringOr(const std::string& value, NitroError* _nitro_err, int64_t dartPort) override {
+        // TODO: on error, populate _nitro_err (hasError/name/message via strdup) before posting.
+        // TODO: post result via Dart_PostCObject_DL(dartPort, ...)
+        // Nullable result? Post EITHER Dart_CObject_kNull OR kInt64 with
+        // value 0 — both decode to Dart null. Non-nullable results must
+        // always post a real encoded value.
+        throw std::runtime_error("Not implemented: nativeAsyncStringOr");
+    }
+
     double scaleFast(double v, double factor) override {
         // TODO: implement scaleFast
         throw std::runtime_error("Not implemented: scaleFast");

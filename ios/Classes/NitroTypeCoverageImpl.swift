@@ -81,6 +81,7 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
 
     // ── Async ─────────────────────────────────────────────────────────────────
     public func asyncInt(value: Int64) async throws -> Int64 { value }
+    public func asyncIntOr(value: Int64) async throws -> Int64 { value }
     public func asyncDouble(value: Double) async throws -> Double { value }
     public func asyncBool(value: Bool) async throws -> Bool { value }
     public func asyncString(value: String) async throws -> String { value }
@@ -256,6 +257,7 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     public func nativeAsyncDouble(value: Double) async throws -> Double { value }
     public func nativeAsyncBool(value: Bool) async throws -> Bool { value }
     public func nativeAsyncString(value: String) async throws -> String { value }
+    public func nativeAsyncStringOr(value: String) async throws -> String { value }
 
     // ── §35: Stream<String> ───────────────────────────────────────────────────
     private let _stringStreamSubject = PassthroughSubject<String, Never>()
@@ -354,6 +356,7 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     public func addIntsFast(a: Int64, b: Int64) -> Int64 { a &+ b }
     public func touchFast() {}
     public func addIntsInline(a: Int64, b: Int64) -> Int64 { a &+ b }
+    public func addIntsInlineOr(a: Int64, b: Int64) -> Int64 { a &+ b }
     public func scaleFast(v: Double, factor: Double) -> Double { v * factor }
     public func notFast(v: Bool) -> Bool { !v }
     public func nextStatusFast(s: TcStatus) -> TcStatus { TcStatus(rawValue: (s.rawValue + 1) % 3)! }
