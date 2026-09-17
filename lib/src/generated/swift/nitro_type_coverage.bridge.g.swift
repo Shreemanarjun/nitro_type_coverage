@@ -2552,7 +2552,7 @@ public func _nitro_type_coverage_call_nativeAsyncInt(_ value: Int64, _ errPtr: I
     guard let impl = NitroTypeCoverageRegistry.impl else {
         var _null = Dart_CObject()
         _null.type = Dart_CObject_kNull
-        Dart_PostCObject_DL(dartPort, &_null)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         return
     }
     Task.detached {
@@ -2561,7 +2561,7 @@ public func _nitro_type_coverage_call_nativeAsyncInt(_ value: Int64, _ errPtr: I
         var _obj = Dart_CObject()
         _obj.type = Dart_CObject_kInt64
         _obj.value.as_int64 = Int64(_result)
-        Dart_PostCObject_DL(dartPort, &_obj)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_obj)
         } catch {
             if let _errPtr = _errPtr {
                 let _nsErr = error as NSError
@@ -2571,7 +2571,7 @@ public func _nitro_type_coverage_call_nativeAsyncInt(_ value: Int64, _ errPtr: I
             }
             var _null = Dart_CObject()
             _null.type = Dart_CObject_kNull
-            Dart_PostCObject_DL(dartPort, &_null)
+            _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         }
     }
 }
@@ -2583,7 +2583,7 @@ public func _nitro_type_coverage_call_nativeAsyncDouble(_ value: Double, _ errPt
     guard let impl = NitroTypeCoverageRegistry.impl else {
         var _null = Dart_CObject()
         _null.type = Dart_CObject_kNull
-        Dart_PostCObject_DL(dartPort, &_null)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         return
     }
     Task.detached {
@@ -2592,7 +2592,7 @@ public func _nitro_type_coverage_call_nativeAsyncDouble(_ value: Double, _ errPt
         var _obj = Dart_CObject()
         _obj.type = Dart_CObject_kDouble
         _obj.value.as_double = _result
-        Dart_PostCObject_DL(dartPort, &_obj)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_obj)
         } catch {
             if let _errPtr = _errPtr {
                 let _nsErr = error as NSError
@@ -2602,7 +2602,7 @@ public func _nitro_type_coverage_call_nativeAsyncDouble(_ value: Double, _ errPt
             }
             var _null = Dart_CObject()
             _null.type = Dart_CObject_kNull
-            Dart_PostCObject_DL(dartPort, &_null)
+            _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         }
     }
 }
@@ -2614,7 +2614,7 @@ public func _nitro_type_coverage_call_nativeAsyncBool(_ value: Int8, _ errPtr: I
     guard let impl = NitroTypeCoverageRegistry.impl else {
         var _null = Dart_CObject()
         _null.type = Dart_CObject_kNull
-        Dart_PostCObject_DL(dartPort, &_null)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         return
     }
     Task.detached {
@@ -2623,7 +2623,7 @@ public func _nitro_type_coverage_call_nativeAsyncBool(_ value: Int8, _ errPtr: I
         var _obj = Dart_CObject()
         _obj.type = Dart_CObject_kBool
         _obj.value.as_bool = _result
-        Dart_PostCObject_DL(dartPort, &_obj)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_obj)
         } catch {
             if let _errPtr = _errPtr {
                 let _nsErr = error as NSError
@@ -2633,7 +2633,7 @@ public func _nitro_type_coverage_call_nativeAsyncBool(_ value: Int8, _ errPtr: I
             }
             var _null = Dart_CObject()
             _null.type = Dart_CObject_kNull
-            Dart_PostCObject_DL(dartPort, &_null)
+            _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         }
     }
 }
@@ -2646,7 +2646,7 @@ public func _nitro_type_coverage_call_nativeAsyncString(_ value: UnsafePointer<C
     guard let impl = NitroTypeCoverageRegistry.impl else {
         var _null = Dart_CObject()
         _null.type = Dart_CObject_kNull
-        Dart_PostCObject_DL(dartPort, &_null)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         return
     }
     Task.detached {
@@ -2656,7 +2656,7 @@ public func _nitro_type_coverage_call_nativeAsyncString(_ value: UnsafePointer<C
             var _obj = Dart_CObject()
             _obj.type = Dart_CObject_kString
             _obj.value.as_string = cStr
-            Dart_PostCObject_DL(dartPort, &_obj)
+            _ = nitro_type_coverage_nitro_post(dartPort, &_obj)
         }
         } catch {
             if let _errPtr = _errPtr {
@@ -2667,7 +2667,7 @@ public func _nitro_type_coverage_call_nativeAsyncString(_ value: UnsafePointer<C
             }
             var _null = Dart_CObject()
             _null.type = Dart_CObject_kNull
-            Dart_PostCObject_DL(dartPort, &_null)
+            _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         }
     }
 }
@@ -2679,7 +2679,7 @@ public func _nitro_type_coverage_call_nativeAsyncNullableInt(_ value: UnsafeMuta
     guard let impl = NitroTypeCoverageRegistry.impl else {
         var _null = Dart_CObject()
         _null.type = Dart_CObject_kNull
-        Dart_PostCObject_DL(dartPort, &_null)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         return
     }
     let value_dec: Int64? = { guard let _p = value, _p[0] != 0 else { return nil }; var _rv: Int64 = 0; Swift.withUnsafeMutableBytes(of: &_rv) { $0.baseAddress!.copyMemory(from: UnsafeRawPointer(_p + 1), byteCount: 8) }; return _rv }()
@@ -2692,7 +2692,7 @@ public func _nitro_type_coverage_call_nativeAsyncNullableInt(_ value: UnsafeMuta
         var _obj = Dart_CObject()
         _obj.type = Dart_CObject_kInt64
         _obj.value.as_int64 = Int64(bitPattern: UInt64(UInt(bitPattern: _out_ni)))
-        Dart_PostCObject_DL(dartPort, &_obj)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_obj)
         } catch {
             if let _errPtr = _errPtr {
                 let _nsErr = error as NSError
@@ -2702,7 +2702,7 @@ public func _nitro_type_coverage_call_nativeAsyncNullableInt(_ value: UnsafeMuta
             }
             var _null = Dart_CObject()
             _null.type = Dart_CObject_kNull
-            Dart_PostCObject_DL(dartPort, &_null)
+            _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         }
     }
 }
@@ -2714,7 +2714,7 @@ public func _nitro_type_coverage_call_nativeAsyncNullableDouble(_ value: UnsafeM
     guard let impl = NitroTypeCoverageRegistry.impl else {
         var _null = Dart_CObject()
         _null.type = Dart_CObject_kNull
-        Dart_PostCObject_DL(dartPort, &_null)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         return
     }
     let value_dec: Double? = { guard let _p = value, _p[0] != 0 else { return nil }; var _rv: Double = 0; Swift.withUnsafeMutableBytes(of: &_rv) { $0.baseAddress!.copyMemory(from: UnsafeRawPointer(_p + 1), byteCount: 8) }; return _rv }()
@@ -2727,7 +2727,7 @@ public func _nitro_type_coverage_call_nativeAsyncNullableDouble(_ value: UnsafeM
         var _obj = Dart_CObject()
         _obj.type = Dart_CObject_kInt64
         _obj.value.as_int64 = Int64(bitPattern: UInt64(UInt(bitPattern: _out_nf)))
-        Dart_PostCObject_DL(dartPort, &_obj)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_obj)
         } catch {
             if let _errPtr = _errPtr {
                 let _nsErr = error as NSError
@@ -2737,7 +2737,7 @@ public func _nitro_type_coverage_call_nativeAsyncNullableDouble(_ value: UnsafeM
             }
             var _null = Dart_CObject()
             _null.type = Dart_CObject_kNull
-            Dart_PostCObject_DL(dartPort, &_null)
+            _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         }
     }
 }
@@ -2749,7 +2749,7 @@ public func _nitro_type_coverage_call_nativeAsyncNullableBool(_ value: UnsafeMut
     guard let impl = NitroTypeCoverageRegistry.impl else {
         var _null = Dart_CObject()
         _null.type = Dart_CObject_kNull
-        Dart_PostCObject_DL(dartPort, &_null)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         return
     }
     let value_dec: Bool? = { guard let _p = value, _p[0] != 0 else { return nil }; return _p[1] != 0 }()
@@ -2762,7 +2762,7 @@ public func _nitro_type_coverage_call_nativeAsyncNullableBool(_ value: UnsafeMut
         var _obj = Dart_CObject()
         _obj.type = Dart_CObject_kInt64
         _obj.value.as_int64 = Int64(bitPattern: UInt64(UInt(bitPattern: _out_nb)))
-        Dart_PostCObject_DL(dartPort, &_obj)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_obj)
         } catch {
             if let _errPtr = _errPtr {
                 let _nsErr = error as NSError
@@ -2772,7 +2772,7 @@ public func _nitro_type_coverage_call_nativeAsyncNullableBool(_ value: UnsafeMut
             }
             var _null = Dart_CObject()
             _null.type = Dart_CObject_kNull
-            Dart_PostCObject_DL(dartPort, &_null)
+            _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         }
     }
 }
@@ -2784,7 +2784,7 @@ public func _nitro_type_coverage_call_nativeAsyncStatus(_ value: Int64, _ errPtr
     guard let impl = NitroTypeCoverageRegistry.impl else {
         var _null = Dart_CObject()
         _null.type = Dart_CObject_kNull
-        Dart_PostCObject_DL(dartPort, &_null)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         return
     }
     Task.detached {
@@ -2794,7 +2794,7 @@ public func _nitro_type_coverage_call_nativeAsyncStatus(_ value: Int64, _ errPtr
         var _obj = Dart_CObject()
         _obj.type = Dart_CObject_kInt64
         _obj.value.as_int64 = Int64(_result)
-        Dart_PostCObject_DL(dartPort, &_obj)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_obj)
         } catch {
             if let _errPtr = _errPtr {
                 let _nsErr = error as NSError
@@ -2804,7 +2804,7 @@ public func _nitro_type_coverage_call_nativeAsyncStatus(_ value: Int64, _ errPtr
             }
             var _null = Dart_CObject()
             _null.type = Dart_CObject_kNull
-            Dart_PostCObject_DL(dartPort, &_null)
+            _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         }
     }
 }
@@ -2816,7 +2816,7 @@ public func _nitro_type_coverage_call_nativeAsyncNullableStatus(_ value: Int64, 
     guard let impl = NitroTypeCoverageRegistry.impl else {
         var _null = Dart_CObject()
         _null.type = Dart_CObject_kNull
-        Dart_PostCObject_DL(dartPort, &_null)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         return
     }
     Task.detached {
@@ -2826,7 +2826,7 @@ public func _nitro_type_coverage_call_nativeAsyncNullableStatus(_ value: Int64, 
         var _obj = Dart_CObject()
         _obj.type = Dart_CObject_kInt64
         _obj.value.as_int64 = Int64(_result)
-        Dart_PostCObject_DL(dartPort, &_obj)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_obj)
         } catch {
             if let _errPtr = _errPtr {
                 let _nsErr = error as NSError
@@ -2836,7 +2836,7 @@ public func _nitro_type_coverage_call_nativeAsyncNullableStatus(_ value: Int64, 
             }
             var _null = Dart_CObject()
             _null.type = Dart_CObject_kNull
-            Dart_PostCObject_DL(dartPort, &_null)
+            _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         }
     }
 }
@@ -2848,7 +2848,7 @@ public func _nitro_type_coverage_call_nativeAsyncConfig(_ value: UnsafeMutableRa
     guard let impl = NitroTypeCoverageRegistry.impl else {
         var _null = Dart_CObject()
         _null.type = Dart_CObject_kNull
-        Dart_PostCObject_DL(dartPort, &_null)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         return
     }
     let value_dec = TcConfig.fromNative(value!.assumingMemoryBound(to: UInt8.self))
@@ -2859,7 +2859,7 @@ public func _nitro_type_coverage_call_nativeAsyncConfig(_ value: UnsafeMutableRa
         var _obj = Dart_CObject()
         _obj.type = Dart_CObject_kInt64
         _obj.value.as_int64 = _recPtr != nil ? Int64(bitPattern: UInt64(UInt(bitPattern: _recPtr!))) : 0
-        Dart_PostCObject_DL(dartPort, &_obj)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_obj)
         } catch {
             if let _errPtr = _errPtr {
                 let _nsErr = error as NSError
@@ -2869,7 +2869,7 @@ public func _nitro_type_coverage_call_nativeAsyncConfig(_ value: UnsafeMutableRa
             }
             var _null = Dart_CObject()
             _null.type = Dart_CObject_kNull
-            Dart_PostCObject_DL(dartPort, &_null)
+            _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         }
     }
 }
@@ -2882,7 +2882,7 @@ public func _nitro_type_coverage_call_nativeAsyncPrintText(_ text: UnsafePointer
     guard let impl = NitroTypeCoverageRegistry.impl else {
         var _null = Dart_CObject()
         _null.type = Dart_CObject_kNull
-        Dart_PostCObject_DL(dartPort, &_null)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         return
     }
     let settings_dec = settings.map { TcConfig.fromNative($0.assumingMemoryBound(to: UInt8.self)) }
@@ -2893,7 +2893,7 @@ public func _nitro_type_coverage_call_nativeAsyncPrintText(_ text: UnsafePointer
         var _obj = Dart_CObject()
         _obj.type = Dart_CObject_kInt64
         _obj.value.as_int64 = _recPtr != nil ? Int64(bitPattern: UInt64(UInt(bitPattern: _recPtr!))) : 0
-        Dart_PostCObject_DL(dartPort, &_obj)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_obj)
         } catch {
             if let _errPtr = _errPtr {
                 let _nsErr = error as NSError
@@ -2903,7 +2903,7 @@ public func _nitro_type_coverage_call_nativeAsyncPrintText(_ text: UnsafePointer
             }
             var _null = Dart_CObject()
             _null.type = Dart_CObject_kNull
-            Dart_PostCObject_DL(dartPort, &_null)
+            _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         }
     }
 }
@@ -2921,7 +2921,7 @@ public func _nitro_type_coverage_call_nativeAsyncNullableConfig(_ value: UnsafeM
     guard let impl = NitroTypeCoverageRegistry.impl else {
         var _null = Dart_CObject()
         _null.type = Dart_CObject_kNull
-        Dart_PostCObject_DL(dartPort, &_null)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         return
     }
     let value_dec = value.map { TcConfig.fromNative($0.assumingMemoryBound(to: UInt8.self)) }
@@ -2932,7 +2932,7 @@ public func _nitro_type_coverage_call_nativeAsyncNullableConfig(_ value: UnsafeM
         var _obj = Dart_CObject()
         _obj.type = Dart_CObject_kInt64
         _obj.value.as_int64 = _recPtr != nil ? Int64(bitPattern: UInt64(UInt(bitPattern: _recPtr!))) : 0
-        Dart_PostCObject_DL(dartPort, &_obj)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_obj)
         } catch {
             if let _errPtr = _errPtr {
                 let _nsErr = error as NSError
@@ -2942,7 +2942,7 @@ public func _nitro_type_coverage_call_nativeAsyncNullableConfig(_ value: UnsafeM
             }
             var _null = Dart_CObject()
             _null.type = Dart_CObject_kNull
-            Dart_PostCObject_DL(dartPort, &_null)
+            _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         }
     }
 }
@@ -2954,7 +2954,7 @@ public func _nitro_type_coverage_call_nativeAsyncEvent(_ value: UnsafeMutableRaw
     guard let impl = NitroTypeCoverageRegistry.impl else {
         var _null = Dart_CObject()
         _null.type = Dart_CObject_kNull
-        Dart_PostCObject_DL(dartPort, &_null)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         return
     }
     let value_dec = TcEvent.fromReader(NitroRecordReader(ptr: value!.assumingMemoryBound(to: UInt8.self)))
@@ -2969,7 +2969,7 @@ public func _nitro_type_coverage_call_nativeAsyncEvent(_ value: UnsafeMutableRaw
         var _obj = Dart_CObject()
         _obj.type = Dart_CObject_kInt64
         _obj.value.as_int64 = _recPtr != nil ? Int64(bitPattern: UInt64(UInt(bitPattern: _recPtr!))) : 0
-        Dart_PostCObject_DL(dartPort, &_obj)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_obj)
         } catch {
             if let _errPtr = _errPtr {
                 let _nsErr = error as NSError
@@ -2979,7 +2979,7 @@ public func _nitro_type_coverage_call_nativeAsyncEvent(_ value: UnsafeMutableRaw
             }
             var _null = Dart_CObject()
             _null.type = Dart_CObject_kNull
-            Dart_PostCObject_DL(dartPort, &_null)
+            _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         }
     }
 }
@@ -2991,7 +2991,7 @@ public func _nitro_type_coverage_call_nativeAsyncConfigList(_ values: UnsafeMuta
     guard let impl = NitroTypeCoverageRegistry.impl else {
         var _null = Dart_CObject()
         _null.type = Dart_CObject_kNull
-        Dart_PostCObject_DL(dartPort, &_null)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         return
     }
     let valuesPtr = values?.assumingMemoryBound(to: UInt8.self)
@@ -3003,7 +3003,7 @@ public func _nitro_type_coverage_call_nativeAsyncConfigList(_ values: UnsafeMuta
         var _obj = Dart_CObject()
         _obj.type = Dart_CObject_kInt64
         _obj.value.as_int64 = _recPtr != nil ? Int64(bitPattern: UInt64(UInt(bitPattern: _recPtr!))) : 0
-        Dart_PostCObject_DL(dartPort, &_obj)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_obj)
         } catch {
             if let _errPtr = _errPtr {
                 let _nsErr = error as NSError
@@ -3013,7 +3013,7 @@ public func _nitro_type_coverage_call_nativeAsyncConfigList(_ values: UnsafeMuta
             }
             var _null = Dart_CObject()
             _null.type = Dart_CObject_kNull
-            Dart_PostCObject_DL(dartPort, &_null)
+            _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         }
     }
 }
@@ -3025,7 +3025,7 @@ public func _nitro_type_coverage_call_nativeAsyncStatusList(_ values: UnsafeMuta
     guard let impl = NitroTypeCoverageRegistry.impl else {
         var _null = Dart_CObject()
         _null.type = Dart_CObject_kNull
-        Dart_PostCObject_DL(dartPort, &_null)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         return
     }
     let valuesPtr = values?.assumingMemoryBound(to: UInt8.self)
@@ -3037,7 +3037,7 @@ public func _nitro_type_coverage_call_nativeAsyncStatusList(_ values: UnsafeMuta
         var _obj = Dart_CObject()
         _obj.type = Dart_CObject_kInt64
         _obj.value.as_int64 = _recPtr != nil ? Int64(bitPattern: UInt64(UInt(bitPattern: _recPtr!))) : 0
-        Dart_PostCObject_DL(dartPort, &_obj)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_obj)
         } catch {
             if let _errPtr = _errPtr {
                 let _nsErr = error as NSError
@@ -3047,7 +3047,7 @@ public func _nitro_type_coverage_call_nativeAsyncStatusList(_ values: UnsafeMuta
             }
             var _null = Dart_CObject()
             _null.type = Dart_CObject_kNull
-            Dart_PostCObject_DL(dartPort, &_null)
+            _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         }
     }
 }
@@ -3059,7 +3059,7 @@ public func _nitro_type_coverage_call_nativeAsyncEventList(_ values: UnsafeMutab
     guard let impl = NitroTypeCoverageRegistry.impl else {
         var _null = Dart_CObject()
         _null.type = Dart_CObject_kNull
-        Dart_PostCObject_DL(dartPort, &_null)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         return
     }
     let valuesPtr = values?.assumingMemoryBound(to: UInt8.self)
@@ -3071,7 +3071,7 @@ public func _nitro_type_coverage_call_nativeAsyncEventList(_ values: UnsafeMutab
         var _obj = Dart_CObject()
         _obj.type = Dart_CObject_kInt64
         _obj.value.as_int64 = _recPtr != nil ? Int64(bitPattern: UInt64(UInt(bitPattern: _recPtr!))) : 0
-        Dart_PostCObject_DL(dartPort, &_obj)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_obj)
         } catch {
             if let _errPtr = _errPtr {
                 let _nsErr = error as NSError
@@ -3081,7 +3081,7 @@ public func _nitro_type_coverage_call_nativeAsyncEventList(_ values: UnsafeMutab
             }
             var _null = Dart_CObject()
             _null.type = Dart_CObject_kNull
-            Dart_PostCObject_DL(dartPort, &_null)
+            _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         }
     }
 }
@@ -3093,7 +3093,7 @@ public func _nitro_type_coverage_call_nativeAsyncIntList(_ values: UnsafeMutable
     guard let impl = NitroTypeCoverageRegistry.impl else {
         var _null = Dart_CObject()
         _null.type = Dart_CObject_kNull
-        Dart_PostCObject_DL(dartPort, &_null)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         return
     }
     let valuesPtr = values?.assumingMemoryBound(to: UInt8.self)
@@ -3105,7 +3105,7 @@ public func _nitro_type_coverage_call_nativeAsyncIntList(_ values: UnsafeMutable
         var _obj = Dart_CObject()
         _obj.type = Dart_CObject_kInt64
         _obj.value.as_int64 = _recPtr != nil ? Int64(bitPattern: UInt64(UInt(bitPattern: _recPtr!))) : 0
-        Dart_PostCObject_DL(dartPort, &_obj)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_obj)
         } catch {
             if let _errPtr = _errPtr {
                 let _nsErr = error as NSError
@@ -3115,7 +3115,7 @@ public func _nitro_type_coverage_call_nativeAsyncIntList(_ values: UnsafeMutable
             }
             var _null = Dart_CObject()
             _null.type = Dart_CObject_kNull
-            Dart_PostCObject_DL(dartPort, &_null)
+            _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         }
     }
 }
@@ -3127,7 +3127,7 @@ public func _nitro_type_coverage_call_nativeAsyncWithCallback(_ value: Int64, _ 
     guard let impl = NitroTypeCoverageRegistry.impl else {
         var _null = Dart_CObject()
         _null.type = Dart_CObject_kNull
-        Dart_PostCObject_DL(dartPort, &_null)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         return
     }
     Task.detached {
@@ -3136,7 +3136,7 @@ public func _nitro_type_coverage_call_nativeAsyncWithCallback(_ value: Int64, _ 
         var _obj = Dart_CObject()
         _obj.type = Dart_CObject_kInt64
         _obj.value.as_int64 = Int64(_result)
-        Dart_PostCObject_DL(dartPort, &_obj)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_obj)
         } catch {
             if let _errPtr = _errPtr {
                 let _nsErr = error as NSError
@@ -3146,7 +3146,7 @@ public func _nitro_type_coverage_call_nativeAsyncWithCallback(_ value: Int64, _ 
             }
             var _null = Dart_CObject()
             _null.type = Dart_CObject_kNull
-            Dart_PostCObject_DL(dartPort, &_null)
+            _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         }
     }
 }
@@ -3158,7 +3158,7 @@ public func _nitro_type_coverage_call_nativeAsyncCounts(_ seed: Int64, _ errPtr:
     guard let impl = NitroTypeCoverageRegistry.impl else {
         var _null = Dart_CObject()
         _null.type = Dart_CObject_kNull
-        Dart_PostCObject_DL(dartPort, &_null)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         return
     }
     Task.detached {
@@ -3169,7 +3169,7 @@ public func _nitro_type_coverage_call_nativeAsyncCounts(_ seed: Int64, _ errPtr:
         var _obj = Dart_CObject()
         _obj.type = Dart_CObject_kInt64
         _obj.value.as_int64 = _recPtr != nil ? Int64(bitPattern: UInt64(UInt(bitPattern: _recPtr!))) : 0
-        Dart_PostCObject_DL(dartPort, &_obj)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_obj)
         } catch {
             if let _errPtr = _errPtr {
                 let _nsErr = error as NSError
@@ -3179,7 +3179,7 @@ public func _nitro_type_coverage_call_nativeAsyncCounts(_ seed: Int64, _ errPtr:
             }
             var _null = Dart_CObject()
             _null.type = Dart_CObject_kNull
-            Dart_PostCObject_DL(dartPort, &_null)
+            _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         }
     }
 }
@@ -3191,7 +3191,7 @@ public func _nitro_type_coverage_call_nativeAsyncNullableUint64(_ value: UnsafeM
     guard let impl = NitroTypeCoverageRegistry.impl else {
         var _null = Dart_CObject()
         _null.type = Dart_CObject_kNull
-        Dart_PostCObject_DL(dartPort, &_null)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         return
     }
     let value_dec: UInt64? = { guard let _p = value, _p[0] != 0 else { return nil }; var _rv: UInt64 = 0; Swift.withUnsafeMutableBytes(of: &_rv) { $0.baseAddress!.copyMemory(from: UnsafeRawPointer(_p + 1), byteCount: 8) }; return _rv }()
@@ -3204,7 +3204,7 @@ public func _nitro_type_coverage_call_nativeAsyncNullableUint64(_ value: UnsafeM
         var _obj = Dart_CObject()
         _obj.type = Dart_CObject_kInt64
         _obj.value.as_int64 = Int64(bitPattern: UInt64(UInt(bitPattern: _out_nu)))
-        Dart_PostCObject_DL(dartPort, &_obj)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_obj)
         } catch {
             if let _errPtr = _errPtr {
                 let _nsErr = error as NSError
@@ -3214,7 +3214,7 @@ public func _nitro_type_coverage_call_nativeAsyncNullableUint64(_ value: UnsafeM
             }
             var _null = Dart_CObject()
             _null.type = Dart_CObject_kNull
-            Dart_PostCObject_DL(dartPort, &_null)
+            _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         }
     }
 }
@@ -3226,7 +3226,7 @@ public func _nitro_type_coverage_call_nativeAsyncEchoIntMap(_ value: UnsafeMutab
     guard let impl = NitroTypeCoverageRegistry.impl else {
         var _null = Dart_CObject()
         _null.type = Dart_CObject_kNull
-        Dart_PostCObject_DL(dartPort, &_null)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         return
     }
     let value_rawMap: [String: Any] = value.map { _nitroDecodeMapBinary($0.assumingMemoryBound(to: UInt8.self)) } ?? [:]
@@ -3239,7 +3239,7 @@ public func _nitro_type_coverage_call_nativeAsyncEchoIntMap(_ value: UnsafeMutab
         var _obj = Dart_CObject()
         _obj.type = Dart_CObject_kInt64
         _obj.value.as_int64 = _recPtr != nil ? Int64(bitPattern: UInt64(UInt(bitPattern: _recPtr!))) : 0
-        Dart_PostCObject_DL(dartPort, &_obj)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_obj)
         } catch {
             if let _errPtr = _errPtr {
                 let _nsErr = error as NSError
@@ -3249,7 +3249,7 @@ public func _nitro_type_coverage_call_nativeAsyncEchoIntMap(_ value: UnsafeMutab
             }
             var _null = Dart_CObject()
             _null.type = Dart_CObject_kNull
-            Dart_PostCObject_DL(dartPort, &_null)
+            _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         }
     }
 }
@@ -3261,7 +3261,7 @@ public func _nitro_type_coverage_call_nativeAsyncEchoPoint(_ value: UnsafeRawPoi
     guard let impl = NitroTypeCoverageRegistry.impl else {
         var _null = Dart_CObject()
         _null.type = Dart_CObject_kNull
-        Dart_PostCObject_DL(dartPort, &_null)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         return
     }
     let value_dec = value!.assumingMemoryBound(to: _TcPointC.self).pointee.toSwift()
@@ -3276,7 +3276,7 @@ public func _nitro_type_coverage_call_nativeAsyncEchoPoint(_ value: UnsafeRawPoi
         var _obj = Dart_CObject()
         _obj.type = Dart_CObject_kInt64
         _obj.value.as_int64 = _recPtr != nil ? Int64(bitPattern: UInt64(UInt(bitPattern: _recPtr!))) : 0
-        Dart_PostCObject_DL(dartPort, &_obj)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_obj)
         } catch {
             if let _errPtr = _errPtr {
                 let _nsErr = error as NSError
@@ -3286,7 +3286,7 @@ public func _nitro_type_coverage_call_nativeAsyncEchoPoint(_ value: UnsafeRawPoi
             }
             var _null = Dart_CObject()
             _null.type = Dart_CObject_kNull
-            Dart_PostCObject_DL(dartPort, &_null)
+            _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         }
     }
 }
@@ -3298,7 +3298,7 @@ public func _nitro_type_coverage_call_nativeAsyncEchoAnyMap(_ value: UnsafeMutab
     guard let impl = NitroTypeCoverageRegistry.impl else {
         var _null = Dart_CObject()
         _null.type = Dart_CObject_kNull
-        Dart_PostCObject_DL(dartPort, &_null)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         return
     }
     let value_dec: [String: Any] = value.map { _nitroDecodeAnyMapBinary($0.assumingMemoryBound(to: UInt8.self)) } ?? [:]
@@ -3310,7 +3310,7 @@ public func _nitro_type_coverage_call_nativeAsyncEchoAnyMap(_ value: UnsafeMutab
         var _obj = Dart_CObject()
         _obj.type = Dart_CObject_kInt64
         _obj.value.as_int64 = _recPtr != nil ? Int64(bitPattern: UInt64(UInt(bitPattern: _recPtr!))) : 0
-        Dart_PostCObject_DL(dartPort, &_obj)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_obj)
         } catch {
             if let _errPtr = _errPtr {
                 let _nsErr = error as NSError
@@ -3320,7 +3320,7 @@ public func _nitro_type_coverage_call_nativeAsyncEchoAnyMap(_ value: UnsafeMutab
             }
             var _null = Dart_CObject()
             _null.type = Dart_CObject_kNull
-            Dart_PostCObject_DL(dartPort, &_null)
+            _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         }
     }
 }
@@ -3430,7 +3430,7 @@ public func _nitro_type_coverage_call_throwNativeNativeAsync(_ message: UnsafePo
     guard let impl = NitroTypeCoverageRegistry.impl else {
         var _null = Dart_CObject()
         _null.type = Dart_CObject_kNull
-        Dart_PostCObject_DL(dartPort, &_null)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         return
     }
     Task.detached {
@@ -3438,7 +3438,7 @@ public func _nitro_type_coverage_call_throwNativeNativeAsync(_ message: UnsafePo
         try await impl.throwNativeNativeAsync(message: messageStr)
         var _null = Dart_CObject()
         _null.type = Dart_CObject_kNull
-        Dart_PostCObject_DL(dartPort, &_null)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         } catch {
             if let _errPtr = _errPtr {
                 let _nsErr = error as NSError
@@ -3448,7 +3448,7 @@ public func _nitro_type_coverage_call_throwNativeNativeAsync(_ message: UnsafePo
             }
             var _null = Dart_CObject()
             _null.type = Dart_CObject_kNull
-            Dart_PostCObject_DL(dartPort, &_null)
+            _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         }
     }
 }
@@ -3472,7 +3472,7 @@ public func _nitro_type_coverage_call_nativeAsyncEchoOptionalConfig(_ config: Un
     guard let impl = NitroTypeCoverageRegistry.impl else {
         var _null = Dart_CObject()
         _null.type = Dart_CObject_kNull
-        Dart_PostCObject_DL(dartPort, &_null)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         return
     }
     let config_dec = config.map { TcConfig.fromNative($0.assumingMemoryBound(to: UInt8.self)) }
@@ -3483,7 +3483,7 @@ public func _nitro_type_coverage_call_nativeAsyncEchoOptionalConfig(_ config: Un
         var _obj = Dart_CObject()
         _obj.type = Dart_CObject_kInt64
         _obj.value.as_int64 = _recPtr != nil ? Int64(bitPattern: UInt64(UInt(bitPattern: _recPtr!))) : 0
-        Dart_PostCObject_DL(dartPort, &_obj)
+        _ = nitro_type_coverage_nitro_post(dartPort, &_obj)
         } catch {
             if let _errPtr = _errPtr {
                 let _nsErr = error as NSError
@@ -3493,7 +3493,7 @@ public func _nitro_type_coverage_call_nativeAsyncEchoOptionalConfig(_ config: Un
             }
             var _null = Dart_CObject()
             _null.type = Dart_CObject_kNull
-            Dart_PostCObject_DL(dartPort, &_null)
+            _ = nitro_type_coverage_nitro_post(dartPort, &_null)
         }
     }
 }
@@ -4067,114 +4067,48 @@ public func _nitro_type_coverage_release_configStream_stream(_ dartPort: Int64) 
 @_cdecl("_nitro_type_coverage_register_batchIntStream_stream")
 public func _nitro_type_coverage_register_batchIntStream_stream(
     _ dartPort: Int64,
-    _ emitBatch: @convention(c) (Int64, UnsafeMutablePointer<Int64>?, Int32) -> Bool
+    _ emitCb: @convention(c) (Int64, Int64) -> Bool
 ) {
-    let _lock = NSLock()
-    var _buf = [Int64]()
-    _buf.reserveCapacity(16)
-    func _flush() {
-        _lock.lock()
-        guard !_buf.isEmpty else { _lock.unlock(); return }
-        var arr = _buf; _buf.removeAll(keepingCapacity: true)
-        _lock.unlock()
-        let count = Int32(arr.count)
-        _ = arr.withUnsafeMutableBufferPointer { emitBatch(dartPort, $0.baseAddress, count) }
-    }
-    let _timer = DispatchSource.makeTimerSource(queue: .global())
-    _timer.schedule(deadline: .now() + .milliseconds(10), repeating: .milliseconds(10))
-    _timer.setEventHandler { _flush() }
-    _timer.resume()
-    NitroTypeCoverageRegistry._batchIntStreamFlushTimers[dartPort] = _timer
     NitroTypeCoverageRegistry._batchIntStreamCancellables[dartPort] =
         NitroTypeCoverageRegistry.impl?.batchIntStream.sink { item in
-            _lock.lock()
-            _buf.append(item)
-            let needsFlush = _buf.count >= 16
-            _lock.unlock()
-            if needsFlush { _flush() }
+            if !emitCb(dartPort, item) { NitroTypeCoverageRegistry._batchIntStreamCancellables.removeValue(forKey: dartPort)?.cancel() }
         }
 }
 
 @_cdecl("_nitro_type_coverage_release_batchIntStream_stream")
 public func _nitro_type_coverage_release_batchIntStream_stream(_ dartPort: Int64) {
-    NitroTypeCoverageRegistry._batchIntStreamFlushTimers[dartPort]?.cancel()
-    NitroTypeCoverageRegistry._batchIntStreamFlushTimers.removeValue(forKey: dartPort)
     NitroTypeCoverageRegistry._batchIntStreamCancellables[dartPort]?.cancel()
     NitroTypeCoverageRegistry._batchIntStreamCancellables.removeValue(forKey: dartPort)
 }
 @_cdecl("_nitro_type_coverage_register_batchDoubleStream_stream")
 public func _nitro_type_coverage_register_batchDoubleStream_stream(
     _ dartPort: Int64,
-    _ emitBatch: @convention(c) (Int64, UnsafeMutablePointer<Int64>?, Int32) -> Bool
+    _ emitCb: @convention(c) (Int64, Double) -> Bool
 ) {
-    let _lock = NSLock()
-    var _buf = [Int64]()
-    _buf.reserveCapacity(16)
-    func _flush() {
-        _lock.lock()
-        guard !_buf.isEmpty else { _lock.unlock(); return }
-        var arr = _buf; _buf.removeAll(keepingCapacity: true)
-        _lock.unlock()
-        let count = Int32(arr.count)
-        _ = arr.withUnsafeMutableBufferPointer { emitBatch(dartPort, $0.baseAddress, count) }
-    }
-    let _timer = DispatchSource.makeTimerSource(queue: .global())
-    _timer.schedule(deadline: .now() + .milliseconds(10), repeating: .milliseconds(10))
-    _timer.setEventHandler { _flush() }
-    _timer.resume()
-    NitroTypeCoverageRegistry._batchDoubleStreamFlushTimers[dartPort] = _timer
     NitroTypeCoverageRegistry._batchDoubleStreamCancellables[dartPort] =
         NitroTypeCoverageRegistry.impl?.batchDoubleStream.sink { item in
-            _lock.lock()
-            _buf.append(Int64(bitPattern: item.bitPattern))
-            let needsFlush = _buf.count >= 16
-            _lock.unlock()
-            if needsFlush { _flush() }
+            if !emitCb(dartPort, item) { NitroTypeCoverageRegistry._batchDoubleStreamCancellables.removeValue(forKey: dartPort)?.cancel() }
         }
 }
 
 @_cdecl("_nitro_type_coverage_release_batchDoubleStream_stream")
 public func _nitro_type_coverage_release_batchDoubleStream_stream(_ dartPort: Int64) {
-    NitroTypeCoverageRegistry._batchDoubleStreamFlushTimers[dartPort]?.cancel()
-    NitroTypeCoverageRegistry._batchDoubleStreamFlushTimers.removeValue(forKey: dartPort)
     NitroTypeCoverageRegistry._batchDoubleStreamCancellables[dartPort]?.cancel()
     NitroTypeCoverageRegistry._batchDoubleStreamCancellables.removeValue(forKey: dartPort)
 }
 @_cdecl("_nitro_type_coverage_register_batchBoolStream_stream")
 public func _nitro_type_coverage_register_batchBoolStream_stream(
     _ dartPort: Int64,
-    _ emitBatch: @convention(c) (Int64, UnsafeMutablePointer<Int64>?, Int32) -> Bool
+    _ emitCb: @convention(c) (Int64, Int8) -> Bool
 ) {
-    let _lock = NSLock()
-    var _buf = [Int64]()
-    _buf.reserveCapacity(16)
-    func _flush() {
-        _lock.lock()
-        guard !_buf.isEmpty else { _lock.unlock(); return }
-        var arr = _buf; _buf.removeAll(keepingCapacity: true)
-        _lock.unlock()
-        let count = Int32(arr.count)
-        _ = arr.withUnsafeMutableBufferPointer { emitBatch(dartPort, $0.baseAddress, count) }
-    }
-    let _timer = DispatchSource.makeTimerSource(queue: .global())
-    _timer.schedule(deadline: .now() + .milliseconds(10), repeating: .milliseconds(10))
-    _timer.setEventHandler { _flush() }
-    _timer.resume()
-    NitroTypeCoverageRegistry._batchBoolStreamFlushTimers[dartPort] = _timer
     NitroTypeCoverageRegistry._batchBoolStreamCancellables[dartPort] =
         NitroTypeCoverageRegistry.impl?.batchBoolStream.sink { item in
-            _lock.lock()
-            _buf.append(item ? 1 : 0)
-            let needsFlush = _buf.count >= 16
-            _lock.unlock()
-            if needsFlush { _flush() }
+            if !emitCb(dartPort, Int8(item ? 1 : 0)) { NitroTypeCoverageRegistry._batchBoolStreamCancellables.removeValue(forKey: dartPort)?.cancel() }
         }
 }
 
 @_cdecl("_nitro_type_coverage_release_batchBoolStream_stream")
 public func _nitro_type_coverage_release_batchBoolStream_stream(_ dartPort: Int64) {
-    NitroTypeCoverageRegistry._batchBoolStreamFlushTimers[dartPort]?.cancel()
-    NitroTypeCoverageRegistry._batchBoolStreamFlushTimers.removeValue(forKey: dartPort)
     NitroTypeCoverageRegistry._batchBoolStreamCancellables[dartPort]?.cancel()
     NitroTypeCoverageRegistry._batchBoolStreamCancellables.removeValue(forKey: dartPort)
 }

@@ -3761,94 +3761,49 @@ object NitroTypeCoverageJniBridge {
     @JvmStatic fun nitro_type_coverage_release_config_stream_stream_call(dartPort: Long) {
         _streamJobs.remove(Pair("configStream", dartPort))?.cancel()
     }
-    @JvmStatic external fun emit_batchIntStream_batch(dartPort: Long, batch: LongArray): Boolean
+    @JvmStatic external fun emit_batchIntStream(dartPort: Long, item: Long): Boolean
 
     @JvmStatic fun nitro_type_coverage_register_batch_int_stream_stream_call(instanceId: Long, dartPort: Long) {
         val impl = _implementations[instanceId] ?: return
         _streamJobs[Pair("batchIntStream", dartPort)] = CoroutineScope(Dispatchers.Default).launch(start = CoroutineStart.UNDISPATCHED) {
-            val _buf = ArrayList<Long>(16)
-            val _lock = kotlinx.coroutines.sync.Mutex()
-            suspend fun _flush() {
-                _lock.withLock {
-                    if (_buf.isEmpty()) return@withLock
-                    val arr = LongArray(_buf.size + 1); arr[0] = _buf.size.toLong()
-                    _buf.forEachIndexed { i, v -> arr[i + 1] = v }
-                    _buf.clear()
-                    emit_batchIntStream_batch(dartPort, arr)
+            impl.batchIntStream.collect { item -> 
+                if (!emit_batchIntStream(dartPort, item)) {
+                    _streamJobs.remove(Pair("batchIntStream", dartPort))?.cancel()
+                    return@collect
                 }
             }
-            val _flushJob = launch { while (true) { kotlinx.coroutines.delay(10); _flush() } }
-            impl.batchIntStream.collect { item ->
-                val _full = _lock.withLock {
-                    _buf.add(item.toLong())
-                    _buf.size >= 16
-                }
-                if (_full) _flush()
-            }
-            _flushJob.cancel()
-            _flush()
         }
     }
     @JvmStatic fun nitro_type_coverage_release_batch_int_stream_stream_call(dartPort: Long) {
         _streamJobs.remove(Pair("batchIntStream", dartPort))?.cancel()
     }
-    @JvmStatic external fun emit_batchDoubleStream_batch(dartPort: Long, batch: LongArray): Boolean
+    @JvmStatic external fun emit_batchDoubleStream(dartPort: Long, item: Double): Boolean
 
     @JvmStatic fun nitro_type_coverage_register_batch_double_stream_stream_call(instanceId: Long, dartPort: Long) {
         val impl = _implementations[instanceId] ?: return
         _streamJobs[Pair("batchDoubleStream", dartPort)] = CoroutineScope(Dispatchers.Default).launch(start = CoroutineStart.UNDISPATCHED) {
-            val _buf = ArrayList<Long>(16)
-            val _lock = kotlinx.coroutines.sync.Mutex()
-            suspend fun _flush() {
-                _lock.withLock {
-                    if (_buf.isEmpty()) return@withLock
-                    val arr = LongArray(_buf.size + 1); arr[0] = _buf.size.toLong()
-                    _buf.forEachIndexed { i, v -> arr[i + 1] = v }
-                    _buf.clear()
-                    emit_batchDoubleStream_batch(dartPort, arr)
+            impl.batchDoubleStream.collect { item -> 
+                if (!emit_batchDoubleStream(dartPort, item)) {
+                    _streamJobs.remove(Pair("batchDoubleStream", dartPort))?.cancel()
+                    return@collect
                 }
             }
-            val _flushJob = launch { while (true) { kotlinx.coroutines.delay(10); _flush() } }
-            impl.batchDoubleStream.collect { item ->
-                val _full = _lock.withLock {
-                    _buf.add(java.lang.Double.doubleToRawLongBits(item))
-                    _buf.size >= 16
-                }
-                if (_full) _flush()
-            }
-            _flushJob.cancel()
-            _flush()
         }
     }
     @JvmStatic fun nitro_type_coverage_release_batch_double_stream_stream_call(dartPort: Long) {
         _streamJobs.remove(Pair("batchDoubleStream", dartPort))?.cancel()
     }
-    @JvmStatic external fun emit_batchBoolStream_batch(dartPort: Long, batch: LongArray): Boolean
+    @JvmStatic external fun emit_batchBoolStream(dartPort: Long, item: Boolean): Boolean
 
     @JvmStatic fun nitro_type_coverage_register_batch_bool_stream_stream_call(instanceId: Long, dartPort: Long) {
         val impl = _implementations[instanceId] ?: return
         _streamJobs[Pair("batchBoolStream", dartPort)] = CoroutineScope(Dispatchers.Default).launch(start = CoroutineStart.UNDISPATCHED) {
-            val _buf = ArrayList<Long>(16)
-            val _lock = kotlinx.coroutines.sync.Mutex()
-            suspend fun _flush() {
-                _lock.withLock {
-                    if (_buf.isEmpty()) return@withLock
-                    val arr = LongArray(_buf.size + 1); arr[0] = _buf.size.toLong()
-                    _buf.forEachIndexed { i, v -> arr[i + 1] = v }
-                    _buf.clear()
-                    emit_batchBoolStream_batch(dartPort, arr)
+            impl.batchBoolStream.collect { item -> 
+                if (!emit_batchBoolStream(dartPort, item)) {
+                    _streamJobs.remove(Pair("batchBoolStream", dartPort))?.cancel()
+                    return@collect
                 }
             }
-            val _flushJob = launch { while (true) { kotlinx.coroutines.delay(10); _flush() } }
-            impl.batchBoolStream.collect { item ->
-                val _full = _lock.withLock {
-                    _buf.add(if (item) 1L else 0L)
-                    _buf.size >= 16
-                }
-                if (_full) _flush()
-            }
-            _flushJob.cancel()
-            _flush()
         }
     }
     @JvmStatic fun nitro_type_coverage_release_batch_bool_stream_stream_call(dartPort: Long) {

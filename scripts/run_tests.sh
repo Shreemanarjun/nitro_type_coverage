@@ -82,6 +82,10 @@ regen() {
     # relative path (always fresh); only the shared header copies need syncing.
     cp "$PLUGIN_DIR/src/native/nitro_background.h" "$PLUGIN_DIR/ios/nitro_type_coverage/Sources/NitroTypeCoverageCpp/include/nitro_background.h"
     cp "$PLUGIN_DIR/src/native/nitro_background.h" "$PLUGIN_DIR/macos/nitro_type_coverage/Sources/NitroTypeCoverageCpp/include/nitro_background.h"
+    cp "$PLUGIN_DIR/src/native/nitro_completion_batch.h" "$PLUGIN_DIR/ios/nitro_type_coverage/Sources/NitroTypeCoverageCpp/include/nitro_completion_batch.h"
+    cp "$PLUGIN_DIR/src/native/nitro_completion_batch.h" "$PLUGIN_DIR/macos/nitro_type_coverage/Sources/NitroTypeCoverageCpp/include/nitro_completion_batch.h"
+    cp "$PLUGIN_DIR/src/native/nitro_worker_pool.h" "$PLUGIN_DIR/ios/nitro_type_coverage/Sources/NitroTypeCoverageCpp/include/nitro_worker_pool.h"
+    cp "$PLUGIN_DIR/src/native/nitro_worker_pool.h" "$PLUGIN_DIR/macos/nitro_type_coverage/Sources/NitroTypeCoverageCpp/include/nitro_worker_pool.h"
     cp "$GEN/cpp/nitro_type_coverage.bridge.g.h"   "$PLUGIN_DIR/ios/Classes/nitro_type_coverage.bridge.g.h"
     cp "$GEN/cpp/nitro_type_coverage.bridge.g.h"   "$PLUGIN_DIR/macos/Classes/nitro_type_coverage.bridge.g.h"
     log_ok "Apple platform sync complete"

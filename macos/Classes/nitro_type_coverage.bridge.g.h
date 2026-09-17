@@ -111,6 +111,13 @@ NITRO_EXPORT int8_t nitro_type_coverage_bg_end(int64_t jobId);
 NITRO_EXPORT int8_t nitro_type_coverage_bg_cancel(int64_t jobId);
 NITRO_EXPORT int64_t nitro_type_coverage_bg_run_string(const char* entry, const char* text);
 NITRO_EXPORT void nitro_type_coverage_bg_register_host(int (*starter)(const char*, int64_t, void*), void (*done)(int64_t, const char*, void*), void* ctx);
+#ifndef __EMSCRIPTEN__
+struct _Dart_CObject;
+NITRO_EXPORT bool nitro_type_coverage_nitro_post(int64_t port, struct _Dart_CObject* obj);
+NITRO_EXPORT int64_t nitro_type_coverage_nitro_bind(int64_t batchPort);
+NITRO_EXPORT void nitro_type_coverage_nitro_ack(int64_t batchPort);
+#define Dart_PostCObject_DL(port, obj) nitro_type_coverage_nitro_post((port), (obj))
+#endif
 NITRO_EXPORT void nitro_type_coverage_release_typed_data_return(void* ptr);
 /// Release the handle returned by acquireBuffer(). Called by Dart NativeFinalizer.
 /// Release the handle returned by asyncAcquireBuffer(). Called by Dart NativeFinalizer.
@@ -146,21 +153,33 @@ NITRO_EXPORT uint8_t* nitro_type_coverage_echo_int8s(int64_t instanceId, int8_t*
 NITRO_EXPORT uint8_t* nitro_type_coverage_echo_int16s(int64_t instanceId, int16_t* value, size_t value_length, NitroError* _nitro_err);
 NITRO_EXPORT uint8_t* nitro_type_coverage_echo_int64s(int64_t instanceId, int64_t* value, size_t value_length, NitroError* _nitro_err);
 NITRO_EXPORT void* nitro_type_coverage_echo_int_list(int64_t instanceId, void* value);
+NITRO_EXPORT void nitro_type_coverage_echo_int_list_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port);
 NITRO_EXPORT void* nitro_type_coverage_echo_double_list(int64_t instanceId, void* value);
+NITRO_EXPORT void nitro_type_coverage_echo_double_list_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port);
 NITRO_EXPORT void* nitro_type_coverage_echo_string_list(int64_t instanceId, void* value);
+NITRO_EXPORT void nitro_type_coverage_echo_string_list_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port);
 NITRO_EXPORT void* nitro_type_coverage_echo_config_list(int64_t instanceId, void* values);
+NITRO_EXPORT void nitro_type_coverage_echo_config_list_dispatch(int64_t instanceId, void* values, NitroError* _nitro_err, int64_t dart_port);
 NITRO_EXPORT int64_t nitro_type_coverage_async_int(int64_t instanceId, int64_t value);
+NITRO_EXPORT void nitro_type_coverage_async_int_dispatch(int64_t instanceId, int64_t value, NitroError* _nitro_err, int64_t dart_port);
 NITRO_EXPORT double nitro_type_coverage_async_double(int64_t instanceId, double value);
+NITRO_EXPORT void nitro_type_coverage_async_double_dispatch(int64_t instanceId, double value, NitroError* _nitro_err, int64_t dart_port);
 NITRO_EXPORT int8_t nitro_type_coverage_async_bool(int64_t instanceId, int8_t value);
+NITRO_EXPORT void nitro_type_coverage_async_bool_dispatch(int64_t instanceId, int8_t value, NitroError* _nitro_err, int64_t dart_port);
 NITRO_EXPORT const char* nitro_type_coverage_async_string(int64_t instanceId, const char* value);
+NITRO_EXPORT void nitro_type_coverage_async_string_dispatch(int64_t instanceId, const char* value, NitroError* _nitro_err, int64_t dart_port);
 NITRO_EXPORT void* nitro_type_coverage_async_config(int64_t instanceId, void* value);
+NITRO_EXPORT void nitro_type_coverage_async_config_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port);
 NITRO_EXPORT uint8_t* nitro_type_coverage_async_nullable_int(int64_t instanceId, const uint8_t* value);
 NITRO_EXPORT uint8_t* nitro_type_coverage_async_nullable_double(int64_t instanceId, const uint8_t* value);
 NITRO_EXPORT uint8_t* nitro_type_coverage_async_nullable_bool(int64_t instanceId, const uint8_t* value);
 NITRO_EXPORT const char* nitro_type_coverage_async_nullable_string(int64_t instanceId, const char* value);
+NITRO_EXPORT void nitro_type_coverage_async_nullable_string_dispatch(int64_t instanceId, const char* value, NitroError* _nitro_err, int64_t dart_port);
 NITRO_EXPORT void* nitro_type_coverage_async_point(int64_t instanceId, void* value);
 NITRO_EXPORT int64_t nitro_type_coverage_async_nullable_status(int64_t instanceId, int64_t value);
+NITRO_EXPORT void nitro_type_coverage_async_nullable_status_dispatch(int64_t instanceId, int64_t value, NitroError* _nitro_err, int64_t dart_port);
 NITRO_EXPORT void* nitro_type_coverage_async_meta(int64_t instanceId, void* value);
+NITRO_EXPORT void nitro_type_coverage_async_meta_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port);
 NITRO_EXPORT void* nitro_type_coverage_echo_meta(int64_t instanceId, void* value, NitroError* _nitro_err);
 NITRO_EXPORT void* nitro_type_coverage_echo_nullable_int_safe(int64_t instanceId, void* value, NitroError* _nitro_err);
 NITRO_EXPORT void* nitro_type_coverage_echo_nullable_double_safe(int64_t instanceId, void* value, NitroError* _nitro_err);
@@ -183,6 +202,7 @@ NITRO_EXPORT void nitro_type_coverage_configure_config_stream(int64_t instanceId
 NITRO_EXPORT void* nitro_type_coverage_echo_nullable_config(int64_t instanceId, void* value, NitroError* _nitro_err);
 NITRO_EXPORT void* nitro_type_coverage_echo_nested(int64_t instanceId, void* value, NitroError* _nitro_err);
 NITRO_EXPORT void* nitro_type_coverage_echo_config_list_sync(int64_t instanceId, void* values);
+NITRO_EXPORT void nitro_type_coverage_echo_config_list_sync_dispatch(int64_t instanceId, void* values, NitroError* _nitro_err, int64_t dart_port);
 NITRO_EXPORT void* nitro_type_coverage_echo_nullable_wrapper(int64_t instanceId, void* value, NitroError* _nitro_err);
 NITRO_EXPORT void nitro_type_coverage_on_transform_event(int64_t instanceId, int64_t (*transformCb)(int64_t), NitroError* _nitro_err);
 NITRO_EXPORT void* nitro_type_coverage_echo_struct_holder(int64_t instanceId, void* value, NitroError* _nitro_err);
@@ -194,7 +214,9 @@ NITRO_EXPORT void nitro_type_coverage_configure_batch_bool_stream(int64_t instan
 NITRO_EXPORT void nitro_type_coverage_on_bool_transform(int64_t instanceId, int8_t (*boolCb)(int64_t), NitroError* _nitro_err);
 NITRO_EXPORT void nitro_type_coverage_on_status_transform(int64_t instanceId, int64_t (*statusCb)(int64_t), NitroError* _nitro_err);
 NITRO_EXPORT void* nitro_type_coverage_echo_list_bool(int64_t instanceId, void* value);
+NITRO_EXPORT void nitro_type_coverage_echo_list_bool_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port);
 NITRO_EXPORT void* nitro_type_coverage_echo_point_list(int64_t instanceId, void* values);
+NITRO_EXPORT void nitro_type_coverage_echo_point_list_dispatch(int64_t instanceId, void* values, NitroError* _nitro_err, int64_t dart_port);
 NITRO_EXPORT void nitro_type_coverage_submit_coalesced(int64_t instanceId, int64_t callId, int64_t value, int64_t dartPort, NitroError* _nitro_err);
 NITRO_EXPORT void nitro_type_coverage_native_async_int(int64_t instanceId, int64_t value, NitroError* _nitro_err, int64_t dart_port);
 NITRO_EXPORT void nitro_type_coverage_native_async_double(int64_t instanceId, double value, NitroError* _nitro_err, int64_t dart_port);
@@ -233,6 +255,7 @@ NITRO_EXPORT void nitro_type_coverage_configure_double_stream(int64_t instanceId
 NITRO_EXPORT void nitro_type_coverage_configure_status_stream(int64_t instanceId, int64_t count, NitroError* _nitro_err);
 NITRO_EXPORT void nitro_type_coverage_throw_native(int64_t instanceId, const char* message, NitroError* _nitro_err);
 NITRO_EXPORT void nitro_type_coverage_throw_native_async(int64_t instanceId, const char* message);
+NITRO_EXPORT void nitro_type_coverage_throw_native_async_dispatch(int64_t instanceId, const char* message, NitroError* _nitro_err, int64_t dart_port);
 NITRO_EXPORT void nitro_type_coverage_throw_native_native_async(int64_t instanceId, const char* message, NitroError* _nitro_err, int64_t dart_port);
 NITRO_EXPORT uint8_t* nitro_type_coverage_get_config_or_fail(int64_t instanceId, int8_t shouldFail, NitroError* _nitro_err);
 NITRO_EXPORT void nitro_type_coverage_native_async_echo_optional_config(int64_t instanceId, void* config, NitroError* _nitro_err, int64_t dart_port);
@@ -256,8 +279,10 @@ NITRO_EXPORT uint8_t* nitro_type_coverage_validate_label(int64_t instanceId, con
 NITRO_EXPORT int64_t nitro_type_coverage_slow_async(int64_t instanceId, int64_t delayMs);
 NITRO_EXPORT void* nitro_type_coverage_echo_deep_record(int64_t instanceId, void* value, NitroError* _nitro_err);
 NITRO_EXPORT void* nitro_type_coverage_async_deep_record(int64_t instanceId, void* value);
+NITRO_EXPORT void nitro_type_coverage_async_deep_record_dispatch(int64_t instanceId, void* value, NitroError* _nitro_err, int64_t dart_port);
 NITRO_EXPORT void* nitro_type_coverage_async_acquire_buffer(int64_t instanceId, int64_t size);
 NITRO_EXPORT uint8_t* nitro_type_coverage_async_echo_event(int64_t instanceId, void* event);
+NITRO_EXPORT void nitro_type_coverage_async_echo_event_dispatch(int64_t instanceId, void* event, NitroError* _nitro_err, int64_t dart_port);
 NITRO_EXPORT uint8_t* nitro_type_coverage_async_safe_div(int64_t instanceId, double a, double b);
 NITRO_EXPORT uint8_t* nitro_type_coverage_async_validate_label(int64_t instanceId, const char* label);
 NITRO_EXPORT int64_t nitro_type_coverage_echo_priority(int64_t instanceId, int64_t value, NitroError* _nitro_err);

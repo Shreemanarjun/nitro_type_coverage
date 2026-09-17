@@ -242,3 +242,20 @@ Key test files covering the types used in this plugin:
 | `nitro_variant_test.dart` | `@NitroVariant` Swift/Kotlin/C++; `@NitroResult`; `@NitroOwned` guard/release |
 | `native_handle_test.dart` | `NativeHandle<T>` full 5-generator implementation |
 | `all_generators_type_coverage_test.dart` | Every type across all generators in parallel |
+
+## Linux in a container (colima / Docker)
+
+`scripts/linux_container_test.sh` mirrors the CI Linux jobs in a Docker
+container (Flutter pinned to the host version, arm64 or amd64): unit suites of
+every nitro package, the benchmark's Linux build, then this plugin's full
+integration suite on Linux desktop under xvfb. Sources are copied in, so host
+`.dart_tool/` and `build/` stay untouched; `/work` and the pub cache persist in
+named volumes between runs.
+
+```sh
+scripts/linux_container_test.sh          # everything
+scripts/linux_container_test.sh '§80'    # one integration group
+```
+
+It found the direct-C++ struct-return double free (§71) that macOS, iOS and
+Android never exercise, since those go through Swift and Kotlin.

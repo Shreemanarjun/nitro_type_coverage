@@ -4665,72 +4665,55 @@ final class _NitroTypeCoverageWebImpl extends NitroTypeCoverage {
   @override
   Stream<int> batchIntStream() {
     checkDisposed();
-    return NitroRuntime.openStream<List<int>>(
+    return NitroRuntime.openStream<int>(
       register: (port) => _m.call(
         'nitro_type_coverage_register_batch_int_stream_stream',
         [jsI64(_instanceId), jsI64(port)],
       ),
-      unpack: (message) =>
-          (message as List).map((e) => (e as num).toInt()).toList(),
+      unpack: (message) => (message as num).toInt(),
       release: (port) => _m.call(
         'nitro_type_coverage_release_batch_int_stream_stream',
         [jsI64(port)],
       ),
       backpressure: Backpressure.batch,
       debugLabel: 'batchIntStream',
-    ).asyncExpand((batch) {
-      final count = batch[0];
-      return Stream.fromIterable([for (var i = 1; i <= count; i++) batch[i]]);
-    });
+    );
   }
 
   @override
   Stream<double> batchDoubleStream() {
     checkDisposed();
-    return NitroRuntime.openStream<List<int>>(
+    return NitroRuntime.openStream<double>(
       register: (port) => _m.call(
         'nitro_type_coverage_register_batch_double_stream_stream',
         [jsI64(_instanceId), jsI64(port)],
       ),
-      unpack: (message) =>
-          (message as List).map((e) => (e as num).toInt()).toList(),
+      unpack: (message) => (message as num).toDouble(),
       release: (port) => _m.call(
         'nitro_type_coverage_release_batch_double_stream_stream',
         [jsI64(port)],
       ),
       backpressure: Backpressure.batch,
       debugLabel: 'batchDoubleStream',
-    ).asyncExpand((batch) {
-      final count = batch[0];
-      return Stream.fromIterable([
-        for (var i = 1; i <= count; i++)
-          Int64List.fromList([batch[i]]).buffer.asFloat64List()[0],
-      ]);
-    });
+    );
   }
 
   @override
   Stream<bool> batchBoolStream() {
     checkDisposed();
-    return NitroRuntime.openStream<List<int>>(
+    return NitroRuntime.openStream<bool>(
       register: (port) => _m.call(
         'nitro_type_coverage_register_batch_bool_stream_stream',
         [jsI64(_instanceId), jsI64(port)],
       ),
-      unpack: (message) =>
-          (message as List).map((e) => (e as num).toInt()).toList(),
+      unpack: (message) => (message as num).toInt() != 0,
       release: (port) => _m.call(
         'nitro_type_coverage_release_batch_bool_stream_stream',
         [jsI64(port)],
       ),
       backpressure: Backpressure.batch,
       debugLabel: 'batchBoolStream',
-    ).asyncExpand((batch) {
-      final count = batch[0];
-      return Stream.fromIterable([
-        for (var i = 1; i <= count; i++) batch[i] != 0,
-      ]);
-    });
+    );
   }
 
   @override
