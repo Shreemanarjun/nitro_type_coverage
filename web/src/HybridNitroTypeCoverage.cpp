@@ -464,6 +464,7 @@ public:
 
     // ── Async ────────────────────────────────────────────────────────────────
     int64_t asyncInt(int64_t value) override { return value; }
+    int64_t asyncIntOr(int64_t value) override { return value; }
     double asyncDouble(double value) override { return value; }
     bool asyncBool(bool value) override { return value; }
     std::string asyncString(const std::string& value) override { return value; }
@@ -680,6 +681,9 @@ public:
     void nativeAsyncString(const std::string& value, NitroError*, int64_t dartPort) override {
         nitro_run_detached([value, dartPort]() { nitro_post_string(dartPort, value); });
     }
+    void nativeAsyncStringOr(const std::string& value, NitroError*, int64_t dartPort) override {
+        nitro_run_detached([value, dartPort]() { nitro_post_string(dartPort, value); });
+    }
 
     // ── Stream<String> ───────────────────────────────────────────────────────
     void configureStringStream(NitroCppBuffer values) override {
@@ -790,6 +794,7 @@ public:
     int64_t addIntsFast(int64_t a, int64_t b) override { return a + b; }
     void touchFast() override {}
     int64_t addIntsInline(int64_t a, int64_t b) override { return a + b; }
+    int64_t addIntsInlineOr(int64_t a, int64_t b) override { return a + b; }
     double scaleFast(double v, double factor) override { return v * factor; }
     bool notFast(bool v) override { return !v; }
     TcStatus nextStatusFast(TcStatus s) override { return static_cast<TcStatus>((static_cast<int64_t>(s) + 1) % 3); }
