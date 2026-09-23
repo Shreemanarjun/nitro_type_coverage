@@ -786,10 +786,12 @@ final class _NitroTypeCoverageWebImpl extends NitroTypeCoverage {
     } finally {
       keyArena.releaseAll();
     }
-    NitroRuntime.logLifecycle(
-      'NitroTypeCoverage',
-      'web instance created (key=$_key, id=$_instanceId)',
-    );
+    if (NitroConfig.instance.effectiveLogLevel == NitroLogLevel.verbose) {
+      NitroRuntime.logLifecycle(
+        'NitroTypeCoverage',
+        'web instance created (key=$_key, id=$_instanceId)',
+      );
+    }
   }
 
   final String _key;
@@ -816,10 +818,12 @@ final class _NitroTypeCoverageWebImpl extends NitroTypeCoverage {
     _err.free();
     _instances.remove(_key);
     NitroRuntime.releaseLib(_libName);
-    NitroRuntime.logLifecycle(
-      'NitroTypeCoverage',
-      'web instance disposed (key=$_key)',
-    );
+    if (NitroConfig.instance.effectiveLogLevel == NitroLogLevel.verbose) {
+      NitroRuntime.logLifecycle(
+        'NitroTypeCoverage',
+        'web instance disposed (key=$_key)',
+      );
+    }
     // Last: flips isDisposed and runs onDestroy(), matching the FFI impl.
     super.dispose();
   }

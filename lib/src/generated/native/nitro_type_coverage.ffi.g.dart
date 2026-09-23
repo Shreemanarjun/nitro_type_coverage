@@ -629,7 +629,10 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
 
   _NitroTypeCoverageImpl._init(this._instanceKey)
     : _dylib = _loadSupportedLibrary() {
-    final initSw = Stopwatch()..start();
+    final initSw =
+        NitroConfig.instance.effectiveLogLevel == NitroLogLevel.verbose
+        ? (Stopwatch()..start())
+        : null;
     assert(
       sizeOf<IntPtr>() >= 4,
       'nitro_type_coverage: unsupported pointer width ${sizeOf<IntPtr>()}B',
@@ -692,11 +695,12 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
       err: _nitroErr,
       destroy: _destroyInstancePtr,
     ), detach: this);
-    initSw.stop();
-    NitroRuntime.logLifecycle(
-      'init(nitro_type_coverage)',
-      'initialized in ${initSw.elapsedMicroseconds} µs (instanceId=$_instanceId)',
-    );
+    if (initSw != null) {
+      NitroRuntime.logLifecycle(
+        'init(nitro_type_coverage)',
+        'initialized in ${initSw.elapsedMicroseconds} µs (instanceId=$_instanceId)',
+      );
+    }
   }
 
   late final int Function(Pointer<Utf8>) _createInstancePtr = _dylib
@@ -2953,10 +2957,12 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
   void dispose() {
     if (isDisposed) return;
     _instanceFinalizer.detach(this);
-    NitroRuntime.logLifecycle(
-      'dispose(nitro_type_coverage)',
-      'disposing (instanceId=$_instanceId)',
-    );
+    if (NitroConfig.instance.effectiveLogLevel == NitroLogLevel.verbose) {
+      NitroRuntime.logLifecycle(
+        'dispose(nitro_type_coverage)',
+        'disposing (instanceId=$_instanceId)',
+      );
+    }
     _destroyInstancePtr(_instanceId);
     NitroRuntime.releaseLib('nitro_type_coverage');
     _instances.remove(_instanceKey);
