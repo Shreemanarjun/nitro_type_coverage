@@ -360,6 +360,33 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     public func nullableBytesLength(bytes: Data?) -> Int64 { bytes.map { Int64($0.count) } ?? -1 }
     public func nullableFloatsSum(values: [Float]?) -> Double { values.map { Double($0.reduce(0, +)) } ?? -1 }
     public func nullableBytesLengthAsync(bytes: Data?) async throws -> Int64 { bytes.map { Int64($0.count) } ?? -1 }
+
+    // ── §84 coverage gaps ──
+    private let _bytesFramesSubject = PassthroughSubject<Data, Never>()
+    private let _floatFramesSubject = PassthroughSubject<[Float], Never>()
+    private let _dateFramesSubject = PassthroughSubject<Date, Never>()
+    public var bytesFrames: AnyPublisher<Data, Never> { _bytesFramesSubject.eraseToAnyPublisher() }
+    public var floatFrames: AnyPublisher<[Float], Never> { _floatFramesSubject.eraseToAnyPublisher() }
+    public var dateFrames: AnyPublisher<Date, Never> { _dateFramesSubject.eraseToAnyPublisher() }
+    public func emitTypedFrames(count: Int64) {
+        for i in 0..<count {
+            _bytesFramesSubject.send(Data(repeating: UInt8(truncatingIfNeeded: i), count: Int(i % 5)))
+            _floatFramesSubject.send([Float(i), Float(i) + 0.5])
+            _dateFramesSubject.send(Date(timeIntervalSince1970: Double(i)))
+        }
+    }
+    public func sumU16(values: [UInt16]) -> Int64 { values.reduce(0) { $0 + Int64($1) } }
+    public func sumU32(values: [UInt32]) -> Int64 { values.reduce(0) { $0 + Int64($1) } }
+    // Uint64List arrives as [Int64] with the same bits.
+    public func sumU64(values: [Int64]) -> Int64 { Int64(bitPattern: values.reduce(UInt64(0)) { $0 &+ UInt64(bitPattern: $1) }) }
+    public func nullableI16Length(values: [Int16]?) -> Int64 { values.map { Int64($0.count) } ?? -1 }
+    public func nullableF64Length(values: [Double]?) -> Int64 { values.map { Int64($0.count) } ?? -1 }
+    public func nullableU64Length(values: [Int64]?) -> Int64 { values.map { Int64($0.count) } ?? -1 }
+    public func asyncDateTime(value: Date) async throws -> Date { value }
+    public func nativeAsyncDateTime(value: Date) async throws -> Date { value }
+    public func nativeAsyncNullableString(value: String?) async throws -> String? { value }
+    public var ratio: Double = 0
+    public var label: String? = nil
     public func scaleFast(v: Double, factor: Double) -> Double { v * factor }
     public func notFast(v: Bool) -> Bool { !v }
     public func nextStatusFast(s: TcStatus) -> TcStatus { TcStatus(rawValue: (s.rawValue + 1) % 3)! }

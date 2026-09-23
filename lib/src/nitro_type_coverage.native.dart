@@ -38,7 +38,10 @@ typedef float = double;
 @NitroModule(
   ios: NativeImpl.swift,
   android: NativeImpl.kotlin,
-  macos: NativeImpl.swift,
+  // macOS runs the shared C++ implementation (src/HybridNitroTypeCoverage.cpp)
+  // so the Apple C++ bridge — the path NativeImpl.cpp plugins take on
+  // iOS/macOS — is exercised by the whole suite; iOS keeps covering Swift.
+  macos: NativeImpl.cpp,
   // Explicit per-platform markers, not the generic NativeImpl.cpp shorthand.
   // Windows and Linux each have their own windows/src/HybridNitroTypeCoverage.cpp
   // and linux/src/HybridNitroTypeCoverage.cpp — this is nitrogen link's
@@ -509,6 +512,48 @@ abstract class NitroTypeCoverage extends HybridObject {
 
   @nitroAsync
   Future<int> nullableBytesLengthAsync(Uint8List? bytes);
+
+  // ── §84: coverage gaps ─────────────────────────────────────────────────────
+  // Typed-data and DateTime stream items: emitTypedFrames(n) emits n frames on
+  // each — bytes i = [i, i, …] (length i % 5), floats i = [i, i + 0.5],
+  // dates i = epoch ms i * 1000.
+  @NitroStream(backpressure: Backpressure.dropLatest)
+  Stream<Uint8List> get bytesFrames;
+
+  @NitroStream(backpressure: Backpressure.dropLatest)
+  Stream<Float32List> get floatFrames;
+
+  @NitroStream(backpressure: Backpressure.dropLatest)
+  Stream<DateTime> get dateFrames;
+
+  void emitTypedFrames(int count);
+
+  // Unsigned typed-data parameters (sum of elements; uint64 wraps).
+  int sumU16(Uint16List values);
+  int sumU32(Uint32List values);
+  int sumU64(Uint64List values);
+
+  // Remaining nullable typed-data parameters: -1 for null, else the length.
+  int nullableI16Length(Int16List? values);
+  int nullableF64Length(Float64List? values);
+  int nullableU64Length(Uint64List? values);
+
+  // DateTime / String? async results.
+  @nitroAsync
+  Future<DateTime> asyncDateTime(DateTime value);
+
+  @nitroNativeAsync
+  Future<DateTime> nativeAsyncDateTime(DateTime value);
+
+  @nitroNativeAsync
+  Future<String?> nativeAsyncNullableString(String? value);
+
+  // double and String? properties.
+  double get ratio;
+  set ratio(double value);
+
+  String? get label;
+  set label(String? value);
   double scaleFast(double v, double factor);
   bool notFast(bool v);
   TcStatus nextStatusFast(TcStatus s);

@@ -1,16 +1,8 @@
 // HybridNitroTypeCoverage — NativeImpl.cpp implementation.
 //
-// SUPERSEDED / no longer compiled for this plugin: windows/CMakeLists.txt
-// and linux/CMakeLists.txt now each set their own NITRO_IMPL_SRC_nitro_type_coverage
-// (see src/CMakeLists.txt's `if(DEFINED NITRO_IMPL_SRC_nitro_type_coverage)`
-// guard), pointing at windows/src/HybridNitroTypeCoverage.cpp and
-// linux/src/HybridNitroTypeCoverage.cpp respectively — both are byte-identical
-// copies of this file's content, now independently editable per platform.
-// This file only remains as the `else()` fallback src/CMakeLists.txt would
-// use if a future plugin config only targets ONE of Windows/Linux as C++
-// (in which case that platform goes back to sharing this file, unchanged
-// from before this split existed) — kept in place rather than deleted so
-// its git history stays attached to one continuous file.
+// Compiled for macOS through the forwarders nitrogen link writes in
+// macos/Classes and the SPM NitroTypeCoverageCpp target (Apple C++ path). Windows and
+// Linux build their own copies in windows/src and linux/src.
 //
 // Complete echo implementation mirroring android/.../NitroTypeCoverageImpl.kt
 // and ios/.../NitroTypeCoverageImpl.swift — every method returns exactly what
@@ -800,6 +792,34 @@ public:
         return s;
     }
     int64_t nullableBytesLengthAsync(const uint8_t* bytes, size_t bytes_length) override { return bytes ? (int64_t)bytes_length : -1; }
+
+    // ── §84 coverage gaps ──
+    void emitTypedFrames(int64_t count) override {
+        for (int64_t i = 0; i < count; i++) {
+            std::vector<uint8_t> b((size_t)(i % 5), (uint8_t)i);
+            emit_bytesFrames(NitroCppBuffer{b.data(), b.size()});
+            const float f[2] = {(float)i, (float)i + 0.5f};
+            emit_floatFrames(NitroCppBuffer{(const uint8_t*)f, sizeof(f)});
+            emit_dateFrames(i * 1000);
+        }
+    }
+    int64_t sumU16(const uint16_t* v, size_t n) override { int64_t s = 0; for (size_t i = 0; i < n; i++) s += v[i]; return s; }
+    int64_t sumU32(const uint32_t* v, size_t n) override { int64_t s = 0; for (size_t i = 0; i < n; i++) s += v[i]; return s; }
+    int64_t sumU64(const uint64_t* v, size_t n) override { uint64_t s = 0; for (size_t i = 0; i < n; i++) s += v[i]; return (int64_t)s; }
+    int64_t nullableI16Length(const int16_t* v, size_t n) override { return v ? (int64_t)n : -1; }
+    int64_t nullableF64Length(const double* v, size_t n) override { return v ? (int64_t)n : -1; }
+    int64_t nullableU64Length(const uint64_t* v, size_t n) override { return v ? (int64_t)n : -1; }
+    int64_t asyncDateTime(int64_t value) override { return value; }
+    void nativeAsyncDateTime(int64_t value, NitroError*, int64_t dartPort) override { nitro_post_int64(dartPort, value); }
+    void nativeAsyncNullableString(const std::optional<std::string>& value, NitroError*, int64_t dartPort) override {
+        if (value) nitro_post_string(dartPort, *value); else nitro_post_null(dartPort);
+    }
+    double _ratio84 = 0.0;
+    std::optional<std::string> _label84;
+    double get_ratio() const override { return _ratio84; }
+    void set_ratio(double value) override { _ratio84 = value; }
+    std::optional<std::string> get_label() const override { return _label84; }
+    void set_label(const std::optional<std::string>& value) override { _label84 = value; }
     double scaleFast(double v, double factor) override { return v * factor; }
     bool notFast(bool v) override { return !v; }
     TcStatus nextStatusFast(TcStatus s) override { return static_cast<TcStatus>((static_cast<int64_t>(s) + 1) % 3); }

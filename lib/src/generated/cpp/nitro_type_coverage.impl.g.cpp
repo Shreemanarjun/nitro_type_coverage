@@ -841,6 +841,71 @@ public:
         // return 0;
     }
 
+    void emitTypedFrames(int64_t count) override {
+        // TODO: implement emitTypedFrames
+        throw std::runtime_error("Not implemented: emitTypedFrames");
+    }
+
+    int64_t sumU16(const uint16_t* values, size_t values_length) override {
+        // TODO: implement sumU16
+        throw std::runtime_error("Not implemented: sumU16");
+        // return 0;
+    }
+
+    int64_t sumU32(const uint32_t* values, size_t values_length) override {
+        // TODO: implement sumU32
+        throw std::runtime_error("Not implemented: sumU32");
+        // return 0;
+    }
+
+    int64_t sumU64(const uint64_t* values, size_t values_length) override {
+        // TODO: implement sumU64
+        throw std::runtime_error("Not implemented: sumU64");
+        // return 0;
+    }
+
+    int64_t nullableI16Length(const int16_t* values, size_t values_length) override {
+        // TODO: implement nullableI16Length
+        throw std::runtime_error("Not implemented: nullableI16Length");
+        // return 0;
+    }
+
+    int64_t nullableF64Length(const double* values, size_t values_length) override {
+        // TODO: implement nullableF64Length
+        throw std::runtime_error("Not implemented: nullableF64Length");
+        // return 0;
+    }
+
+    int64_t nullableU64Length(const uint64_t* values, size_t values_length) override {
+        // TODO: implement nullableU64Length
+        throw std::runtime_error("Not implemented: nullableU64Length");
+        // return 0;
+    }
+
+    int64_t asyncDateTime(int64_t value) override {
+        // TODO: implement asyncDateTime
+        throw std::runtime_error("Not implemented: asyncDateTime");
+        // return 0;
+    }
+
+    void nativeAsyncDateTime(int64_t value, NitroError* _nitro_err, int64_t dartPort) override {
+        // TODO: on error, populate _nitro_err (hasError/name/message via strdup) before posting.
+        // TODO: post result via Dart_PostCObject_DL(dartPort, ...)
+        // Nullable result? Post EITHER Dart_CObject_kNull OR kInt64 with
+        // value 0 — both decode to Dart null. Non-nullable results must
+        // always post a real encoded value.
+        throw std::runtime_error("Not implemented: nativeAsyncDateTime");
+    }
+
+    void nativeAsyncNullableString(const std::optional<std::string>& value, NitroError* _nitro_err, int64_t dartPort) override {
+        // TODO: on error, populate _nitro_err (hasError/name/message via strdup) before posting.
+        // TODO: post result via Dart_PostCObject_DL(dartPort, ...)
+        // Nullable result? Post EITHER Dart_CObject_kNull OR kInt64 with
+        // value 0 — both decode to Dart null. Non-nullable results must
+        // always post a real encoded value.
+        throw std::runtime_error("Not implemented: nativeAsyncNullableString");
+    }
+
     double scaleFast(double v, double factor) override {
         // TODO: implement scaleFast
         throw std::runtime_error("Not implemented: scaleFast");
@@ -1195,6 +1260,26 @@ public:
         throw std::runtime_error("Not implemented: set_optionalFlag");
     }
 
+    double get_ratio() const override {
+        // TODO: implement get_ratio
+        throw std::runtime_error("Not implemented: get_ratio");
+    }
+
+    void set_ratio(double value) override {
+        // TODO: implement set_ratio
+        throw std::runtime_error("Not implemented: set_ratio");
+    }
+
+    std::optional<std::string> get_label() const override {
+        // TODO: implement get_label
+        throw std::runtime_error("Not implemented: get_label");
+    }
+
+    void set_label(const std::optional<std::string>& value) override {
+        // TODO: implement set_label
+        throw std::runtime_error("Not implemented: set_label");
+    }
+
     NitroCppBuffer get_currentEvent() const override {
         // TODO: implement get_currentEvent
         throw std::runtime_error("Not implemented: get_currentEvent");
@@ -1234,6 +1319,9 @@ public:
     //   std::thread([this]{ emit_nullableIntStream(/* std::optional<int64_t> value */); }).detach();
     //   std::thread([this]{ emit_nullableDoubleStream(/* std::optional<double> value */); }).detach();
     //   std::thread([this]{ emit_nullableBoolStream(/* std::optional<bool> value */); }).detach();
+    //   std::thread([this]{ emit_bytesFrames(/* NitroCppBuffer value */); }).detach();
+    //   std::thread([this]{ emit_floatFrames(/* NitroCppBuffer value */); }).detach();
+    //   std::thread([this]{ emit_dateFrames(/* int64_t value */); }).detach();
 };
 
 // ── Registration ─────────────────────────────────────────────────────────────

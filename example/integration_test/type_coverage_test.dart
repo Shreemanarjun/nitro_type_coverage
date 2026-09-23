@@ -6950,7 +6950,9 @@ void main() {
       final expected = kIsWeb
           ? 'cpp-web'
           : switch (defaultTargetPlatform) {
-              TargetPlatform.iOS || TargetPlatform.macOS => 'swift',
+              TargetPlatform.iOS => 'swift',
+              // macOS runs the C++ implementation (src/), covering the Apple C++ path.
+              TargetPlatform.macOS => 'cpp',
               TargetPlatform.android => 'kotlin',
               TargetPlatform.linux => 'cpp-linux',
               TargetPlatform.windows => 'cpp-windows',
@@ -7470,6 +7472,76 @@ void main() {
       ]);
       await waitUntil(() => counts.every((c) => c == 3), reason: 'counts: $counts');
       await waitForIdle();
+    });
+  });
+
+  group('§84 coverage gaps', () {
+    test('typed-data and DateTime stream items arrive with the right element type', () async {
+      const n = 12;
+      final bytes = <Uint8List>[];
+      final floats = <Float32List>[];
+      final dates = <DateTime>[];
+      final done = Completer<void>();
+      void check() {
+        if (bytes.length == n && floats.length == n && dates.length == n && !done.isCompleted) done.complete();
+      }
+      final s1 = tc.bytesFrames.listen((v) { bytes.add(v); check(); });
+      final s2 = tc.floatFrames.listen((v) { floats.add(v); check(); });
+      final s3 = tc.dateFrames.listen((v) { dates.add(v); check(); });
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      tc.emitTypedFrames(n);
+      await done.future.timeout(const Duration(seconds: 5));
+      await s1.cancel();
+      await s2.cancel();
+      await s3.cancel();
+      for (var i = 0; i < n; i++) {
+        expect(bytes[i], isA<Uint8List>());
+        expect(bytes[i], List.filled(i % 5, i & 0xff), reason: 'bytes frame $i');
+        expect(floats[i], isA<Float32List>());
+        expect(floats[i].toList(), [i.toDouble(), i + 0.5], reason: 'float frame $i');
+        expect(dates[i].millisecondsSinceEpoch, i * 1000, reason: 'date frame $i');
+      }
+    });
+
+    test('unsigned typed-data parameters keep their bits', () {
+      expect(tc.sumU16(Uint16List.fromList([65535, 1, 40000])), 105536);
+      expect(tc.sumU32(Uint32List.fromList([4294967295, 1])), 4294967296);
+      // Uint64List is not available under dart2js.
+      if (!kIsWeb) expect(tc.sumU64(Uint64List.fromList([-1, 2])), 1, reason: 'uint64 wraps like C');
+    });
+
+    test('remaining nullable typed-data parameters', () {
+      expect(tc.nullableI16Length(null), -1);
+      expect(tc.nullableI16Length(Int16List(3)), 3);
+      expect(tc.nullableF64Length(null), -1);
+      expect(tc.nullableF64Length(Float64List(0)), 0);
+      expect(tc.nullableF64Length(Float64List(2)), 2);
+      if (!kIsWeb) {
+        expect(tc.nullableU64Length(null), -1);
+        expect(tc.nullableU64Length(Uint64List(4)), 4);
+      }
+    });
+
+    test('DateTime and String? async results', () async {
+      final t = DateTime.fromMillisecondsSinceEpoch(1700000000123);
+      expect((await tc.asyncDateTime(t)).millisecondsSinceEpoch, t.millisecondsSinceEpoch);
+      expect((await tc.nativeAsyncDateTime(t)).millisecondsSinceEpoch, t.millisecondsSinceEpoch);
+      expect(await tc.nativeAsyncNullableString(null), isNull);
+      expect(await tc.nativeAsyncNullableString('héllo 🚀'), 'héllo 🚀');
+      expect(await tc.nativeAsyncNullableString(''), '');
+    });
+
+    test('double and String? properties round-trip', () {
+      tc.ratio = 2.5;
+      expect(tc.ratio, 2.5);
+      tc.ratio = -0.125;
+      expect(tc.ratio, -0.125);
+      tc.label = null;
+      expect(tc.label, isNull);
+      tc.label = 'ñame';
+      expect(tc.label, 'ñame');
+      tc.label = '';
+      expect(tc.label, '');
     });
   });
 

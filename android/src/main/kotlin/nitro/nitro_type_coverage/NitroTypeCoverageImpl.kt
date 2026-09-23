@@ -398,6 +398,33 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     override fun nullableBytesLength(bytes: ByteArray?): Long = bytes?.size?.toLong() ?: -1L
     override fun nullableFloatsSum(values: FloatArray?): Double = values?.sum()?.toDouble() ?: -1.0
     override suspend fun nullableBytesLengthAsync(bytes: ByteArray?): Long = bytes?.size?.toLong() ?: -1L
+
+    // ── §84 coverage gaps ──
+    private val _bytesFramesCh = Channel<ByteArray>(Channel.UNLIMITED)
+    private val _floatFramesCh = Channel<FloatArray>(Channel.UNLIMITED)
+    private val _dateFramesCh = Channel<Long>(Channel.UNLIMITED)
+    override val bytesFrames: Flow<ByteArray> = _bytesFramesCh.receiveAsFlow()
+    override val floatFrames: Flow<FloatArray> = _floatFramesCh.receiveAsFlow()
+    override val dateFrames: Flow<Long> = _dateFramesCh.receiveAsFlow()
+    override fun emitTypedFrames(count: Long) {
+        for (i in 0 until count) {
+            _bytesFramesCh.trySend(ByteArray((i % 5).toInt()) { i.toByte() })
+            _floatFramesCh.trySend(floatArrayOf(i.toFloat(), i.toFloat() + 0.5f))
+            _dateFramesCh.trySend(i * 1000)
+        }
+    }
+    // JNI has no unsigned arrays: the bits arrive in signed arrays.
+    override fun sumU16(values: ShortArray): Long = values.sumOf { it.toUShort().toLong() }
+    override fun sumU32(values: IntArray): Long = values.sumOf { it.toUInt().toLong() }
+    override fun sumU64(values: LongArray): Long = values.fold(0L) { a, b -> a + b }
+    override fun nullableI16Length(values: ShortArray?): Long = values?.size?.toLong() ?: -1L
+    override fun nullableF64Length(values: DoubleArray?): Long = values?.size?.toLong() ?: -1L
+    override fun nullableU64Length(values: LongArray?): Long = values?.size?.toLong() ?: -1L
+    override suspend fun asyncDateTime(value: Long): Long = value
+    override suspend fun nativeAsyncDateTime(value: Long): Long = value
+    override suspend fun nativeAsyncNullableString(value: String?): String? = value
+    override var ratio: Double = 0.0
+    override var label: String? = null
     override fun scaleFast(v: Double, factor: Double): Double = v * factor
     override fun notFast(v: Boolean): Boolean = !v
     override fun nextStatusFast(s: TcStatus): TcStatus = TcStatus.values()[(s.ordinal + 1) % 3]
