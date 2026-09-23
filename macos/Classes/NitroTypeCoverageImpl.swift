@@ -357,6 +357,9 @@ public class NitroTypeCoverageImpl: NSObject, HybridNitroTypeCoverageProtocol {
     public func touchFast() {}
     public func addIntsInline(a: Int64, b: Int64) -> Int64 { a &+ b }
     public func addIntsInlineOr(a: Int64, b: Int64) -> Int64 { a &+ b }
+    public func nullableBytesLength(bytes: Data?) -> Int64 { bytes.map { Int64($0.count) } ?? -1 }
+    public func nullableFloatsSum(values: [Float]?) -> Double { values.map { Double($0.reduce(0, +)) } ?? -1 }
+    public func nullableBytesLengthAsync(bytes: Data?) async throws -> Int64 { bytes.map { Int64($0.count) } ?? -1 }
     public func scaleFast(v: Double, factor: Double) -> Double { v * factor }
     public func notFast(v: Bool) -> Bool { !v }
     public func nextStatusFast(s: TcStatus) -> TcStatus { TcStatus(rawValue: (s.rawValue + 1) % 3)! }

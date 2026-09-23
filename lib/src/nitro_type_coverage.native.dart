@@ -499,6 +499,16 @@ abstract class NitroTypeCoverage extends HybridObject {
 
   @nitroNativeAsync
   FutureOr<String> nativeAsyncStringOr(String value);
+
+  // ── §82: nullable typed-data parameters ───────────────────────────────────
+  // null arrives as null on every backend (-1 back); an empty list stays an
+  // empty list (0 back).
+  int nullableBytesLength(Uint8List? bytes);
+
+  double nullableFloatsSum(Float32List? values);
+
+  @nitroAsync
+  Future<int> nullableBytesLengthAsync(Uint8List? bytes);
   double scaleFast(double v, double factor);
   bool notFast(bool v);
   TcStatus nextStatusFast(TcStatus s);

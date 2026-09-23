@@ -793,6 +793,13 @@ public:
     void touchFast() override {}
     int64_t addIntsInline(int64_t a, int64_t b) override { return a + b; }
     int64_t addIntsInlineOr(int64_t a, int64_t b) override { return a + b; }
+    int64_t nullableBytesLength(const uint8_t* bytes, size_t bytes_length) override { return bytes ? (int64_t)bytes_length : -1; }
+    double nullableFloatsSum(const float* values, size_t values_length) override {
+        if (!values) return -1.0;
+        double s = 0; for (size_t i = 0; i < values_length; i++) s += values[i];
+        return s;
+    }
+    int64_t nullableBytesLengthAsync(const uint8_t* bytes, size_t bytes_length) override { return bytes ? (int64_t)bytes_length : -1; }
     double scaleFast(double v, double factor) override { return v * factor; }
     bool notFast(bool v) override { return !v; }
     TcStatus nextStatusFast(TcStatus s) override { return static_cast<TcStatus>((static_cast<int64_t>(s) + 1) % 3); }

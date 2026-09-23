@@ -2657,6 +2657,7 @@ void main() {
       tc.configureBatchStream(0, 500);
       await Future.delayed(const Duration(milliseconds: 20));
       await sub.cancel();
+      tc.configureBatchStream(0, 0); // drain leftovers (shared fixture channel)
       expect(true, isTrue, reason: 'Cancel during batch stream must not crash');
     });
   });
@@ -2773,6 +2774,9 @@ void main() {
       tc.configureBatchDoubleStream(List.generate(500, (i) => i.toDouble()));
       await Future.delayed(const Duration(milliseconds: 20));
       await sub.cancel();
+      // Drain what the cancelled subscription never took: the Kotlin fixture
+      // shares one channel per stream, so leftovers reach the next subscriber.
+      tc.configureBatchDoubleStream(const []);
       expect(true, isTrue);
     });
 
@@ -2781,6 +2785,9 @@ void main() {
       tc.configureBatchBoolStream(List.generate(500, (i) => i.isEven));
       await Future.delayed(const Duration(milliseconds: 20));
       await sub.cancel();
+      // Drain what the cancelled subscription never took: the Kotlin fixture
+      // shares one channel per stream, so leftovers reach the next subscriber.
+      tc.configureBatchBoolStream(const []);
       expect(true, isTrue);
     });
   });
@@ -2849,6 +2856,10 @@ void main() {
       t,
     ) async {
       const n = 50;
+      // Start from empty fixture channels: an earlier test's producer may have
+      // left values that would otherwise reach these subscribers.
+      tc.configureBatchStream(0, 0);
+      tc.configureBatchDoubleStream(const []);
       final intValues = <int>[];
       final dblValues = <double>[];
       final intDone = Completer<void>();
@@ -7459,6 +7470,70 @@ void main() {
       ]);
       await waitUntil(() => counts.every((c) => c == 3), reason: 'counts: $counts');
       await waitForIdle();
+    });
+  });
+
+  group('§83 map codec text edge cases', () {
+    // The map codec takes an ASCII fast path for keys and String values and
+    // falls back to UTF-8; every shape below must round-trip unchanged.
+    final strings = <String, String>{
+      'plain': 'ascii',
+      'clé': 'värde',
+      '中文键': '值',
+      'emoji 🚀': 'value 🎉👍🏽',
+      '': '',
+      'k': '',
+      'x' * 300: 'y' * 300,
+      'mixé ascii': 'ascii then ñ',
+    };
+
+    test('String map: non-ASCII, emoji, empty and long keys/values', () {
+      expect(tc.echoStringMap(strings), strings);
+    });
+
+    test('int / double / bool maps with non-ASCII keys', () {
+      final ints = {'naïve': 1, '日本': -9007199254740991, 'ok': 9007199254740991, '': 0};
+      expect(tc.echoIntMap(ints), ints);
+      final doubles = {'π': 3.141592653589793, 'e': 2.718281828459045, 'ünïcode': -0.5};
+      expect(tc.echoDoubleMap(doubles), doubles);
+      final bools = {'ja': true, 'nein': false, 'はい': true};
+      expect(tc.echoBoolMap(bools), bools);
+    });
+
+    test('nullable-value maps: nulls between non-ASCII entries', () {
+      final ns = <String, String?>{'ñ': null, '键': 'välue', 'a': null, 'b': '🚀'};
+      expect(tc.echoNullableStringMap(ns), ns);
+      final ni = <String, int?>{'ü': null, 'x': 7, '中': null};
+      expect(tc.echoNullableIntMap(ni), ni);
+      final nd = <String, double?>{'é': 1.5, 'z': null};
+      expect(tc.echoNullableDoubleMap(nd), nd);
+      final nb = <String, bool?>{'ø': true, 'q': null, 'r': false};
+      expect(tc.echoNullableBoolMap(nb), nb);
+    });
+
+    test('empty map and a 1000-entry mixed-script map round-trip', () {
+      // Maps carry no order guarantee: native backends rebuild them in
+      // unordered containers, so compare contents only.
+      expect(tc.echoIntMap({}), isEmpty);
+      final big = {for (var i = 0; i < 1000; i++) (i.isEven ? 'key_$i' : 'ключ_$i'): i * 31};
+      expect(tc.echoIntMap(big), big);
+    });
+  });
+
+  group('§82 nullable typed-data parameters', () {
+    test('null arrives as null, empty as empty, values intact', () {
+      expect(tc.nullableBytesLength(null), -1);
+      expect(tc.nullableBytesLength(Uint8List(0)), 0);
+      expect(tc.nullableBytesLength(Uint8List.fromList([1, 2, 3])), 3);
+      expect(tc.nullableFloatsSum(null), -1.0);
+      expect(tc.nullableFloatsSum(Float32List(0)), 0.0);
+      expect(tc.nullableFloatsSum(Float32List.fromList([1.5, 2.5, -1])), 3.0);
+    });
+
+    test('@nitroAsync (bridge dispatch copy) keeps null and empty apart', () async {
+      expect(await tc.nullableBytesLengthAsync(null), -1);
+      expect(await tc.nullableBytesLengthAsync(Uint8List(0)), 0);
+      expect(await tc.nullableBytesLengthAsync(Uint8List(1000)), 1000);
     });
   });
 

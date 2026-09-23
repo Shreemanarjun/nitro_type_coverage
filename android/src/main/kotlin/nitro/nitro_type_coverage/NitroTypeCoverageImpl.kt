@@ -395,6 +395,9 @@ class NitroTypeCoverageImpl : HybridNitroTypeCoverageSpec {
     override fun touchFast() {}
     override fun addIntsInline(a: Long, b: Long): Long = a + b
     override fun addIntsInlineOr(a: Long, b: Long): Long = a + b
+    override fun nullableBytesLength(bytes: ByteArray?): Long = bytes?.size?.toLong() ?: -1L
+    override fun nullableFloatsSum(values: FloatArray?): Double = values?.sum()?.toDouble() ?: -1.0
+    override suspend fun nullableBytesLengthAsync(bytes: ByteArray?): Long = bytes?.size?.toLong() ?: -1L
     override fun scaleFast(v: Double, factor: Double): Double = v * factor
     override fun notFast(v: Boolean): Boolean = !v
     override fun nextStatusFast(s: TcStatus): TcStatus = TcStatus.values()[(s.ordinal + 1) % 3]

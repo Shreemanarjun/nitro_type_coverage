@@ -823,6 +823,24 @@ public:
         throw std::runtime_error("Not implemented: nativeAsyncStringOr");
     }
 
+    int64_t nullableBytesLength(const uint8_t* bytes, size_t bytes_length) override {
+        // TODO: implement nullableBytesLength
+        throw std::runtime_error("Not implemented: nullableBytesLength");
+        // return 0;
+    }
+
+    double nullableFloatsSum(const float* values, size_t values_length) override {
+        // TODO: implement nullableFloatsSum
+        throw std::runtime_error("Not implemented: nullableFloatsSum");
+        // return 0.0;
+    }
+
+    int64_t nullableBytesLengthAsync(const uint8_t* bytes, size_t bytes_length) override {
+        // TODO: implement nullableBytesLengthAsync
+        throw std::runtime_error("Not implemented: nullableBytesLengthAsync");
+        // return 0;
+    }
+
     double scaleFast(double v, double factor) override {
         // TODO: implement scaleFast
         throw std::runtime_error("Not implemented: scaleFast");
