@@ -150,7 +150,7 @@ extension TcRichStructFfiExt on TcRichStructFfi {
 extension TcRichStructExt on TcRichStruct {
   Pointer<TcRichStructFfi> toNative(Arena arena) {
     final ptr = arena<TcRichStructFfi>();
-    ptr.ref.label = label.toNativeUtf8(allocator: arena);
+    ptr.ref.label = label.toNitroUtf8(allocator: arena);
     ptr.ref.bytes = bytes.toPointer(arena);
     ptr.ref.bytesLength = bytes.length;
     ptr.ref.origin = origin.toNative(arena);
@@ -676,7 +676,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     TcPointProxy._init(_dylib);
     TcOptScalarsProxy._init(_dylib);
     TcRichStructProxy._init(_dylib);
-    final _keyPtr = _instanceKey.toNativeUtf8(allocator: calloc);
+    final _keyPtr = _instanceKey.toNitroUtf8(allocator: calloc);
     try {
       _instanceId = _createInstancePtr(_keyPtr);
       if (_instanceId < 0) {
@@ -3002,7 +3002,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     final nc = NativeCallable<Pointer<Utf8> Function(Int64)>.isolateLocal((
       int arg0,
     ) {
-      return callback(arg0).toNativeUtf8(allocator: _nitroNativeAllocator);
+      return callback(arg0).toNitroUtf8(allocator: _nitroNativeAllocator);
     });
     final old = _nativeCallbackCache[key];
     _nativeCallbackCache[key] = nc;
@@ -3214,7 +3214,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
       return withArena((arena) {
         final res = _echoStringPtr(
           _instanceId,
-          value.toNativeUtf8(allocator: arena),
+          value.toNitroUtf8(allocator: arena),
           _nitroErr,
         );
         NitroRuntime.throwIfOutParamError(
@@ -3271,9 +3271,9 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
       return withArena((arena) {
         final res = _joinStringsPtr(
           _instanceId,
-          a.toNativeUtf8(allocator: arena),
-          b.toNativeUtf8(allocator: arena),
-          separator.toNativeUtf8(allocator: arena),
+          a.toNitroUtf8(allocator: arena),
+          b.toNitroUtf8(allocator: arena),
+          separator.toNitroUtf8(allocator: arena),
           _nitroErr,
         );
         NitroRuntime.throwIfOutParamError(
@@ -3415,7 +3415,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
       return withArena((arena) {
         final res = _echoNullableStringPtr(
           _instanceId,
-          value != null ? value.toNativeUtf8(allocator: arena) : nullptr,
+          value != null ? value.toNitroUtf8(allocator: arena) : nullptr,
           _nitroErr,
         );
         NitroRuntime.throwIfOutParamError(
@@ -4035,7 +4035,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
       return await NitroRuntime.openNativeAsync<String>(
         call: (port) => _asyncStringPtr(
           _instanceId,
-          value.toNativeUtf8(allocator: arena),
+          value.toNitroUtf8(allocator: arena),
           _nitroErr,
           port,
         ),
@@ -4195,7 +4195,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
       return await NitroRuntime.openNativeAsync<String?>(
         call: (port) => _asyncNullableStringPtr(
           _instanceId,
-          value != null ? value.toNativeUtf8(allocator: arena) : nullptr,
+          value != null ? value.toNitroUtf8(allocator: arena) : nullptr,
           _nitroErr,
           port,
         ),
@@ -5345,7 +5345,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
       return NitroRuntime.openNativeAsync<String>(
         call: (port) => _nativeAsyncStringPtr(
           _instanceId,
-          value.toNativeUtf8(allocator: arena),
+          value.toNitroUtf8(allocator: arena),
           _nitroErr,
           port,
         ),
@@ -5551,7 +5551,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
       return NitroRuntime.openNativeAsync<TcConfig>(
         call: (port) => _nativeAsyncPrintTextPtr(
           _instanceId,
-          text.toNativeUtf8(allocator: arena),
+          text.toNitroUtf8(allocator: arena),
           settings != null ? settings.toNative(arena) : nullptr,
           _nitroErr,
           port,
@@ -6257,7 +6257,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
       withArena((arena) {
         _throwNativePtr(
           _instanceId,
-          message.toNativeUtf8(allocator: arena),
+          message.toNitroUtf8(allocator: arena),
           _nitroErr,
         );
         NitroRuntime.throwIfOutParamError(
@@ -6280,7 +6280,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
       return await NitroRuntime.openNativeAsync<void>(
         call: (port) => _throwNativeAsyncPtr(
           _instanceId,
-          message.toNativeUtf8(allocator: arena),
+          message.toNitroUtf8(allocator: arena),
           _nitroErr,
           port,
         ),
@@ -6306,7 +6306,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
       return NitroRuntime.openNativeAsync<void>(
         call: (port) => _throwNativeNativeAsyncPtr(
           _instanceId,
-          message.toNativeUtf8(allocator: arena),
+          message.toNitroUtf8(allocator: arena),
           _nitroErr,
           port,
         ),
@@ -6431,7 +6431,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
       return NitroRuntime.openNativeAsync<String>(
         call: (port) => _nativeAsyncStringOrPtr(
           _instanceId,
-          value.toNativeUtf8(allocator: arena),
+          value.toNitroUtf8(allocator: arena),
           _nitroErr,
           port,
         ),
@@ -6734,7 +6734,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
       return NitroRuntime.openNativeAsync<String?>(
         call: (port) => _nativeAsyncNullableStringPtr(
           _instanceId,
-          value != null ? value.toNativeUtf8(allocator: arena) : nullptr,
+          value != null ? value.toNitroUtf8(allocator: arena) : nullptr,
           _nitroErr,
           port,
         ),
@@ -6795,7 +6795,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
       return withArena((arena) {
         final res = _strLenFastPtr(
           _instanceId,
-          s.toNativeUtf8(allocator: arena),
+          s.toNitroUtf8(allocator: arena),
           _nitroErr,
         );
         return res;
@@ -6944,7 +6944,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
       return withArena((arena) {
         final res = _validateLabelPtr(
           _instanceId,
-          label.toNativeUtf8(allocator: arena),
+          label.toNitroUtf8(allocator: arena),
           _nitroErr,
         );
         try {
@@ -7143,7 +7143,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     try {
       final res = await NitroRuntime.callAsync<Pointer<Uint8>>(
         _asyncValidateLabelPtr,
-        [_instanceId, label.toNativeUtf8(allocator: arena)],
+        [_instanceId, label.toNitroUtf8(allocator: arena)],
         getError: _getErrorNativePtr,
         clearError: _clearErrorNativePtr,
         methodName: 'asyncValidateLabel',
@@ -7736,11 +7736,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
     checkDisposed();
     NitroRuntime.callSync<void>(
       () => withArena((arena) {
-        _setTagPtr(
-          _instanceId,
-          value.toNativeUtf8(allocator: arena),
-          _nitroErr,
-        );
+        _setTagPtr(_instanceId, value.toNitroUtf8(allocator: arena), _nitroErr);
         NitroRuntime.throwIfOutParamError(_nitroErr, nativeFree: _nitroFree);
       }),
       methodName: 'set tag',
@@ -7890,7 +7886,7 @@ class _NitroTypeCoverageImpl extends NitroTypeCoverage {
       () => withArena((arena) {
         _setLabelPtr(
           _instanceId,
-          value != null ? value.toNativeUtf8(allocator: arena) : nullptr,
+          value != null ? value.toNitroUtf8(allocator: arena) : nullptr,
           _nitroErr,
         );
         NitroRuntime.throwIfOutParamError(_nitroErr, nativeFree: _nitroFree);
@@ -9050,7 +9046,7 @@ int activeNitroTypeCoverageBackgroundJobs() => _nitroBgActiveCount();
     final idOut = arena<Int64>();
     final lenOut = arena<Int64>();
     final ptr = _nitroBgTake(
-      entry.toNativeUtf8(allocator: arena),
+      entry.toNitroUtf8(allocator: arena),
       jobId,
       idOut,
       lenOut,
@@ -9076,8 +9072,8 @@ void _nitroBgFailJob(int jobId, String error, String stackTrace) =>
     using((arena) {
       _nitroBgFail(
         jobId,
-        error.toNativeUtf8(allocator: arena),
-        stackTrace.toNativeUtf8(allocator: arena),
+        error.toNitroUtf8(allocator: arena),
+        stackTrace.toNitroUtf8(allocator: arena),
       );
     });
 
@@ -9104,7 +9100,7 @@ int _nitroBgSubmitJob(
     }
     final started = arena<Int8>();
     final id = _nitroBgSubmit(
-      entry.toNativeUtf8(allocator: arena),
+      entry.toNitroUtf8(allocator: arena),
       buf,
       args.length,
       port,

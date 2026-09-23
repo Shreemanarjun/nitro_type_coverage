@@ -7475,6 +7475,45 @@ void main() {
     });
   });
 
+  // ══════════════════════════════════════════════════════════════════════════
+  // §85 string fast paths (nitro 0.7.7): Dart → native writes ASCII straight
+  // into native memory and falls back to the UTF-8 encoder at the first
+  // non-ASCII unit; native → Dart finds the NUL 8 bytes at a time. Every short
+  // length hits a different tail of the word scan; every position of a
+  // non-ASCII unit hits the fallback at a different point.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  group('§85 string fast paths', () {
+    test('ASCII round-trips at every length 0..72', () {
+      for (var len = 0; len <= 72; len++) {
+        final s = String.fromCharCodes([for (var i = 0; i < len; i++) 0x20 + (i * 7) % 0x5f]);
+        expect(tc.echoString(s), s, reason: 'len=$len');
+      }
+    });
+
+    test('a non-ASCII unit at every position falls back to UTF-8', () {
+      const base = 'abcdefghijklmnopqrstuvwx';
+      for (final odd in ['é', '€', '🚀', '\u0080']) {
+        for (var i = 0; i <= base.length; i++) {
+          final s = base.replaceRange(i, i, odd);
+          expect(tc.echoString(s), s, reason: '$odd at $i');
+        }
+      }
+    });
+
+    test('0x7f stays on the ASCII path; a leading BOM survives', () {
+      for (final s in ['\u007f', 'a\u007fb', '\uFEFF', '\uFEFFabc', 'abc\uFEFF']) {
+        expect(tc.echoString(s), s);
+      }
+    });
+
+    test('String? takes the same paths', () {
+      for (final s in [null, '', 'ascii only', 'ünïcödé', 'x' * 257]) {
+        expect(tc.echoNullableString(s), s);
+      }
+    });
+  });
+
   group('§84 coverage gaps', () {
     test('typed-data and DateTime stream items arrive with the right element type', () async {
       const n = 12;
